@@ -1,0 +1,325 @@
+/* Minimal CSS Reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  line-height: 1;
+}
+
+ol,
+ul {
+  list-style: none;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+/* Document style */
+
+@font-face {
+  font-family: 'Shinka Mono';
+  src: url('assets/fonts/ShinkaMono-Regular-Trial.woff2') format('woff2');
+  font-weight: 0 100;
+  font-display: swap;
+}
+
+:root {
+  --work-img-target-area: 8000;
+  --work-node-padding: 6px;
+}
+
+body {
+  margin: 0;
+  background: #ffffff;
+  font-family: 'Shinka Mono', monospace;
+  font-weight: 400; /* use this for wght */
+  font-variation-settings:
+    'wght' 0,
+    'srff' 100,
+    'ital' 0;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+svg {
+  width: 100vw;
+  height: 100vh;
+}
+
+foreignObject {
+  overflow: visible;
+}
+
+.node {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  background: #000000;
+  color: white;
+  font-size: 18px;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: normal;
+  cursor: grab;
+  width: max-content;
+  height: max-content;
+}
+
+.node-text {
+  text-align: center;
+}
+
+.node.main {
+  background: #fff;
+  color: #000;
+}
+
+.node.theory {
+  /* background: #fa5656; */
+  background: #fff;
+  color: #000;
+}
+
+.node.tool {
+  background: #66c2ff;
+}
+
+.node.sub {
+  /* background: #77d4a9; */
+  background: #fff;
+  color: #000;
+}
+
+.node.term {
+  background: #ffffff;
+  color: #000;
+}
+
+.node.library {
+  background: #555;
+}
+
+.node.work {
+  background: transparent;
+  /* border: 1px solid #555; */
+  padding: var(--work-node-padding);
+}
+
+.node.work.media-pending {
+  opacity: 1;
+  transform: none;
+}
+
+.node.work.media-ready {
+  opacity: 1;
+  transform: none;
+}
+
+/* Keep pending work images hidden until sizing is settled. */
+.node.work.media-pending img {
+  visibility: hidden;
+}
+
+.node.work.media-ready img {
+  visibility: visible;
+}
+
+/* Safari foreignObject fallback: avoid transform/opacity layer bugs inside FO content */
+body.is-safari .node.work.media-pending,
+body.is-safari .node.work.media-ready {
+  opacity: 1;
+  transform: none;
+}
+
+.node.work img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
+  cursor: pointer;
+}
+
+.work-modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 24px;
+  font-size: 32px;
+}
+
+.work-modal.is-open {
+  display: flex;
+}
+
+.work-modal-panel {
+  width: min(1060px, 70vw);
+  height: 80dvh;
+  display: flex;
+  gap: 24px;
+}
+
+.work-modal-image-container {
+  height: 100%;
+  width: 50%;
+  flex: 0 0 50%;
+}
+
+.work-modal-image-wrapper {
+  height: 100%;
+  width: 100%;
+}
+
+.work-modal-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: top;
+}
+
+.work-modal-meta {
+  color: #000;
+}
+
+.work-modal-meta span,
+.work-modal-meta a {
+  background: #fff;
+  display: inline-block;
+  width: fit-content;
+  height: fit-content;
+}
+
+.work-modal-row {
+  display: grid;
+  grid-template-columns: 95px 1fr;
+  gap: 44px;
+}
+
+.work-modal-line {
+  margin: 0 0 12px;
+}
+
+.work-modal-row a {
+  color: #000;
+  text-decoration: none;
+  /* text-decoration-thickness: 2px;
+  text-underline-offset: 2px; */
+}
+
+/* click to close where there is no content */
+.work-modal-panel,
+.work-modal-image-container img,
+.work-modal-meta {
+  pointer-events: none;
+}
+
+.work-modal-image,
+.work-modal-meta p,
+.work-modal-meta a,
+.work-modal-meta span {
+  pointer-events: auto;
+}
+
+.link {
+  stroke: #000;
+  stroke-width: 2px;
+}
+
+.link.selected {
+  stroke: #c40000;
+  stroke-width: 2px;
+  opacity: 1;
+}
+
+.link.added {
+  stroke: #0a8a00;
+  stroke-width: 2px;
+  opacity: 1;
+}
+
+.link.removed {
+  stroke-dasharray: 6 4;
+  opacity: 0.8;
+}
+
+.link-hit {
+  stroke: transparent;
+  stroke-width: 14px;
+  stroke-linecap: round;
+  pointer-events: stroke;
+}
+
+body.editing-mode {
+  background: #ffdddd;
+}
+
+.node.selected {
+  outline: 2px solid #c40000;
+  outline-offset: 2px;
+}
+
+/* Mobile breakpoint */
+@media (max-width: 768px) {
+  .work-modal {
+    font-size: 20px;
+  }
+
+  .work-modal-panel {
+    flex-direction: column;
+    width: 90vw;
+    height: auto;
+    max-height: 90dvh;
+    gap: 12px;
+  }
+
+  .work-modal-image-container {
+    width: 100%;
+    height: 40dvh;
+  }
+
+  .work-modal-row {
+    gap: 0;
+  }
+
+  .work-modal-line {
+    margin: 0 0 6px;
+  }
+
+  /*
+  .work-modal-meta {
+    width: 100%;
+    overflow-y: auto;
+  }
+
+  .work-modal-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  } */
+
+  .node {
+    font-size: 14px;
+    padding: 6px 10px;
+  }
+
+  svg {
+    width: 100vw;
+    height: 100vh;
+  }
+}
