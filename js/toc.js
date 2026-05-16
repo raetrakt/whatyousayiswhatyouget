@@ -1,6 +1,6 @@
-document.addEventListener('DOMContentLoaded', () => {
+const buildToc = () => {
   const contents = document.querySelector('.contents');
-  if (!contents) return;
+  if (!contents || contents.dataset.tocBuilt === 'true') return;
 
   const headings = Array.from(
     document.querySelectorAll(
@@ -54,4 +54,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     addEntry(heading, parts.join('.'), Math.max(0, level - 1));
   }
-});
+
+  contents.dataset.tocBuilt = 'true';
+};
+
+buildToc();
+document.addEventListener('DOMContentLoaded', buildToc);
+document.addEventListener('afterprint', buildToc);
+if (window.Paged) {
+  document.addEventListener('pagedjs:rendered', buildToc);
+}

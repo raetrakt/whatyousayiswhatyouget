@@ -1,6 +1,7 @@
 :root {
   --baseline: 1.7rem;
   --body-size: 1.5rem;
+  --code-size: calc(var(--body-size)*.9);
   --notes-size: 0.8rem;
   --notes-line-height: calc(var(--notes-size) * 1.1);
 }
@@ -115,6 +116,10 @@ p {
   margin-bottom: var(--baseline);
 }
 
+.subtle-heading{
+  margin-bottom: 0;
+}
+
 .contents p {
   margin-bottom: 0;
 }
@@ -139,4 +144,5 @@ sup a {
 
 .code {
   font-family: 'Server Mono', monospace;
+  font-size: var(--code-size);
 }
