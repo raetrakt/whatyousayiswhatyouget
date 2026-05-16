@@ -1,5 +1,5 @@
 const buildToc = () => {
-  const contents = document.querySelector('.contents');
+  const contents = document.querySelector('.table-of-contents');
   if (!contents || contents.dataset.tocBuilt === 'true') return;
 
   const headings = Array.from(

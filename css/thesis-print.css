@@ -1,5 +1,10 @@
+:root {
+  --body-size: 12pt;
+}
+
 @page {
   size: A4;
+  margin: 8mm;
   @bottom-right-corner {
     content: counter(page);
   }
@@ -10,19 +15,24 @@
     display: none;
   }
 
-  .contents {
-    display: block;
-  }
-
   .thesis-layout {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: block;
+    column-count: 2;
+    column-gap: 8mm;
+    column-fill: auto;
+    min-height: 100%;
+    height: auto;
+    overflow: visible;
   }
 
-  h1 {
-    font-size: var(--body-font-size);
+  .pagedjs_page_content .thesis-layout {
+    min-height: 100%;
+    height: auto;
+    overflow: visible;
   }
 
-  h2 {
+  /* .table-of-contents {
     break-before: page;
-  }
+    break-inside: avoid;
+  } */
 }
