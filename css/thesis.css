@@ -2,9 +2,7 @@
   --baseline: 1.7rem;
   --body-size: 1.5rem;
   --notes-size: 0.8rem;
-  --notes-line-height: calc(var(--notes-size) * 1.1)
-
-  /* font-feature-settings: "dlig" 1; */
+  --notes-line-height: calc(var(--notes-size) * 1.1);
 }
 
 @font-face {
@@ -24,20 +22,18 @@
   font-display: swap;
 }
 
-
-
 .thesis-layout {
   padding: 10px;
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-columns: repeat(9, minmax(0, 1fr));
   overflow: hidden;
   column-gap: 60px;
+  /* font-feature-settings: 'dlig' 1; */
 }
 
-@media screen and (min-width: 1600px) {
+@media screen and (max-width: 1600px) {
   .thesis-layout {
-    padding-left: calc((100vw - 1600px) / 2);
-    padding-right: calc((100vw - 1600px) / 2);
+    grid-template-columns: repeat(7, minmax(0, 1fr));
   }
 }
 
@@ -66,7 +62,6 @@ h4,
 h5,
 h6 {
   margin-top: 3rem;
-  font-size: 2rem;
 }
 
 .web-index {
@@ -136,8 +131,12 @@ sup a {
   text-decoration: none;
 }
 
-.footnotes p{
+.footnotes p, .contents p {
   font-family: 'Server Mono', monospace;
   font-size: var(--notes-size);
   line-height: var(--notes-line-height);
+}
+
+.code {
+  font-family: 'Server Mono', monospace;
 }

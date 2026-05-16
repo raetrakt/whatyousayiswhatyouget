@@ -3,6 +3,10 @@
 }
 
 @media print {
+  .thesis-layout {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   h1 {
     font-size: var(--body-font-size);
   }
