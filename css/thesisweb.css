@@ -17,9 +17,7 @@
 
 :root {
   --baseline: 1.7rem;
-
-  font-variant-ligatures: common-ligatures;
-    /* font-feature-settings: "dlig" 1; */
+  /* font-feature-settings: "dlig" 1; */
 }
 
 .thesis-layout {
@@ -28,6 +26,13 @@
   grid-template-columns: repeat(7, minmax(0, 1fr));
   overflow: hidden;
   column-gap: 60px;
+}
+
+@media screen and (min-width: 1600px) {
+  .thesis-layout {
+    padding-left: calc((100vw - 1600px) / 2);
+    padding-right: calc((100vw - 1600px) / 2);
+  }
 }
 
 a {
@@ -83,7 +88,7 @@ figure.ext {
   grid-column: 6;
 }
 
-figcaption{
+figcaption {
   font-family: 'Replica Mono', monospace;
   font-size: 0.8rem;
   line-height: 0.9rem;
