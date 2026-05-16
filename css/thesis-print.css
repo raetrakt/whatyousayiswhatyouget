@@ -1,0 +1,13 @@
+@page {
+  size: A4;
+}
+
+@media print {
+  h1 {
+    font-size: var(--body-font-size);
+  }
+
+  h2 {
+    break-before: page;
+  }
+}

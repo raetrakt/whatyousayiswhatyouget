@@ -1,13 +1,13 @@
+:root {
+  --work-img-target-area: 8000;
+  --work-node-padding: 6px;
+}
+
 @font-face {
   font-family: 'Shinka Mono';
   src: url('../assets/fonts/ShinkaMono-Regular-Trial.woff2') format('woff2');
   font-weight: 0 100;
   font-display: swap;
-}
-
-:root {
-  --work-img-target-area: 8000;
-  --work-node-padding: 6px;
 }
 
 body {
