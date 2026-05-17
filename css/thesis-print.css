@@ -1,5 +1,6 @@
 :root {
   --body-size: 12pt;
+  --notes-size: 8pt;
 }
 
 @page {
@@ -7,7 +8,7 @@
   margin-top: 8mm;
   margin-left: 8mm;
   margin-right: 8mm;
-  margin-bottom: 40mm;
+  margin-bottom: 50mm;
   @bottom-right-corner {
     content: counter(page);
     font-size: var(--body-size);
@@ -45,10 +46,53 @@
     text-box-trim: trim-both;
   }
 
+  .page-footnotes-active .pagedjs_margin-bottom,
+  .page-footnotes-active .pagedjs_margin-bottom .page-footnotes-host {
+    align-items: flex-start;
+    justify-content: flex-start;
+    text-align: left;
+  }
+
+  .page-footnotes-active .pagedjs_margin-bottom .page-footnotes-host {
+    grid-column: 1 / -1;
+    align-self: flex-start;
+    width: 100%;
+  }
+
+  .page-footnotes {
+    display: block;
+    width: 100%;
+    column-count: 2;
+    column-gap: 8mm;
+    text-align: left;
+  }
+
+  .page-footnotes p {
+    break-inside: avoid;
+  }
+
   .pagedjs_page_content .thesis-layout {
     min-height: 100%;
     height: auto;
     overflow: visible;
+  }
+
+  figure {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    -webkit-column-break-inside: avoid;
+  }
+
+  figure img,
+  figure figcaption {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    -webkit-column-break-inside: avoid;
+  }
+
+  figure figcaption {
+    break-before: avoid;
+    page-break-before: avoid;
   }
 
   h1,

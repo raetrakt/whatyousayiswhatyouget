@@ -32,7 +32,7 @@
   /* font-feature-settings: 'dlig' 1; */
 }
 
-p:not(.table-of-contents p, p.code, .subtle-heading),
+p:not(.table-of-contents p, p.code, .subtle-heading, .page-footnotes p),
 h3 {
   line-height: var(--body-line-height);
   margin-bottom: var(--baseline);
@@ -46,6 +46,8 @@ a {
 p {
   hyphens: auto;
   hyphenate-limit-chars: 9 3 4;
+  orphans: 3;
+  widows: 3;
   /* text-wrap: pretty; */
 }
 
@@ -85,7 +87,7 @@ figcaption,
 }
 
 #ftnt::after {
-  content: " ";
+  content: ' ';
 }
 
 .img-wrap img {
@@ -98,6 +100,35 @@ figcaption,
   font-family: 'Server Mono', monospace;
   font-size: var(--notes-size);
   line-height: var(--notes-line-height);
+}
+
+.thesis-layout .footnotes {
+  display: none;
+}
+
+.page-footnotes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25em;
+  width: 100%;
+  font-family: 'Server Mono', monospace;
+  font-size: var(--notes-size);
+  line-height: var(--notes-line-height);
+}
+
+.page-footnotes p {
+  margin: 0;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  margin-bottom: calc(var(--notes-size) * var(--notes-line-height));
+}
+
+
+.page-footnotes p * {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
 }
 
 .code {
@@ -134,6 +165,10 @@ figcaption,
     width: calc(100% / 7 * 2);
     z-index: 20;
     display: none;
+  }
+
+  .page-footnotes-active .pagedjs_margin-bottom .page-footnotes-host {
+    align-self: flex-start;
   }
 
   figure {
