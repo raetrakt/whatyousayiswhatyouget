@@ -26,12 +26,15 @@
   .thesis-layout {
     display: block;
     column-count: 2;
-    column-gap: 4mm;
+    column-gap: 8mm;
     column-fill: auto;
     min-height: 100%;
     height: auto;
     overflow: visible;
-    --ragging-width: 2.5rem;
+    /* Match an integer pixel line-height to avoid ragging drift. */
+    --body-line-height: 1.3125;
+    --baseline: 21px;
+    --ragging-width: 4.5rem;
   }
 
   .table-of-contents {
