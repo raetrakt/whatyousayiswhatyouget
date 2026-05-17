@@ -13,6 +13,7 @@ class t {
   sizeListener;
   containerBounds = new DOMRect(0, 0, 0, 0);
   updateCallback = () => {};
+  lastObservedBounds = null;
   _container;
   get container() {
     return this._container;
@@ -122,7 +123,20 @@ class t {
     };
   }
   sizeListenerCallback = (t) => {
-    for (let e of t) this.containerBounds = e.contentRect;
+    for (let e of t) {
+      const r = e.contentRect;
+      const n = this.lastObservedBounds;
+      if (
+        n &&
+        r.width === n.width &&
+        r.height > n.height
+      ) {
+        // Avoid feedback loops where the float increases text height indefinitely.
+        continue;
+      }
+      this.containerBounds = r;
+      this.lastObservedBounds = r;
+    }
     this.update();
   };
   update = () => {
