@@ -1,7 +1,5 @@
 (() => {
   let scheduled = false;
-  let pagesObserver = null;
-  let rootObserver = null;
 
   function resolveCssLengthPx(value, fallback) {
     const body = document.body;
@@ -63,47 +61,23 @@
         const blockHeight = block.getBoundingClientRect().height;
         const total = baseline * Math.ceil((blockHeight + baseline) / baseline);
         const pad = total - blockHeight;
-        block.style.marginBottom = `${pad.toFixed(3)}px`;
+        const nextMarginBottom = `${pad.toFixed(3)}px`;
+        if (block.style.marginBottom !== nextMarginBottom) {
+          block.style.marginBottom = nextMarginBottom;
+        }
       });
     });
   }
 
-  function ensurePagedObservers() {
-    const pagesRoot = document.querySelector('.pagedjs_pages');
-    if (pagesRoot && !pagesObserver) {
-      pagesObserver = new MutationObserver(scheduleSnap);
-      pagesObserver.observe(pagesRoot, { childList: true, subtree: true });
-      scheduleSnap();
-    }
-
-    if (!rootObserver) {
-      rootObserver = new MutationObserver(() => {
-        const nextRoot = document.querySelector('.pagedjs_pages');
-        if (!nextRoot) return;
-
-        if (pagesObserver) pagesObserver.disconnect();
-        pagesObserver = new MutationObserver(scheduleSnap);
-        pagesObserver.observe(nextRoot, { childList: true, subtree: true });
-        scheduleSnap();
-      });
-
-      rootObserver.observe(document.documentElement, { childList: true, subtree: true });
-    }
-  }
-
-  // Boot: run immediately, then keep up with Paged.js reflows/rebuilds.
-  ensurePagedObservers();
+  // Boot: run on initial load and on explicit Paged.js render lifecycle events.
   scheduleSnap();
   document.addEventListener('DOMContentLoaded', () => {
-    ensurePagedObservers();
     scheduleSnap();
   });
   window.addEventListener('load', () => {
-    ensurePagedObservers();
     scheduleSnap();
   });
   document.addEventListener('pagedjs:rendered', () => {
-    ensurePagedObservers();
     scheduleSnap();
   });
 })();

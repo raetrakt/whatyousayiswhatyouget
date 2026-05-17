@@ -14,6 +14,7 @@ class t {
   containerBounds = new DOMRect(0, 0, 0, 0);
   updateCallback = () => {};
   lastObservedBounds = null;
+  lastCssSignature = '';
   _container;
   get container() {
     return this._container;
@@ -123,9 +124,13 @@ class t {
     };
   }
   sizeListenerCallback = (t) => {
+    let hasMeaningfulChange = false;
     for (let e of t) {
       const r = e.contentRect;
       const n = this.lastObservedBounds;
+      if (n && r.width === n.width && r.height === n.height) {
+        continue;
+      }
       if (
         n &&
         r.width === n.width &&
@@ -136,12 +141,21 @@ class t {
       }
       this.containerBounds = r;
       this.lastObservedBounds = r;
+      hasMeaningfulChange = true;
     }
-    this.update();
+    if (hasMeaningfulChange) {
+      this.update();
+    }
   };
   update = () => {
     const t = this.cssProperties;
-    t && this.updateCallback(t);
+    if (!t) return;
+    const e = `${t.clipPath}|${t.shapeOutside}|${t.inlineSize}|${t.blockSize}|${t.float}`;
+    if (e === this.lastCssSignature) {
+      return;
+    }
+    this.lastCssSignature = e;
+    this.updateCallback(t);
   };
   attachSizeListener = () => {
     this.sizeListener.observe(this.container);
