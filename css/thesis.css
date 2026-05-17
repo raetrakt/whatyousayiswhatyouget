@@ -66,13 +66,17 @@ figure {
   width: 100%;
   max-width: 100%;
 }
-
 figcaption,
-figcaption i {
+figcaption *,
+.footnotes p * {
   font-family: 'Server Mono', monospace;
   font-size: var(--notes-size);
   line-height: var(--notes-line-height);
   /* margin-bottom: var(--baseline); */
+}
+
+.url {
+  word-break: break-word;
 }
 
 figcaption,
