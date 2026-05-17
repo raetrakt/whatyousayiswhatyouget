@@ -1,6 +1,6 @@
 :root {
   --body-size: 1.5rem;
-  --body-line-height: 1.3;
+  --body-line-height: 1.3125;
   --baseline: calc(var(--body-size) * var(--body-line-height));
   --code-size: calc(var(--body-size) * 0.9);
   --notes-size: 0.8rem;
