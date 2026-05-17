@@ -69,7 +69,7 @@ figcaption i {
   font-family: 'Server Mono', monospace;
   font-size: var(--notes-size);
   line-height: var(--notes-line-height);
-  margin-bottom: var(--baseline);
+  /* margin-bottom: var(--baseline); */
 }
 
 figcaption,
