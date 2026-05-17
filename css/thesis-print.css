@@ -9,11 +9,6 @@
   margin-left: 8mm;
   margin-right: 8mm;
   margin-bottom: 70mm;
-  @bottom-right-corner {
-    content: counter(page);
-    font-size: var(--body-size);
-    vertical-align: top;
-  }
 }
 
 @page singleColumn {
@@ -44,7 +39,7 @@
 
   .page-footnotes-host {
     padding-top: 4rem;
-}
+  }
 
   .page-footnotes-active .pagedjs_margin-bottom,
   .page-footnotes-active .pagedjs_margin-bottom .page-footnotes-host {
@@ -71,6 +66,16 @@
     break-inside: avoid;
   }
 
+  .pagedjs_margin-bottom::after {
+    content: counter(page);
+    position: absolute;
+    right: 8mm;
+    bottom: 8mm;
+    font-family: 'Server Mono', monospace;
+    font-size: var(--notes-size);
+    line-height: var(--notes-line-height);
+  }
+
   .pagedjs_page_content .thesis-layout {
     min-height: 100%;
     height: auto;
@@ -95,7 +100,11 @@
     page-break-before: avoid;
   }
 
-  .subtle-heading + p, h3 + .subtle-heading {
+  .subtle-heading + p,
+  h3 + .subtle-heading,
+  h4 + .subtle-heading,
+  h3 + p,
+  h4 + p {
     break-before: avoid-column;
     page-break-before: avoid;
   }
