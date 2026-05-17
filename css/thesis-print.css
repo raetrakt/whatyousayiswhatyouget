@@ -7,6 +7,15 @@
   margin: 8mm;
   @bottom-right-corner {
     content: counter(page);
+    font-size: var(--body-size);
+    vertical-align: top;
+  }
+}
+
+@page singleColumn {
+  .thesis-layout {
+    column-count: 1;
+
   }
 }
 
@@ -25,14 +34,22 @@
     overflow: visible;
   }
 
+  .table-of-contents {
+    page: singleColumn;
+  }
+
+  .pagedjs_margin-content {
+    text-box-trim: trim-both;
+  }
+
   .pagedjs_page_content .thesis-layout {
     min-height: 100%;
     height: auto;
     overflow: visible;
   }
 
-  /* .table-of-contents {
+  h1,
+  h2 {
     break-before: page;
-    break-inside: avoid;
-  } */
+  }
 }

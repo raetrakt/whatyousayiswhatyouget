@@ -1,7 +1,7 @@
 :root {
   --body-size: 1.5rem;
   --body-line-height: 1.3;
-  --baseline: var(--body-line-height);
+  --baseline: calc(var(--body-size) * var(--body-line-height));
   --code-size: calc(var(--body-size) * 0.9);
   --notes-size: 0.8rem;
   --notes-line-height: 1.1;
@@ -32,14 +32,18 @@
   /* font-feature-settings: 'dlig' 1; */
 }
 
-p {
-  line-height: var(--baseline);
+p:not(.table-of-contents p, p.code, .subtle-heading), h3 {
+  line-height: var(--body-line-height);
   margin-bottom: var(--baseline);
 }
 
 a {
   color: black;
   text-decoration: none;
+}
+
+p {
+  /* text-wrap: pretty; */
 }
 
 sup,
@@ -66,6 +70,11 @@ figcaption i {
   font-size: var(--notes-size);
   line-height: var(--notes-line-height);
   margin-bottom: var(--baseline);
+}
+
+figcaption,
+.footnotes p {
+  overflow-wrap: break-word;
 }
 
 .img-wrap img {
