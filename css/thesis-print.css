@@ -46,6 +46,10 @@
     text-box-trim: trim-both;
   }
 
+  .pagedjs_margin-bottom {
+    padding-top: var(--notes-baseline);
+  }
+
   .page-footnotes-active .pagedjs_margin-bottom,
   .page-footnotes-active .pagedjs_margin-bottom .page-footnotes-host {
     align-items: flex-start;

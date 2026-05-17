@@ -5,6 +5,8 @@
   --code-size: calc(var(--body-size) * 0.9);
   --notes-size: 0.8rem;
   --notes-line-height: 1.1;
+  --notes-baseline: calc(var(--notes-size) * var(--notes-line-height));
+
 }
 
 @font-face {
@@ -121,7 +123,7 @@ figcaption,
   font-family: inherit;
   font-size: inherit;
   line-height: inherit;
-  margin-bottom: calc(var(--notes-size) * var(--notes-line-height));
+  margin-bottom: var(--notes-baseline);
 }
 
 
