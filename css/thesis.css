@@ -48,8 +48,6 @@ a {
 p {
   hyphens: auto;
   hyphenate-limit-chars: 9 3 4;
-  /* orphans: 4;
-  widows: 4; */
   /* text-wrap: pretty; */
 }
 
