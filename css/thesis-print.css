@@ -37,11 +37,7 @@
     overflow: visible;
     --ragging-width: 1.5rem;
   }
-
-  .table-of-contents {
-    page: singleColumn;
-  }
-
+  
   .pagedjs_margin-content {
     text-box-trim: trim-both;
   }

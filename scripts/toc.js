@@ -1,3 +1,5 @@
+const disableNumbering = true;
+
 const buildToc = () => {
   const contents = document.querySelector('.table-of-contents');
   if (!contents || contents.dataset.tocBuilt === 'true') return;
@@ -52,7 +54,8 @@ const buildToc = () => {
       parts.push(counters[currentLevel]);
     }
 
-    addEntry(heading, parts.join('.'), Math.max(0, level - 1));
+    const num = disableNumbering ? '' : parts.join('.');
+    addEntry(heading, num, Math.max(0, level - 1));
   }
 
   contents.dataset.tocBuilt = 'true';
