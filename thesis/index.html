@@ -84,11 +84,12 @@
     <p>The reason for the increase in popularity of custom-coded tools is most probably linked to the availability and capabilities of large language models. The way they generate code significantly speeds up workflows of people who know programming and similarly lowers the entry barrier for those not familiar. In the design world, code used to have a certain mysticism to it. Few designers dared to venture from the more fuzzy, bendable rules of visual design to programming, which is ruled by cryptic programming languages and strict syntactical notation. While more present interactive media studies, which rely on code to make things interactive, visual communication degrees did not seem to have room to include the complex foundational knowledge required for coding in their curricula. </p>
 
     <p>As such, it is still rare to find people who are deeply proficient in both disciplines. LLMs considerably lower the entry barrier for designers to express their ideas in code. There are still numerous hurdles, such as dealing with coding environments and debugging, but the fact alone that LLMs are able to interpret an instruction like &ldquo;code a brush that draws with emojis&rdquo; to get an equivalent of these lines of code is a huge change:</p>
-
+    <div class="code-block">
     <p class="code">let emojis = [&quot;&#128514;&quot;,&quot;&#128293;&quot;,&quot;&#127752;&quot;,&quot;&#10024;&quot;,&quot;&#128056;&quot;,&quot;&#127881;&quot;,&quot;&#128128;&quot;];</p>
     <p class="code">function draw() {</p>
     <p class="code">    text(random(emojis), mouseX, mouseY);</p>
     <p class="code">}</p>
+    </div>
     <p>The natural language prompt could be in any language, phrased in multiple ways, and full of spelling mistakes. Removing almost any character in the code above will break it completely. Aside from its capabilities to get the syntax right, it is interesting to note that the AI seems to have some degree of understanding of the logic needed to structure computer programs. This becomes evident through the generation of much more complex code, where a single larger goal is broken down into individual functions that accomplish it. Moreover, since the model is not only trained on code but large amounts of text related to all sorts of topics, it is able to interpret vague or metaphoric language to some degree.</p>
 
     <p>In her bachelor&rsquo;s project &ldquo;TypoMorphosis,&rdquo;<sup><a href="#ftnt6" id="ftnt_ref">6</a></sup> Artemisia Astolfi explored experimental typesetting through InDesign scripting, despite having little to no coding experience beforehand. In one of her prompts, she asks for a script that takes a &ldquo;sculptural approach&rdquo; to typesetting. In an attempt to replicate her results by giving a similar prompt, ChatGPT replies that this would mean the script has to start treating text as spatial material, breaking it into units and transforming them in space. It proceeds to output a JSX script that loops through every letter and arranges them along a spiral. The script may be interesting for concrete poetry or as a decorative element, but it makes readability difficult. Alongside her metaphorical description, Astolfi specified that the sculptural appearance should be achieved through indentation. The bit of technical design language was crucial to receiving the result she had in mind. </p>
@@ -675,8 +676,8 @@
       <p><a href="#ftnt_ref74" id="ftnt">74</a><a>Geert Lovink, </a><a>Platform Brutality: Closing down Internet Toxicity</a><a> (Valiz, 2025).</a></p>
     </div>
   </div>
-  <script src="../js/toc.js"></script>
-  <script src="../js/paged-baseline.js"></script>
+  <script src="../scripts/toc.js"></script>
+  <script src="../scripts/paged-baseline.js"></script>
   <script src="../scripts/mechanicalragger.js"></script>
   <script src="../scripts/mechanicalragger-adapter.js"></script>
 </body>

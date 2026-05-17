@@ -43,25 +43,27 @@
     if (!baseline) return;
 
     pages.forEach((page) => {
-      const figures = page.querySelectorAll('figure');
-      if (!figures.length) return;
+      const blocks = page.querySelectorAll('figure, .code-block');
+      if (!blocks.length) return;
 
-      figures.forEach((figure) => {
-        const imgs = figure.querySelectorAll('img');
-        for (const img of imgs) {
-          if (img.complete) continue;
-          img.addEventListener('load', scheduleSnap, { once: true });
-          img.addEventListener('error', scheduleSnap, { once: true });
-          return;
+      blocks.forEach((block) => {
+        if (block.tagName === 'FIGURE') {
+          const imgs = block.querySelectorAll('img');
+          for (const img of imgs) {
+            if (img.complete) continue;
+            img.addEventListener('load', scheduleSnap, { once: true });
+            img.addEventListener('error', scheduleSnap, { once: true });
+            return;
+          }
         }
 
         // We want:
         // 1) margin-bottom >= baseline
-        // 2) (figureHeight + margin-bottom) is a multiple of baseline
-        const figureHeight = figure.getBoundingClientRect().height;
-        const total = baseline * Math.ceil((figureHeight + baseline) / baseline);
-        const pad = total - figureHeight;
-        figure.style.marginBottom = `${pad.toFixed(3)}px`;
+        // 2) (blockHeight + margin-bottom) is a multiple of baseline
+        const blockHeight = block.getBoundingClientRect().height;
+        const total = baseline * Math.ceil((blockHeight + baseline) / baseline);
+        const pad = total - blockHeight;
+        block.style.marginBottom = `${pad.toFixed(3)}px`;
       });
     });
   }
