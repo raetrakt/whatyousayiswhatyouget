@@ -32,7 +32,8 @@
   /* font-feature-settings: 'dlig' 1; */
 }
 
-p:not(.table-of-contents p, p.code, .subtle-heading), h3 {
+p:not(.table-of-contents p, p.code, .subtle-heading),
+h3 {
   line-height: var(--body-line-height);
   margin-bottom: var(--baseline);
 }
@@ -43,6 +44,8 @@ a {
 }
 
 p {
+  hyphens: auto;
+  hyphenate-limit-chars: 8 3 4;
   /* text-wrap: pretty; */
 }
 

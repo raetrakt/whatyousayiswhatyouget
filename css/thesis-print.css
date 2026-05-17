@@ -15,7 +15,6 @@
 @page singleColumn {
   .thesis-layout {
     column-count: 1;
-
   }
 }
 
@@ -27,11 +26,12 @@
   .thesis-layout {
     display: block;
     column-count: 2;
-    column-gap: 8mm;
+    column-gap: 4mm;
     column-fill: auto;
     min-height: 100%;
     height: auto;
     overflow: visible;
+    --ragging-width: 2.5rem;
   }
 
   .table-of-contents {
