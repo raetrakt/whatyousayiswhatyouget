@@ -37,10 +37,6 @@
     text-box-trim: trim-both;
   }
 
-  .page-footnotes-host {
-    padding-top: 4rem;
-  }
-
   .page-footnotes-active .pagedjs_margin-bottom,
   .page-footnotes-active .pagedjs_margin-bottom .page-footnotes-host {
     align-items: flex-start;
@@ -52,6 +48,10 @@
     grid-column: 1 / -1;
     align-self: flex-start;
     width: 100%;
+    height: 100%;
+    align-items: flex-end;
+    display: flex;
+    padding-bottom: 8mm;
   }
 
   .page-footnotes {
@@ -64,6 +64,9 @@
 
   .page-footnotes p {
     break-inside: avoid;
+  }
+  .page-footnotes p:last-child {
+    margin-bottom: 0;
   }
 
   .pagedjs_margin-bottom::after {
@@ -115,7 +118,7 @@
   }
 
   p {
-    orphans: 4;
-    widows: 4;
+    /* orphans: 4;
+    widows: 4; */
   }
 }

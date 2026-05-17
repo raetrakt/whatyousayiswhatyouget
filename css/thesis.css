@@ -6,7 +6,6 @@
   --notes-size: 0.8rem;
   --notes-line-height: 1.1;
   --notes-baseline: calc(var(--notes-size) * var(--notes-line-height));
-
 }
 
 @font-face {
@@ -35,6 +34,7 @@
 }
 
 p:not(.table-of-contents p, p.code, .subtle-heading, .page-footnotes p),
+h2,
 h3 {
   line-height: var(--body-line-height);
   margin-bottom: var(--baseline);
@@ -123,7 +123,6 @@ figcaption,
   line-height: inherit;
   margin-bottom: var(--notes-baseline);
 }
-
 
 .page-footnotes p * {
   font-family: inherit;
