@@ -1,5 +1,7 @@
 (() => {
   let scheduled = false;
+  let pageObserver = null;
+  let pageObserverStarted = false;
 
   function resolveCssLengthPx(value, fallback) {
     const body = document.body;
@@ -32,6 +34,54 @@
         snapFiguresToBaseline();
       });
     });
+  }
+
+  function startPageObserver() {
+    if (pageObserverStarted) return;
+
+    const root = document.body;
+    if (!root) return;
+
+    // Observe only child-list changes so our own style writes don't retrigger.
+    pageObserver = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        if (mutation.type !== 'childList') continue;
+
+        let shouldSnap = false;
+
+        for (const node of mutation.addedNodes) {
+          if (!(node instanceof Element)) continue;
+          if (
+            node.matches?.('.pagedjs_page, .pagedjs_pages') ||
+            node.querySelector?.('.pagedjs_page')
+          ) {
+            shouldSnap = true;
+            break;
+          }
+        }
+
+        if (!shouldSnap) {
+          for (const node of mutation.removedNodes) {
+            if (!(node instanceof Element)) continue;
+            if (
+              node.matches?.('.pagedjs_page, .pagedjs_pages') ||
+              node.querySelector?.('.pagedjs_page')
+            ) {
+              shouldSnap = true;
+              break;
+            }
+          }
+        }
+
+        if (shouldSnap) {
+          scheduleSnap();
+          return;
+        }
+      }
+    });
+
+    pageObserver.observe(root, { childList: true, subtree: true });
+    pageObserverStarted = true;
   }
 
   function snapFiguresToBaseline() {
@@ -70,14 +120,25 @@
   }
 
   // Boot: run on initial load and on explicit Paged.js render lifecycle events.
+  startPageObserver();
   scheduleSnap();
   document.addEventListener('DOMContentLoaded', () => {
+    startPageObserver();
     scheduleSnap();
   });
   window.addEventListener('load', () => {
+    startPageObserver();
+    scheduleSnap();
+  });
+  window.addEventListener('resize', () => {
     scheduleSnap();
   });
   document.addEventListener('pagedjs:rendered', () => {
     scheduleSnap();
   });
+  if (document.fonts?.ready) {
+    document.fonts.ready.then(() => {
+      scheduleSnap();
+    });
+  }
 })();
