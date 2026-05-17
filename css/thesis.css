@@ -45,8 +45,7 @@ a {
 
 p {
   hyphens: auto;
-  /* hyphenate-limit-chars: 8 3 4; */
-  hyphenate-limit-chars: 1 1 1;
+  hyphenate-limit-chars: 9 3 4;
   /* text-wrap: pretty; */
 }
 
