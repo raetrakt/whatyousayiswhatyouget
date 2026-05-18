@@ -1,6 +1,6 @@
 :root {
   --body-size: 12pt;
-  --notes-size: 7pt;
+  --notes-size: 9px;
 
   /* Print layout dimensions — mirrored from @page rules so JS can read them
      via getComputedStyle before Paged.js removes the original stylesheets. */
@@ -75,6 +75,15 @@
     height: auto;
     overflow: visible;
     --ragging-width: 1.5rem;
+  }
+
+  .table-of-contents {
+    break-inside: avoid;
+    overflow: visible;
+  }
+
+  .table-of-contents p{
+    break-inside: avoid;
   }
 
   .low-level-heading,

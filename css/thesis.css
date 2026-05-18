@@ -4,7 +4,7 @@
   --baseline: calc(var(--body-size) * var(--body-line-height));
   --code-size: calc(var(--body-size) * 0.9);
   --notes-size: 0.8rem;
-  --notes-line-height: 1.1;
+  --notes-line-height: calc(10/9);
   --notes-baseline: calc(var(--notes-size) * var(--notes-line-height));
 }
 
@@ -32,10 +32,11 @@
   line-height: var(--body-line-height);
   font-size: var(--body-size);
   /* font-feature-settings: 'dlig' 1; */
-  /* overflow: visible !important; */
+  overflow: visible !important;
 }
 
 p:not(.table-of-contents p, p.code, .subtle-heading, .page-footnotes p),
+h1,
 h2,
 h3 {
   line-height: var(--body-line-height);
