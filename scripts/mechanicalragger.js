@@ -27,8 +27,10 @@ class t {
     const t = this.ragAxis,
       e = window.getComputedStyle(this.container, null),
       i = Math.floor(parseFloat(e.getPropertyValue('line-height'))),
-      r = e.getPropertyValue('writing-mode'),
-      n = Math.floor(this.blockSize / i),
+      r = e.getPropertyValue('writing-mode');
+    if (!i || !Number.isFinite(i) || i <= 0) return '';
+    if (!this.blockSize || this.blockSize <= 0) return '';
+    const n = Math.floor(this.blockSize / i),
       s = Array(n).fill(null);
     let o = '0%',
       a = '100%';
@@ -148,6 +150,7 @@ class t {
     }
   };
   update = () => {
+    if (!this.blockSize || this.blockSize <= 0) return;
     const t = this.cssProperties;
     if (!t) return;
     const e = `${t.clipPath}|${t.shapeOutside}|${t.inlineSize}|${t.blockSize}|${t.float}`;

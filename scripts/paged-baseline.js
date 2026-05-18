@@ -3,7 +3,7 @@
   const SNAP_ATTR = 'data-baseline-snap-id';
   const CACHE_KEY_BASE = 'paged-baseline-cache-v1';
   const CACHE_META_KEY = 'paged-baseline-meta-v1';
-  const DEBUG = true;
+  const DEBUG = false;
   let snapCounter = 0;
   let hookInstalled = false;
 
