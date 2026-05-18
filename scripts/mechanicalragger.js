@@ -133,11 +133,7 @@ class t {
       if (n && r.width === n.width && r.height === n.height) {
         continue;
       }
-      if (
-        n &&
-        r.width === n.width &&
-        r.height > n.height
-      ) {
+      if (n && r.width === n.width && r.height > n.height) {
         // Avoid feedback loops where the float increases text height indefinitely.
         continue;
       }

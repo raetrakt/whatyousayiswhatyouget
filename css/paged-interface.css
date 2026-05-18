@@ -89,7 +89,7 @@
   .pagedjs_pagebox {
     --pagedjs-baseline: 21px;
     --pagedjs-baseline-position: 8mm;
-    --pagedjs-baseline-color: lightskyblue;
+    /* --pagedjs-baseline-color: lightskyblue; */
     background:
       linear-gradient(
         transparent 0%,

@@ -6,11 +6,11 @@
   // calling PagedConfig.before(), so getComputedStyle() returns empty strings there.
   const _rootStyles = getComputedStyle(document.documentElement);
   const _rawVars = {
-    pageWidth:    _rootStyles.getPropertyValue('--page-width').trim(),
-    marginLeft:   _rootStyles.getPropertyValue('--page-margin-left').trim(),
-    marginRight:  _rootStyles.getPropertyValue('--page-margin-right').trim(),
-    columnGap:    _rootStyles.getPropertyValue('--column-gap').trim(),
-    columnCount:  _rootStyles.getPropertyValue('--column-count').trim(),
+    pageWidth: _rootStyles.getPropertyValue('--page-width').trim(),
+    marginLeft: _rootStyles.getPropertyValue('--page-margin-left').trim(),
+    marginRight: _rootStyles.getPropertyValue('--page-margin-right').trim(),
+    columnGap: _rootStyles.getPropertyValue('--column-gap').trim(),
+    columnCount: _rootStyles.getPropertyValue('--column-count').trim(),
   };
 
   const instances = new WeakMap();
@@ -68,25 +68,32 @@
     if (!str) return 0;
     str = str.trim();
     const mm = str.match(/^([\d.]+)\s*mm$/);
-    if (mm) return parseFloat(mm[1]) * 96 / 25.4;
+    if (mm) return (parseFloat(mm[1]) * 96) / 25.4;
     const px = str.match(/^([\d.]+)\s*px$/);
     if (px) return parseFloat(px[1]);
     const pt = str.match(/^([\d.]+)\s*pt$/);
-    if (pt) return parseFloat(pt[1]) * 96 / 72;
+    if (pt) return (parseFloat(pt[1]) * 96) / 72;
     const rem = str.match(/^([\d.]+)\s*rem$/);
-    if (rem) return parseFloat(rem[1]) * parseFloat(getComputedStyle(document.documentElement).fontSize);
+    if (rem)
+      return parseFloat(rem[1]) * parseFloat(getComputedStyle(document.documentElement).fontSize);
     return 0;
   }
 
   function resolveColumnWidthPx() {
-    const pageWidth    = parseLengthToPx(_rawVars.pageWidth);
-    const marginLeft   = parseLengthToPx(_rawVars.marginLeft);
-    const marginRight  = parseLengthToPx(_rawVars.marginRight);
-    const columnGap    = parseLengthToPx(_rawVars.columnGap);
-    const columnCount  = parseFloat(_rawVars.columnCount) || 2;
+    const pageWidth = parseLengthToPx(_rawVars.pageWidth);
+    const marginLeft = parseLengthToPx(_rawVars.marginLeft);
+    const marginRight = parseLengthToPx(_rawVars.marginRight);
+    const columnGap = parseLengthToPx(_rawVars.columnGap);
+    const columnCount = parseFloat(_rawVars.columnCount) || 2;
 
     console.info('[ragger] raw vars', _rawVars);
-    console.info('[ragger] resolved px', { pageWidth, marginLeft, marginRight, columnGap, columnCount });
+    console.info('[ragger] resolved px', {
+      pageWidth,
+      marginLeft,
+      marginRight,
+      columnGap,
+      columnCount,
+    });
 
     if (!pageWidth) return 0;
     return (pageWidth - marginLeft - marginRight - columnGap * (columnCount - 1)) / columnCount;
@@ -140,7 +147,9 @@
   // Apply ragger to source DOM paragraphs inside an offscreen column-width
   // container so floats are computed at the correct print width before Paged
   // paginates. This avoids post-render height changes that cause overset.
-  async function applyMechanicalRaggingPrePaged(selector = '.mechanical-ragger-target p:not(.code)') {
+  async function applyMechanicalRaggingPrePaged(
+    selector = '.mechanical-ragger-target p:not(.code)',
+  ) {
     const columnWidth = resolveColumnWidthPx();
     console.info('[ragger] columnWidth', columnWidth);
     if (!columnWidth) {
