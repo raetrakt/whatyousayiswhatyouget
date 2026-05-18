@@ -125,8 +125,17 @@
     break-before: page;
   }
 
+  .code {
+    white-space: nowrap;
+  }
+
   p {
     orphans: 3;
     widows: 3;
+  }
+
+  .bibliography p {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 }
