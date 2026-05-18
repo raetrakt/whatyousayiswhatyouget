@@ -20,7 +20,9 @@ const buildToc = () => {
 
   const addEntry = (heading, number, indentLevel) => {
     const p = document.createElement('p');
-    p.style.marginLeft = indentLevel > 0 ? `${indentLevel * 1.4}rem` : '0';
+    p.style.marginLeft = indentLevel > 0 ? `${indentLevel * 2}rem` : '0';
+    const level = parseInt(heading.tagName.substring(1), 10);
+    if (level == 3 || level === 4 || level === 5) p.classList.add('low-level-heading');
 
     const a = document.createElement('a');
     a.href = heading.id ? `#${heading.id}` : '#';

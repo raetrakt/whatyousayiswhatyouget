@@ -44,6 +44,17 @@
     --ragging-width: 1.5rem;
   }
 
+  .low-level-heading,
+  .low-level-heading a {
+    font-family: 'Server Mono', monospace;
+    font-size: var(--notes-size);
+    line-height: var(--notes-line-height);
+  }
+
+  .low-level-heading + p:not(.low-level-heading), p:not(.low-level-heading) + .low-level-heading {
+    margin-top: var(--notes-baseline);
+  }
+
   .page-footnotes-active .pagedjs_margin-bottom,
   .page-footnotes-active .pagedjs_margin-bottom .page-footnotes-host {
     align-items: flex-start;
