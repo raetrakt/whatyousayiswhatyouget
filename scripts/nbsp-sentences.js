@@ -8,7 +8,9 @@
   }
 
   function run() {
-    document.querySelectorAll('.thesis-layout p:not(.code)').forEach(preventShortSentenceStartBreaks);
+    document
+      .querySelectorAll('.thesis-layout p:not(.code)')
+      .forEach(preventShortSentenceStartBreaks);
   }
 
   window.preventShortSentenceStartBreaks = preventShortSentenceStartBreaks;
