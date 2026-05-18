@@ -40,6 +40,18 @@ const container = svg.append('g');
 const zoom = d3
   .zoom()
   .scaleExtent([0.2, 2])
+  .wheelDelta((event) => {
+    if (!event.ctrlKey) {
+      // Normal scroll wheel — unchanged D3 default.
+      return -event.deltaY * (event.deltaMode === 1 ? 0.05 : event.deltaMode ? 1 : 0.002);
+    }
+    // Pinch-to-zoom (ctrlKey=true on both Chrome and Firefox).
+    // Chrome fires few events with large deltaY (50-300); Firefox fires many
+    // with small deltaY (1-10). Use a multiplier tuned for Firefox's small
+    // values, then clamp the step size so Chrome's large deltas don't jump.
+    const raw = -event.deltaY * 0.008;
+    return Math.sign(raw) * Math.min(Math.abs(raw), 0.12);
+  })
   .on('zoom', (event) => {
     container.attr('transform', event.transform);
   });
