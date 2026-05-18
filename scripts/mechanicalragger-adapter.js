@@ -14,15 +14,8 @@
   };
 
   const instances = new WeakMap();
-  const sentenceStarts = /(^|[.!?]\s+)([a-zA-Z]{1,3})\s+/g;
   const exclusionClass = 'mechanical-ragger-exclusion';
   const textRootClass = 'mechanical-ragger-text';
-
-  function preventShortSentenceStartBreaks(element) {
-    element.innerHTML = element.innerHTML.replace(sentenceStarts, (match, p1, p2) => {
-      return `${p1}${p2}&nbsp;`;
-    });
-  }
 
   function ensureTextRoot(element) {
     const existingTextRoot = element.querySelector(`:scope > .${textRootClass}`);
@@ -106,7 +99,7 @@
 
     // Only modify innerHTML once to avoid double-replacing on re-apply.
     if (!element.hasAttribute('data-ragger-init')) {
-      preventShortSentenceStartBreaks(textRoot);
+      if (window.preventShortSentenceStartBreaks) window.preventShortSentenceStartBreaks(textRoot);
       element.setAttribute('data-ragger-init', '1');
     }
 
