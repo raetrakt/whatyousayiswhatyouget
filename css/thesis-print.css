@@ -118,7 +118,7 @@
   }
 
   p {
-    /* orphans: 4;
-    widows: 4; */
+    orphans: 3;
+    widows: 3;
   }
 }

@@ -31,6 +31,7 @@
   line-height: var(--body-line-height);
   font-size: var(--body-size);
   /* font-feature-settings: 'dlig' 1; */
+      overflow: visible !important;
 }
 
 p:not(.table-of-contents p, p.code, .subtle-heading, .page-footnotes p),
