@@ -21,6 +21,7 @@
   src:
     url('../assets/fonts/ServerMono-RegularOblique.woff2') format('woff2'),
     url('../assets/fonts/ServerMono-RegularOblique.woff') format('woff');
+
   font-style: italic;
   font-display: swap;
 }
