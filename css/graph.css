@@ -4,8 +4,8 @@
 }
 
 @font-face {
-  font-family: 'Shinka Mono';
-  src: url('../assets/fonts/ShinkaMono-Regular-Trial.woff2') format('woff2');
+  font-family: 'True Sans Mono';
+  src: url('../assets/fonts/TrueSansMono-RegularWeb.woff2') format('woff2');
   font-weight: 0 100;
   font-display: swap;
 }
@@ -13,7 +13,7 @@
 body {
   margin: 0;
   background: #ffffff;
-  font-family: 'Shinka Mono', monospace;
+  font-family: 'True Sans Mono', monospace;
   /* font-family: 'Times New Roman', Times, serif; */
   font-weight: 400; /* use this for wght */
   font-variation-settings:
