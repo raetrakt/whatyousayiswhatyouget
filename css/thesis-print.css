@@ -47,7 +47,7 @@
   }
 
   :root .title-text p {
-    font-family: 'Server Mono', monospace;
+    font-family: 'True Sans Mono', monospace;
     font-size: var(--notes-size);
     line-height: var(--notes-line-height);
     margin-bottom: 8mm;
@@ -88,7 +88,7 @@
 
   .low-level-heading,
   .low-level-heading a {
-    font-family: 'Server Mono', monospace;
+    font-family: 'True Sans Mono', monospace;
     font-size: var(--notes-size);
     line-height: var(--notes-line-height);
   }
@@ -136,7 +136,7 @@
     position: absolute;
     right: 8mm;
     bottom: 8mm;
-    font-family: 'Server Mono', monospace;
+    font-family: 'True Sans Mono', monospace;
     font-size: var(--notes-size);
     line-height: var(--notes-line-height);
   }

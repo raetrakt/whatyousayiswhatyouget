@@ -2,27 +2,17 @@
   --body-size: 1.5rem;
   --body-line-height: 1.3125;
   --baseline: calc(var(--body-size) * var(--body-line-height));
-  --code-size: calc(var(--body-size) * 0.9);
+  --code-size: calc(var(--body-size) * 0.93);
   --notes-size: 0.8rem;
   --notes-line-height: calc(10/9);
   --notes-baseline: calc(var(--notes-size) * var(--notes-line-height));
 }
 
 @font-face {
-  font-family: 'Server Mono';
+  font-family: 'True Sans Mono';
   src:
-    url('../assets/fonts/ServerMono-Regular.woff2') format('woff2'),
-    url('../assets/fonts/ServerMono-Regular.woff') format('woff');
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Server Mono';
-  src:
-    url('../assets/fonts/ServerMono-RegularOblique.woff2') format('woff2'),
-    url('../assets/fonts/ServerMono-RegularOblique.woff') format('woff');
-
-  font-style: italic;
+    url('../assets/fonts/TrueSansMono-RegularWeb.woff2') format('woff2'),
+    url('../assets/fonts/TrueSansMono-RegularWeb.woff') format('woff');
   font-display: swap;
 }
 
@@ -63,7 +53,7 @@ sub {
 }
 
 sup a {
-  font-family: 'Server Mono', monospace;
+  font-family: 'True Sans Mono', monospace;
   font-size: var(--notes-size);
 }
 
@@ -71,10 +61,15 @@ figure {
   width: 100%;
   max-width: 100%;
 }
+
+figcaption i {
+  font-style: normal;
+}
+
 figcaption,
 figcaption *,
 .footnotes p * {
-  font-family: 'Server Mono', monospace;
+  font-family: 'True Sans Mono', monospace;
   font-size: var(--notes-size);
   line-height: var(--notes-line-height);
   /* margin-bottom: var(--baseline); */
@@ -100,7 +95,7 @@ figcaption,
 }
 
 .footnotes p {
-  font-family: 'Server Mono', monospace;
+  font-family: 'True Sans Mono', monospace;
   font-size: var(--notes-size);
   line-height: var(--notes-line-height);
 }
@@ -114,7 +109,7 @@ figcaption,
   flex-direction: column;
   gap: 0.25em;
   width: 100%;
-  font-family: 'Server Mono', monospace;
+  font-family: 'True Sans Mono', monospace;
   font-size: var(--notes-size);
   line-height: var(--notes-line-height);
 }
@@ -134,7 +129,7 @@ figcaption,
 }
 
 .code {
-  font-family: 'Server Mono', monospace;
+  font-family: 'True Sans Mono', monospace;
   font-size: var(--code-size);
 }
 
