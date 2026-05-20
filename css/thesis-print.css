@@ -63,7 +63,7 @@
   }
 
   .title-text-inner .right {
-    margin-left: var(--baseline);
+    margin-left: 8mm;
   }
 
   .thesis-layout {
