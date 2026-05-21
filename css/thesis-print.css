@@ -39,7 +39,7 @@
 @media print {
   .title-layout {
     page: title;
-    counter-reset: footnote;
+    /* counter-reset: footnote; */
   }
 
   .title-text {
