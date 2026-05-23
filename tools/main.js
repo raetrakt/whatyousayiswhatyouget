@@ -18,7 +18,7 @@ const INITIAL_CODE = [
   'const params = {',
   '  fontSize: 160,         // null = auto-fit',
   '  leading: .6,',
-  '  margin: 80,            // px whitespace on each side',
+  '  margin: 25,            // mm whitespace on each side',
   '  tracking: -3,          // px added between characters',
   '  width: 210,            // mm',
   '  height: 297,           // mm',
@@ -176,7 +176,7 @@ function render() {
   const params = {
     fontSize: p.fontSize ?? null,
     leading: p.leading ?? 1.2,
-    margin: p.margin ?? 40,
+    margin: p.margin ?? 15,
     tracking: p.tracking ?? 0,
     width: p.width ?? 210,
     height: p.height ?? 297,
@@ -192,6 +192,8 @@ function render() {
     specularSharpness: p.specularSharpness ?? sdfDefaults.specularSharpness,
     bgColor: typeof p.bgColor === 'string' ? p.bgColor : sdfDefaults.bgColor,
   };
+  // Convert margin from mm to px using the same scale as the page dimensions
+  params.margin = params.margin * (cssW / params.width);
 
   ctx.clearRect(0, 0, cssW, cssH);
   ctx.fillStyle = params.bgColor;
