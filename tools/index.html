@@ -61,6 +61,35 @@
     #sketch {
       border: 1px solid;
     }
+
+    #save-bar {
+      position: fixed;
+      bottom: 24px;
+      left: 24px;
+      display: flex;
+      gap: 6px;
+    }
+
+    #save-bar button {
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 16px;
+      letter-spacing: 0.04em;
+      border: 1px solid black;
+      background: white;
+      padding: 4px 10px;
+      cursor: pointer;
+    }
+
+    #save-bar button:hover {
+      background: black;
+      color: white;
+    }
+
+    #save-bar button:disabled {
+      opacity: 0.3;
+      cursor: default;
+      pointer-events: none;
+    }
   </style>
 </head>
 
@@ -72,6 +101,10 @@
     <div id="canvas-panel">
       <canvas id="sketch"></canvas>
     </div>
+  </div>
+  <div id="save-bar">
+    <button id="btn-save-png">png</button>
+    <button id="btn-save-svg" disabled>svg</button>
   </div>
   <script type="module" src="./main.js"></script>
 </body>

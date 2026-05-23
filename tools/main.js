@@ -22,8 +22,8 @@ const INITIAL_CODE = [
   '  borderWidth: 0.45,     // fraction of fontSize',
   '  bevelCurvature: 1.0,   // 0 = flat, higher = rounder',
   '  lightAngle: 315,       // degrees clockwise from top (315 = upper-left)',
-  '  fillColor: "#ffa600",  // text fill',
-  '  gradientColor: "#4d00c8", // bevel fades to this color',
+  '  fillColor: "#ffffff",  // text fill',
+  '  gradientColor: "#3300ff", // bevel fades to this color',
   '  bgColor: "#fff",    // background',
   '}',
 ].join('\n');
@@ -228,6 +228,64 @@ function render() {
   renderSDF(ctx, font, canvas, { lines, fontSize, startY, lineH, params, cssW, cssH });
 }
 
+// ── Save ──────────────────────────────────────────────────────────────────────
+
+function _slugify(str) {
+  return (
+    str
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '')
+      .slice(0, 48) || 'export'
+  );
+}
+
+function _timestamp() {
+  const d = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+}
+
+function _currentFilename() {
+  const result = evaluate(editorView.state.doc.toString());
+  const text = (typeof result?.text === 'string' && result.text) || 'export';
+  const p = result?.params || {};
+  const bw = p.borderWidth ?? 0.45;
+  const bc = p.bevelCurvature ?? 1.0;
+  const la = p.lightAngle ?? 315;
+  const fill = String(p.fillColor ?? '#ffffff').replace('#', '');
+  const grad = String(p.gradientColor ?? '#000000').replace('#', '');
+  const bg = String(p.bgColor ?? '#000000').replace('#', '');
+  const paramStr = `bw${bw} bc${bc} la${la} ${fill} ${grad} ${bg}`;
+  return _slugify(text) + '-' + _slugify(paramStr);
+}
+
+function savePNG() {
+  canvas.toBlob((blob) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = _timestamp() + '-' + _currentFilename() + '.png';
+    a.click();
+    URL.revokeObjectURL(url);
+  }, 'image/png');
+}
+
+function saveSVG() {
+  const svg = window.__tools?.getSVG?.();
+  if (!svg) return;
+  const blob = new Blob([svg], { type: 'image/svg+xml' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = _timestamp() + '-' + _currentFilename() + '.svg';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById('btn-save-png').addEventListener('click', savePNG);
+document.getElementById('btn-save-svg').addEventListener('click', saveSVG);
+
 function scheduleRender() {
   clearTimeout(renderTimer);
   renderTimer = setTimeout(render, 250);
@@ -238,6 +296,17 @@ window.__tools = {
   canvas,
   ctx,
   render,
+  savePNG,
+  saveSVG,
+  // Tools that produce vector output set this to a function returning an SVG string.
+  // Setting it also enables the SVG save button automatically.
+  set getSVG(fn) {
+    this._getSVG = fn;
+    document.getElementById('btn-save-svg').disabled = !fn;
+  },
+  get getSVG() {
+    return this._getSVG ?? null;
+  },
   get font() {
     return font;
   },
