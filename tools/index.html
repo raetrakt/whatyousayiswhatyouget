@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tools</title>
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+    }
+
+    #app {
+      display: flex;
+      height: 100dvh;
+    }
+
+    #canvas-panel {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    #editor-panel {
+      padding: 24px;
+    }
+
+    @font-face {
+      font-family: 'TrueSansMono';
+      src: url('../assets/fonts/TrueSansMono-RegularWeb.woff') format('woff');
+    }
+
+    .cm-editor .cm-content {
+      font-family: 'TrueSansMono', monospace;
+    }
+
+    .ͼb, .ͼl {
+      color: black;
+    }
+
+    .ͼm {
+      color: #858585;
+    }
+
+    .ͼd {
+      color: rgb(3, 128, 78);
+    }
+
+    #editor {
+      border: 1px solid;
+    }
+
+    #sketch {
+      border: 1px solid;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <div id="editor-panel">
+      <div id="editor"></div>
+    </div>
+    <div id="canvas-panel">
+      <canvas id="sketch"></canvas>
+    </div>
+  </div>
+  <script type="module" src="./main.js"></script>
+</body>
+
+</html>
