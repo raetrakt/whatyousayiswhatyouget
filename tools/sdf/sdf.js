@@ -1,0 +1,224 @@
+// SDF bevel visualization.
+// Signed distance field via the O(n) Felzenszwalb parabola algorithm.
+// Gradient computed by finite differences → diffuse bevel lighting.
+
+// Inspired by https://shaderfun.com/2018/07/23/signed-distance-fields-part-8-gradients-bevels-and-noise/
+// MIT license
+
+const SDF_SCALE = 1; // full-resolution — O(n) EDT makes this cheap
+
+/**
+ * render(ctx, font, canvas, layout)
+ *
+ * ctx     — the main canvas 2D context (DPR transform already applied)
+ * font    — opentype.js Font object
+ * canvas  — the main HTMLCanvasElement
+ * layout  — { lines, fontSize, startY, lineH, params, cssW, cssH }
+ */
+export function render(ctx, font, canvas, { lines, fontSize, startY, lineH, params, cssW, cssH }) {
+  // Resolve params with fallbacks
+  const borderWidth = fontSize * SDF_SCALE * (params.borderWidth ?? 0.45);
+  const bevelCurvature = params.bevelCurvature ?? 1.0;
+  const angleRad = ((params.lightAngle ?? 315) * Math.PI) / 180;
+  // lightAngle is degrees clockwise from top → convert to screen-space direction vector
+  const LX = Math.sin(angleRad);
+  const LY = -Math.cos(angleRad);
+  const fill = _hexToRgb(params.fillColor ?? '#ffffff');
+  const bg = _hexToRgb(params.bgColor ?? '#000000');
+  // ── 1. Render black text on white at SDF scale ────────────────────────────
+  const sw = Math.max(2, Math.round(cssW * SDF_SCALE));
+  const sh = Math.max(2, Math.round(cssH * SDF_SCALE));
+
+  const off = document.createElement('canvas');
+  off.width = sw;
+  off.height = sh;
+  const octx = off.getContext('2d');
+
+  octx.fillStyle = '#fff';
+  octx.fillRect(0, 0, sw, sh);
+  octx.setTransform(SDF_SCALE, 0, 0, SDF_SCALE, 0, 0);
+  _drawGlyphs(octx, font, lines, fontSize, startY, lineH, params, cssW, '#000');
+  octx.setTransform(1, 0, 0, 1, 0, 0);
+
+  // ── 2. Classify pixels ────────────────────────────────────────────────────
+  const pxData = octx.getImageData(0, 0, sw, sh).data;
+  const isIn = new Uint8Array(sw * sh);
+  const isOut = new Uint8Array(sw * sh);
+  for (let i = 0; i < sw * sh; i++) {
+    if (pxData[i * 4] < 128) isIn[i] = 1;
+    else isOut[i] = 1;
+  }
+
+  // ── 3. Signed distance field via O(n) Felzenszwalb EDT ───────────────────
+  const distToIn = _distSq2d(isIn, sw, sh); // sq dist to nearest inside pixel
+  const distToOut = _distSq2d(isOut, sw, sh); // sq dist to nearest outside pixel
+  const sdf = new Float32Array(sw * sh);
+  for (let i = 0; i < sw * sh; i++) {
+    sdf[i] = isIn[i] ? -Math.sqrt(distToOut[i]) : Math.sqrt(distToIn[i]);
+  }
+
+  // ── 4. Gradient via finite differences (blog method) ─────────────────────
+  const gx = new Float32Array(sw * sh);
+  const gy = new Float32Array(sw * sh);
+  const BIG = 1e9;
+
+  for (let py = 0; py < sh; py++) {
+    for (let px = 0; px < sw; px++) {
+      const i = py * sw + px;
+      const d = sdf[i];
+      const sign = d >= 0 ? 1 : -1;
+      const big = BIG * sign;
+
+      const x0 = px > 0 ? sdf[i - 1] : big;
+      const x1 = px < sw - 1 ? sdf[i + 1] : big;
+      const y0 = py > 0 ? sdf[i - sw] : big;
+      const y1 = py < sh - 1 ? sdf[i + sw] : big;
+
+      gx[i] = sign * x0 < sign * x1 ? -(x0 - d) : x1 - d;
+      gy[i] = sign * y0 < sign * y1 ? -(y0 - d) : y1 - d;
+    }
+  }
+
+  // ── 5. Bevel shading per pixel ────────────────────────────────────────────
+  // borderWidth is in SDF pixels. CSS pixel equivalent = fontSize * BORDER_WIDTH_FACTOR.
+  const imgData = octx.createImageData(sw, sh);
+
+  for (let i = 0; i < sw * sh; i++) {
+    const d = sdf[i];
+    const diffuse = Math.max(0, Math.min(1, gx[i] * -LX + gy[i] * -LY));
+
+    let r, g, b;
+    if (d < 0) {
+      // Inside geometry → fill color
+      [r, g, b] = fill;
+    } else if (d < borderWidth) {
+      // Bevel border band
+      const t = d / borderWidth;
+      const curvature = Math.pow(t, bevelCurvature);
+      const lit = 1 - curvature + diffuse * curvature; // lerp(1, diffuse, curvature)
+      const lighting = lit * 0.75 + 0.25; // 75% diffuse + 25% ambient
+      const blend = Math.max(0, Math.min(1, d)); // 1-SDF-px AA at inner edge
+      // lerp(fill, fill*lighting, blend)
+      r = (fill[0] * (1 - blend) + fill[0] * lighting * blend) | 0;
+      g = (fill[1] * (1 - blend) + fill[1] * lighting * blend) | 0;
+      b = (fill[2] * (1 - blend) + fill[2] * lighting * blend) | 0;
+    } else {
+      // Background, with 1-SDF-px AA at outer edge
+      const blend = Math.max(0, Math.min(1, d - borderWidth));
+      const lighting = diffuse * 0.75 + 0.25;
+      // lerp(fill*lighting, bg, blend)
+      r = (fill[0] * lighting * (1 - blend) + bg[0] * blend) | 0;
+      g = (fill[1] * lighting * (1 - blend) + bg[1] * blend) | 0;
+      b = (fill[2] * lighting * (1 - blend) + bg[2] * blend) | 0;
+    }
+
+    imgData.data[i * 4] = r;
+    imgData.data[i * 4 + 1] = g;
+    imgData.data[i * 4 + 2] = b;
+    imgData.data[i * 4 + 3] = 255;
+  }
+  octx.putImageData(imgData, 0, 0);
+
+  // ── 6. Scale up to main canvas ────────────────────────────────────────────
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(off, 0, 0, cssW, cssH);
+}
+
+// ─── O(n) 2D unsigned squared-distance transform ─────────────────────────────
+// Felzenszwalb & Huttenlocher, "Distance Transforms of Sampled Functions", 2012.
+// isSet[i] = 1 for foreground pixels. Returns Float64Array of squared L2 distances.
+
+function _distSq2d(isSet, w, h) {
+  const INF = 1e10;
+  const maxDim = Math.max(w, h);
+  const f = new Float64Array(maxDim);
+  const d = new Float64Array(maxDim);
+  const z = new Float64Array(maxDim + 1);
+  const v = new Int32Array(maxDim);
+  const tmp = new Float64Array(w * h);
+  const out = new Float64Array(w * h);
+
+  // Row pass
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) f[x] = isSet[y * w + x] ? 0 : INF;
+    _dt1d(f, d, z, v, w);
+    for (let x = 0; x < w; x++) tmp[y * w + x] = d[x];
+  }
+
+  // Column pass
+  for (let x = 0; x < w; x++) {
+    for (let y = 0; y < h; y++) f[y] = tmp[y * w + x];
+    _dt1d(f, d, z, v, h);
+    for (let y = 0; y < h; y++) out[y * w + x] = d[y];
+  }
+
+  return out;
+}
+
+// 1D squared-distance transform (lower envelope of parabolas).
+// f[i] = 0 for seeded pixels, INF otherwise.
+// After the call, d[i] = min_j { (i-j)^2 + f[j] }.
+function _dt1d(f, d, z, v, n) {
+  let k = 0;
+  v[0] = 0;
+  z[0] = -Infinity;
+  z[1] = Infinity;
+
+  for (let q = 1; q < n; q++) {
+    let s = (f[q] + q * q - (f[v[k]] + v[k] * v[k])) / (2 * (q - v[k]));
+    while (s <= z[k]) {
+      k--;
+      s = (f[q] + q * q - (f[v[k]] + v[k] * v[k])) / (2 * (q - v[k]));
+    }
+    k++;
+    v[k] = q;
+    z[k] = s;
+    z[k + 1] = Infinity;
+  }
+
+  k = 0;
+  for (let q = 0; q < n; q++) {
+    while (z[k + 1] < q) k++;
+    d[q] = (q - v[k]) * (q - v[k]) + f[v[k]];
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+function _drawGlyphs(rctx, font, lines, fontSize, startY, lineH, params, cssW, fillColor) {
+  const scale = fontSize / font.unitsPerEm;
+  for (let i = 0; i < lines.length; i++) {
+    let cx = _lineStartX(lines[i], fontSize, params, font, cssW);
+    const y = startY + i * lineH;
+    const chars = [...lines[i]];
+    const gs = chars.map((ch) => font.charToGlyph(ch));
+    for (let j = 0; j < gs.length; j++) {
+      const p = font.getPath(chars[j], cx, y, fontSize);
+      p.fill = fillColor;
+      p.draw(rctx);
+      const kern = j < gs.length - 1 ? font.getKerningValue(gs[j], gs[j + 1]) * scale : 0;
+      cx += gs[j].advanceWidth * scale + (params.tracking || 0) + kern;
+    }
+  }
+}
+
+function _lineStartX(line, fontSize, params, font, cssW) {
+  const scale = fontSize / font.unitsPerEm;
+  const chars = [...line];
+  const gs = chars.map((ch) => font.charToGlyph(ch));
+  let w = 0;
+  for (let i = 0; i < gs.length; i++) {
+    w += gs[i].advanceWidth * scale + (params.tracking || 0);
+    if (i < gs.length - 1) w += font.getKerningValue(gs[i], gs[i + 1]) * scale;
+  }
+  return (cssW - (w - (params.tracking || 0))) / 2;
+}
+
+function _hexToRgb(hex) {
+  const h = hex.replace('#', '');
+  if (h.length === 3) {
+    return [parseInt(h[0] + h[0], 16), parseInt(h[1] + h[1], 16), parseInt(h[2] + h[2], 16)];
+  }
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+}

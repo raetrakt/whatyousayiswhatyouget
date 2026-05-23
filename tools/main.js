@@ -1,6 +1,7 @@
 import { EditorView, minimalSetup } from 'codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { parse as parseFont } from 'opentype.js';
+import { render as renderSDF } from './sdf/sdf.js';
 
 const FONT_URL = new URL('../assets/fonts/texgyretermes-regular.otf', import.meta.url).href;
 const TITLE_SVG_URL = new URL('../assets/svg/title_layout.svg', import.meta.url).href;
@@ -10,12 +11,19 @@ const INITIAL_CODE = [
   'const text = "What You Say Is What You Get?"',
   '',
   'const params = {',
-  '  fontSize: 160, // null = auto-fit',
+  '  fontSize: 160,         // null = auto-fit',
   '  leading: .6,',
-  '  margin: 80,   // px whitespace on each side',
-  '  tracking: -3,  // px added between characters',
-  '  width: 210,   // mm',
-  '  height: 297,  // mm',
+  '  margin: 80,            // px whitespace on each side',
+  '  tracking: -3,          // px added between characters',
+  '  width: 210,            // mm',
+  '  height: 297,           // mm',
+  '',
+  '  // sdf',
+  '  borderWidth: 0.45,     // fraction of fontSize',
+  '  bevelCurvature: 1.0,   // 0 = flat, higher = rounder',
+  '  lightAngle: 315,       // degrees clockwise from top (315 = upper-left)',
+  '  fillColor: "#ffa600",  // text fill',
+  '  bgColor: "#fff",    // background',
   '}',
 ].join('\n');
 
@@ -109,13 +117,14 @@ function wrapWords(text, maxWidth, fontSize, tracking) {
 function fitFontSize(text, params) {
   const maxW = cssW - params.margin * 2;
   const maxH = cssH - params.margin * 2;
-  let lo = 1, hi = cssH * 0.5;
+  let lo = 1,
+    hi = cssH * 0.5;
   for (let i = 0; i < 20; i++) {
     const mid = (lo + hi) / 2;
     const lines = wrapWords(text, maxW, mid, params.tracking);
     const scale = mid / font.unitsPerEm;
     const lineH = (font.ascender - font.descender) * scale * params.leading;
-    const widest = Math.max(...lines.map(l => measureWidth(l, mid, params.tracking)));
+    const widest = Math.max(...lines.map((l) => measureWidth(l, mid, params.tracking)));
     if (lines.length * lineH < maxH && widest < maxW) lo = mid;
     else hi = mid;
   }
@@ -150,24 +159,16 @@ function render() {
     tracking: p.tracking ?? 0,
     width: p.width ?? 210,
     height: p.height ?? 297,
+    borderWidth: p.borderWidth ?? 0.45,
+    bevelCurvature: p.bevelCurvature ?? 1.0,
+    lightAngle: p.lightAngle ?? 315,
+    fillColor: typeof p.fillColor === 'string' ? p.fillColor : '#ffffff',
+    bgColor: typeof p.bgColor === 'string' ? p.bgColor : '#000000',
   };
 
   ctx.clearRect(0, 0, cssW, cssH);
-  ctx.fillStyle = '#ffffff';
+  ctx.fillStyle = params.bgColor;
   ctx.fillRect(0, 0, cssW, cssH);
-
-  const isA4 = Math.abs(params.width / params.height - A4) < 0.01;
-  if (text === 'What You Say Is What You Get?' && isA4) {
-    const m = params.margin;
-    const img = new Image();
-    img.onload = () => {
-      const svgW = cssW - m * 2;
-      const svgH = (img.naturalHeight / img.naturalWidth) * svgW;
-      ctx.drawImage(img, m, m, svgW, svgH);
-    };
-    img.src = TITLE_SVG_URL;
-    return;
-  }
 
   const fontSize = params.fontSize > 0 ? params.fontSize : fitFontSize(text, params);
   const maxW = cssW - params.margin * 2;
@@ -175,18 +176,11 @@ function render() {
 
   const scale = fontSize / font.unitsPerEm;
   const lineH = (font.ascender - font.descender) * scale * params.leading;
-  const firstChar = [...text].find(c => c.trim()) || 'M';
+  const firstChar = [...text].find((c) => c.trim()) || 'M';
   const topOffset = font.charToGlyph(firstChar).getBoundingBox().y2 * scale;
   const startY = params.margin + topOffset;
 
-  ctx.fillStyle = '#000000';
-
-  for (let i = 0; i < lines.length; i++) {
-    const lw = measureWidth(lines[i], fontSize, params.tracking);
-    const x = (cssW - lw) / 2;
-    const y = startY + i * lineH;
-    drawLine(lines[i], x, y, fontSize, params.tracking);
-  }
+  renderSDF(ctx, font, canvas, { lines, fontSize, startY, lineH, params, cssW, cssH });
 }
 
 function scheduleRender() {
