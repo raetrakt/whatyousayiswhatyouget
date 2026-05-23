@@ -26,7 +26,10 @@ const INITIAL_CODE = [
   '  // sdf',
   `  borderWidth: ${_fmtVal(sdfDefaults.borderWidth)},     // fraction of fontSize`,
   `  bevelCurvature: ${_fmtVal(sdfDefaults.bevelCurvature)},   // 0 = flat, higher = rounder`,
+  `  bevelPeak: ${_fmtVal(sdfDefaults.bevelPeak)},         // 0 = edge peak, 0.5 = mid ridge, 1 = outer lip`,
   `  lightAngle: ${_fmtVal(sdfDefaults.lightAngle)},       // degrees clockwise from top (315 = upper-left)`,
+  `  specular: ${_fmtVal(sdfDefaults.specular)},         // specular highlight (0 = off)`,
+  `  specularSharpness: ${_fmtVal(sdfDefaults.specularSharpness)}, // tightness of highlight spot`,
   `  fillColor: ${_fmtVal(sdfDefaults.fillColor)},  // text fill`,
   `  gradientColor: ${_fmtVal(sdfDefaults.gradientColor)}, // bevel fades to this color`,
   `  shadowColor: ${_fmtVal(sdfDefaults.shadowColor)}, // shadow side of bevel`,
@@ -58,6 +61,7 @@ const editorView = new EditorView({
 const canvas = document.getElementById('sketch');
 const ctx = canvas.getContext('2d');
 const canvasPanel = document.getElementById('canvas-panel');
+const errorDisplay = document.getElementById('error-display');
 
 function resizeCanvas() {
   const dpr = window.devicePixelRatio || 1;
@@ -150,18 +154,25 @@ function evaluate(code) {
         params: typeof params !== 'undefined' ? params : null,
       }
     `);
-    return fn();
+    return { value: fn(), error: null };
   } catch (err) {
-    console.warn('evaluate error:', err.message);
-    return null;
+    return { value: null, error: err.message };
   }
 }
 
 function render() {
   if (!cssW || !fontLoaded) return;
-  const result = evaluate(editorView.state.doc.toString());
-  const text = (typeof result?.text === 'string' && result.text) || 'What You Say Is What You Get?';
-  const p = result?.params || {};
+  const { value, error } = evaluate(editorView.state.doc.toString());
+  if (error) {
+    canvas.style.display = 'none';
+    errorDisplay.textContent = error;
+    errorDisplay.style.display = 'block';
+    return;
+  }
+  canvas.style.display = '';
+  errorDisplay.style.display = 'none';
+  const text = (typeof value?.text === 'string' && value.text) || 'What You Say Is What You Get?';
+  const p = value?.params || {};
   const params = {
     fontSize: p.fontSize ?? null,
     leading: p.leading ?? 1.2,
@@ -171,11 +182,14 @@ function render() {
     height: p.height ?? 297,
     borderWidth: p.borderWidth ?? sdfDefaults.borderWidth,
     bevelCurvature: p.bevelCurvature ?? sdfDefaults.bevelCurvature,
+    bevelPeak: p.bevelPeak ?? sdfDefaults.bevelPeak,
     lightAngle: p.lightAngle ?? sdfDefaults.lightAngle,
     fillColor: typeof p.fillColor === 'string' ? p.fillColor : sdfDefaults.fillColor,
     gradientColor:
       typeof p.gradientColor === 'string' ? p.gradientColor : sdfDefaults.gradientColor,
     shadowColor: typeof p.shadowColor === 'string' ? p.shadowColor : sdfDefaults.shadowColor,
+    specular: p.specular ?? sdfDefaults.specular,
+    specularSharpness: p.specularSharpness ?? sdfDefaults.specularSharpness,
     bgColor: typeof p.bgColor === 'string' ? p.bgColor : sdfDefaults.bgColor,
   };
 
@@ -256,9 +270,9 @@ function _timestamp() {
 }
 
 function _currentFilename() {
-  const result = evaluate(editorView.state.doc.toString());
-  const text = (typeof result?.text === 'string' && result.text) || 'export';
-  const p = result?.params || {};
+  const { value } = evaluate(editorView.state.doc.toString());
+  const text = (typeof value?.text === 'string' && value.text) || 'export';
+  const p = value?.params || {};
   const bw = p.borderWidth ?? sdfDefaults.borderWidth;
   const bc = p.bevelCurvature ?? sdfDefaults.bevelCurvature;
   const la = p.lightAngle ?? sdfDefaults.lightAngle;

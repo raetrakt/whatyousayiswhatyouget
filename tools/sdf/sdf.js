@@ -11,10 +11,13 @@ const SDF_SCALE = 2; // full-resolution — O(n) EDT makes this cheap
 export const defaults = {
   borderWidth: 0.45, // fraction of fontSize
   bevelCurvature: 1.0, // 0 = flat, higher = rounder bevel
+  bevelPeak: 0, // where brightness peaks within the bevel (0 = inner edge, 0.5 = ridge, 1 = outer edge)
   lightAngle: 315, // degrees clockwise from top (315 = upper-left)
+  specular: 0, // specular highlight intensity (0 = off)
+  specularSharpness: 30, // Phong exponent — higher = tighter highlight spot
   fillColor: '#ffffff', // text fill
-  gradientColor: '#3300ff', // bevel fades to this color
-  shadowColor: '#000000', // shadow side of bevel (replaces desaturation-to-black)
+  gradientColor: '#5e69ff', // bevel fades to this color
+  shadowColor: '#0800ff', // shadow side of bevel (replaces desaturation-to-black)
   bgColor: '#fff', // background
 };
 
@@ -37,6 +40,9 @@ export function render(
   const effectiveFontSize = fontSize > 0 ? fontSize : cssH / 6;
   const borderWidth = effectiveFontSize * SDF_SCALE * (params.borderWidth ?? defaults.borderWidth);
   const bevelCurvature = params.bevelCurvature ?? defaults.bevelCurvature;
+  const bevelPeak = Math.max(0, Math.min(1, params.bevelPeak ?? defaults.bevelPeak));
+  const specular = params.specular ?? defaults.specular;
+  const specularSharpness = Math.max(1, params.specularSharpness ?? defaults.specularSharpness);
   const angleRad = ((params.lightAngle ?? defaults.lightAngle) * Math.PI) / 180;
   // lightAngle is degrees clockwise from top → convert to screen-space direction vector
   const LX = Math.sin(angleRad);
@@ -120,26 +126,40 @@ export function render(
       [r, g, b] = fill;
     } else if (d < borderWidth) {
       // Bevel band: fill → gradientColor, lit side stays bright, shadow side lerps to shadowColor
-      const t = d / borderWidth;
-      const curvature = Math.pow(t, bevelCurvature);
-      const lit = 1 - curvature + diffuse * curvature;
-      const lighting = lit * 0.75 + 0.25; // 0.25..1.0
+      const t = d / borderWidth; // 0 = inner edge, 1 = outer edge
+      // bevelPeak shifts the brightness peak within the band
+      const tFromPeak = Math.abs(t - bevelPeak);
+      const maxDist = Math.max(bevelPeak, 1 - bevelPeak) || 1;
+      const curvature = Math.pow(tFromPeak / maxDist, bevelCurvature);
+      const lighting = 1 - curvature + diffuse * curvature;
+      const spec = specular * Math.pow(diffuse, specularSharpness);
       const blend = Math.max(0, Math.min(1, d)); // 1-SDF-px AA at inner edge
       // lerp fill → grad outward
       const cr = fill[0] + (grad[0] - fill[0]) * t;
       const cg = fill[1] + (grad[1] - fill[1]) * t;
       const cb = fill[2] + (grad[2] - fill[2]) * t;
       // lerp shadow → color by lighting (replaces multiply-to-black)
-      r = (fill[0] * (1 - blend) + (shadow[0] + (cr - shadow[0]) * lighting) * blend) | 0;
-      g = (fill[1] * (1 - blend) + (shadow[1] + (cg - shadow[1]) * lighting) * blend) | 0;
-      b = (fill[2] * (1 - blend) + (shadow[2] + (cb - shadow[2]) * lighting) * blend) | 0;
+      let lr = shadow[0] + (cr - shadow[0]) * lighting;
+      let lg = shadow[1] + (cg - shadow[1]) * lighting;
+      let lb = shadow[2] + (cb - shadow[2]) * lighting;
+      // add specular highlight (lerp toward white)
+      lr = lr + (255 - lr) * spec;
+      lg = lg + (255 - lg) * spec;
+      lb = lb + (255 - lb) * spec;
+      r = (fill[0] * (1 - blend) + lr * blend) | 0;
+      g = (fill[1] * (1 - blend) + lg * blend) | 0;
+      b = (fill[2] * (1 - blend) + lb * blend) | 0;
     } else {
       // Outside bevel: grad fades into solid bg, shadow side lerps to shadowColor
       const blend = Math.max(0, Math.min(1, d - borderWidth));
-      const lighting = diffuse * 0.75 + 0.25;
-      const lr = shadow[0] + (grad[0] - shadow[0]) * lighting;
-      const lg = shadow[1] + (grad[1] - shadow[1]) * lighting;
-      const lb = shadow[2] + (grad[2] - shadow[2]) * lighting;
+      const lighting = diffuse;
+      const spec = specular * Math.pow(diffuse, specularSharpness) * (1 - blend);
+      let lr = shadow[0] + (grad[0] - shadow[0]) * lighting;
+      let lg = shadow[1] + (grad[1] - shadow[1]) * lighting;
+      let lb = shadow[2] + (grad[2] - shadow[2]) * lighting;
+      lr = lr + (255 - lr) * spec;
+      lg = lg + (255 - lg) * spec;
+      lb = lb + (255 - lb) * spec;
       r = (lr * (1 - blend) + bg[0] * blend) | 0;
       g = (lg * (1 - blend) + bg[1] * blend) | 0;
       b = (lb * (1 - blend) + bg[2] * blend) | 0;

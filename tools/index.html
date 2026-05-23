@@ -62,6 +62,13 @@
       border: 1px solid;
     }
 
+    #error-display {
+      display: none;
+      font-family: 'TrueSansMono', monospace;
+      font-size: 13px;
+      color: #cc0000;
+    }
+
     #save-bar {
       position: fixed;
       bottom: 24px;
@@ -100,6 +107,7 @@
     </div>
     <div id="canvas-panel">
       <canvas id="sketch"></canvas>
+      <div id="error-display"></div>
     </div>
   </div>
   <div id="save-bar">
