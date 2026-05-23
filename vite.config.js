@@ -6,7 +6,6 @@ export default defineConfig({
       input: {
         main: './index.html',
         tools: './tools/index.html',
-        quadtree: './tools/quadtree/index.html',
       },
     },
   },

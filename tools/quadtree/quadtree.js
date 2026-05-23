@@ -4,7 +4,7 @@
 // Uses a summed-area table for O(1) cell coverage queries.
 
 export const defaults = {
-  maxDepth: 7,        // max subdivision levels (depth 7 → ~cssW/128 min cell)
+  maxDepth: 7, // max subdivision levels (depth 7 → ~cssW/128 min cell)
   fillColor: '#000000',
   lineColor: '#000000',
   lineWidth: 0.5,
@@ -28,9 +28,11 @@ export function render(
   const maxDepth = params.maxDepth ?? defaults.maxDepth;
   const fillColor = typeof params.fillColor === 'string' ? params.fillColor : defaults.fillColor;
   const lineColor =
-    params.lineColor === null ? null
-    : typeof params.lineColor === 'string' ? params.lineColor
-    : defaults.lineColor;
+    params.lineColor === null
+      ? null
+      : typeof params.lineColor === 'string'
+        ? params.lineColor
+        : defaults.lineColor;
   const lineWidth = params.lineWidth ?? defaults.lineWidth;
   const bgColor = typeof params.bgColor === 'string' ? params.bgColor : defaults.bgColor;
 
@@ -86,14 +88,20 @@ export function render(
 
     // Leaf: uniform cell or maximum depth reached
     if (sum === 0 || sum === total || depth >= maxDepth) {
-      leaves.push({ x, y, w: Math.min(size, cssW - x), h: Math.min(size, cssH - y), inside: sum > 0 });
+      leaves.push({
+        x,
+        y,
+        w: Math.min(size, cssW - x),
+        h: Math.min(size, cssH - y),
+        inside: sum > 0,
+      });
       return;
     }
 
     const half = size >> 1;
-    subdivide(x,        y,        half, depth + 1);
-    subdivide(x + half, y,        half, depth + 1);
-    subdivide(x,        y + half, half, depth + 1);
+    subdivide(x, y, half, depth + 1);
+    subdivide(x + half, y, half, depth + 1);
+    subdivide(x, y + half, half, depth + 1);
     subdivide(x + half, y + half, half, depth + 1);
   }
 
@@ -129,8 +137,7 @@ function _drawGlyphs(rctx, font, lines, fontSize, startY, lineH, params, cssW, c
       const p = font.getPath(chars[j], cx, y, fontSize);
       p.fill = color;
       p.draw(rctx);
-      const kern =
-        j < gs.length - 1 ? font.getKerningValue(gs[j], gs[j + 1]) * scale : 0;
+      const kern = j < gs.length - 1 ? font.getKerningValue(gs[j], gs[j + 1]) * scale : 0;
       cx += gs[j].advanceWidth * scale + (params.tracking || 0) + kern;
     }
   }
@@ -146,4 +153,81 @@ function _lineStartX(line, fontSize, params, font, cssW) {
     if (i < gs.length - 1) w += font.getKerningValue(gs[i], gs[i + 1]) * scale;
   }
   return (cssW - (w - (params.tracking || 0))) / 2;
+}
+
+// ─── Tool interface ───────────────────────────────────────────────────────────────────
+
+export function getParamLines(fmtVal) {
+  return [
+    '',
+    '  // quadtree',
+    `  maxDepth: ${fmtVal(defaults.maxDepth)},           // max subdivision levels`,
+    `  fillColor: ${fmtVal(defaults.fillColor)},  // inside cell color`,
+    `  lineColor: ${fmtVal(defaults.lineColor)},  // cell border color (null = none)`,
+    `  lineWidth: ${fmtVal(defaults.lineWidth)},        // border width px`,
+    `  bgColor: ${fmtVal(defaults.bgColor)},    // background`,
+  ];
+}
+
+export function normalizeParams(p) {
+  return {
+    maxDepth: p.maxDepth ?? defaults.maxDepth,
+    fillColor: typeof p.fillColor === 'string' ? p.fillColor : defaults.fillColor,
+    lineColor:
+      p.lineColor === null
+        ? null
+        : typeof p.lineColor === 'string'
+          ? p.lineColor
+          : defaults.lineColor,
+    lineWidth: p.lineWidth ?? defaults.lineWidth,
+    bgColor: typeof p.bgColor === 'string' ? p.bgColor : defaults.bgColor,
+  };
+}
+
+export function getFilenameHint(p) {
+  const depth = p.maxDepth ?? defaults.maxDepth;
+  const fill = String(p.fillColor ?? defaults.fillColor).replace('#', '');
+  const bg = String(p.bgColor ?? defaults.bgColor).replace('#', '');
+  return `qt d${depth} ${fill} ${bg}`;
+}
+
+/** Called after render(). Returns the getSVG callback for the save button. */
+export function afterRender({ leaves }, params, cssW, cssH) {
+  const snapshot = { leaves, params: { ...params }, cssW, cssH };
+  return () => _generateSVG(snapshot);
+}
+
+function _generateSVG({ leaves, params, cssW, cssH }) {
+  const sx = params.width / cssW;
+  const sy = params.height / cssH;
+  const fill = params.fillColor;
+  const bg = params.bgColor;
+  const lc = params.lineColor;
+  const lw = (params.lineWidth * sx).toFixed(4);
+
+  const lines = [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${params.width} ${params.height}" width="${params.width}mm" height="${params.height}mm">`,
+    `  <rect width="${params.width}" height="${params.height}" fill="${bg}"/>`,
+  ];
+
+  for (const { x, y, w, h, inside } of leaves) {
+    const rx = (x * sx).toFixed(3);
+    const ry = (y * sy).toFixed(3);
+    const rw = (w * sx).toFixed(3);
+    const rh = (h * sy).toFixed(3);
+    const strokeAttr = lc ? ` stroke="${lc}" stroke-width="${lw}"` : '';
+    if (inside) {
+      lines.push(
+        `  <rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" fill="${fill}"${strokeAttr}/>`,
+      );
+    } else if (lc) {
+      lines.push(
+        `  <rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" fill="none"${strokeAttr}/>`,
+      );
+    }
+  }
+
+  lines.push('</svg>');
+  return lines.join('\n');
 }

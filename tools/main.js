@@ -1,8 +1,16 @@
 import { EditorView, minimalSetup } from 'codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { parse as parseFont } from 'opentype.js';
-import { render as renderSDF, defaults as sdfDefaults } from './sdf/sdf.js';
 import { colorPickerExt } from './color-picker-ext.js';
+
+// ── Tool selection ────────────────────────────────────────────────────────────
+const TOOLS = {
+  sdf: () => import('./sdf/sdf.js'),
+  quadtree: () => import('./quadtree/quadtree.js'),
+};
+
+const toolName = new URLSearchParams(location.search).get('tool') ?? 'sdf';
+const tool = await (TOOLS[toolName] ?? TOOLS.sdf)();
 
 const FONT_URL = new URL('../assets/fonts/texgyretermes-regular.otf', import.meta.url).href;
 const TITLE_SVG_URL = new URL('../assets/svg/title_layout.svg', import.meta.url).href;
@@ -22,18 +30,7 @@ const INITIAL_CODE = [
   '  tracking: -3,          // px added between characters',
   '  width: 210,            // mm',
   '  height: 297,           // mm',
-  '',
-  '  // sdf',
-  `  borderWidth: ${_fmtVal(sdfDefaults.borderWidth)},     // fraction of fontSize`,
-  `  bevelCurvature: ${_fmtVal(sdfDefaults.bevelCurvature)},   // 0 = flat, higher = rounder`,
-  `  bevelPeak: ${_fmtVal(sdfDefaults.bevelPeak)},         // 0 = edge peak, 0.5 = mid ridge, 1 = outer lip`,
-  `  lightAngle: ${_fmtVal(sdfDefaults.lightAngle)},       // degrees clockwise from top (315 = upper-left)`,
-  `  specular: ${_fmtVal(sdfDefaults.specular)},         // specular highlight (0 = off)`,
-  `  specularSharpness: ${_fmtVal(sdfDefaults.specularSharpness)}, // tightness of highlight spot`,
-  `  fillColor: ${_fmtVal(sdfDefaults.fillColor)},  // text fill`,
-  `  gradientColor: ${_fmtVal(sdfDefaults.gradientColor)}, // bevel fades to this color`,
-  `  shadowColor: ${_fmtVal(sdfDefaults.shadowColor)}, // shadow side of bevel`,
-  `  bgColor: ${_fmtVal(sdfDefaults.bgColor)},    // background`,
+  ...tool.getParamLines(_fmtVal),
   '}',
 ].join('\n');
 
@@ -62,6 +59,11 @@ const canvas = document.getElementById('sketch');
 const ctx = canvas.getContext('2d');
 const canvasPanel = document.getElementById('canvas-panel');
 const errorDisplay = document.getElementById('error-display');
+
+// Highlight the active tool button
+document.querySelectorAll('.tool-btn[data-tool]').forEach((btn) => {
+  if (btn.dataset.tool === toolName) btn.classList.add('active');
+});
 
 function resizeCanvas() {
   const dpr = window.devicePixelRatio || 1;
@@ -180,19 +182,9 @@ function render() {
     tracking: p.tracking ?? 0,
     width: p.width ?? 210,
     height: p.height ?? 297,
-    borderWidth: p.borderWidth ?? sdfDefaults.borderWidth,
-    bevelCurvature: p.bevelCurvature ?? sdfDefaults.bevelCurvature,
-    bevelPeak: p.bevelPeak ?? sdfDefaults.bevelPeak,
-    lightAngle: p.lightAngle ?? sdfDefaults.lightAngle,
-    fillColor: typeof p.fillColor === 'string' ? p.fillColor : sdfDefaults.fillColor,
-    gradientColor:
-      typeof p.gradientColor === 'string' ? p.gradientColor : sdfDefaults.gradientColor,
-    shadowColor: typeof p.shadowColor === 'string' ? p.shadowColor : sdfDefaults.shadowColor,
-    specular: p.specular ?? sdfDefaults.specular,
-    specularSharpness: p.specularSharpness ?? sdfDefaults.specularSharpness,
-    bgColor: typeof p.bgColor === 'string' ? p.bgColor : sdfDefaults.bgColor,
+    ...tool.normalizeParams(p),
   };
-  // Convert margin from mm to px using the same scale as the page dimensions
+  // Convert margin from mm to px
   params.margin = params.margin * (cssW / params.width);
 
   ctx.clearRect(0, 0, cssW, cssH);
@@ -227,7 +219,7 @@ function render() {
     mctx.fillStyle = '#fff';
     mctx.fillRect(0, 0, cssW, cssH);
     mctx.drawImage(_titleSvgImage, m, m, svgW, svgH);
-    renderSDF(ctx, font, canvas, {
+    const result = tool.render(ctx, font, canvas, {
       maskCanvas,
       lines: [],
       fontSize: 0,
@@ -237,6 +229,7 @@ function render() {
       cssW,
       cssH,
     });
+    if (tool.afterRender) window.__tools.getSVG = tool.afterRender(result, params, cssW, cssH);
     return;
   }
 
@@ -250,7 +243,16 @@ function render() {
   const topOffset = font.charToGlyph(firstChar).getBoundingBox().y2 * scale;
   const startY = params.margin + topOffset;
 
-  renderSDF(ctx, font, canvas, { lines, fontSize, startY, lineH, params, cssW, cssH });
+  const result = tool.render(ctx, font, canvas, {
+    lines,
+    fontSize,
+    startY,
+    lineH,
+    params,
+    cssW,
+    cssH,
+  });
+  if (tool.afterRender) window.__tools.getSVG = tool.afterRender(result, params, cssW, cssH);
 }
 
 // ── Save ──────────────────────────────────────────────────────────────────────
@@ -275,14 +277,8 @@ function _currentFilename() {
   const { value } = evaluate(editorView.state.doc.toString());
   const text = (typeof value?.text === 'string' && value.text) || 'export';
   const p = value?.params || {};
-  const bw = p.borderWidth ?? sdfDefaults.borderWidth;
-  const bc = p.bevelCurvature ?? sdfDefaults.bevelCurvature;
-  const la = p.lightAngle ?? sdfDefaults.lightAngle;
-  const fill = String(p.fillColor ?? sdfDefaults.fillColor).replace('#', '');
-  const grad = String(p.gradientColor ?? sdfDefaults.gradientColor).replace('#', '');
-  const bg = String(p.bgColor ?? sdfDefaults.bgColor).replace('#', '');
-  const paramStr = `bw${bw} bc${bc} la${la} ${fill} ${grad} ${bg}`;
-  return _slugify(text) + '-' + _slugify(paramStr);
+  const hint = tool.getFilenameHint ? tool.getFilenameHint(p) : toolName;
+  return _slugify(text) + '-' + _slugify(hint);
 }
 
 function savePNG() {

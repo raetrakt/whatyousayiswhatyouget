@@ -275,3 +275,47 @@ function _hexToRgb(hex) {
   }
   return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
 }
+
+// ─── Tool interface ───────────────────────────────────────────────────────────────────
+
+export function getParamLines(fmtVal) {
+  return [
+    '',
+    '  // sdf',
+    `  borderWidth: ${fmtVal(defaults.borderWidth)},     // fraction of fontSize`,
+    `  bevelCurvature: ${fmtVal(defaults.bevelCurvature)},   // 0 = flat, higher = rounder`,
+    `  bevelPeak: ${fmtVal(defaults.bevelPeak)},         // 0 = edge peak, 0.5 = mid ridge, 1 = outer lip`,
+    `  lightAngle: ${fmtVal(defaults.lightAngle)},       // degrees clockwise from top (315 = upper-left)`,
+    `  specular: ${fmtVal(defaults.specular)},         // specular highlight (0 = off)`,
+    `  specularSharpness: ${fmtVal(defaults.specularSharpness)}, // tightness of highlight spot`,
+    `  fillColor: ${fmtVal(defaults.fillColor)},  // text fill`,
+    `  gradientColor: ${fmtVal(defaults.gradientColor)}, // bevel fades to this color`,
+    `  shadowColor: ${fmtVal(defaults.shadowColor)}, // shadow side of bevel`,
+    `  bgColor: ${fmtVal(defaults.bgColor)},    // background`,
+  ];
+}
+
+export function normalizeParams(p) {
+  return {
+    borderWidth: p.borderWidth ?? defaults.borderWidth,
+    bevelCurvature: p.bevelCurvature ?? defaults.bevelCurvature,
+    bevelPeak: p.bevelPeak ?? defaults.bevelPeak,
+    lightAngle: p.lightAngle ?? defaults.lightAngle,
+    fillColor: typeof p.fillColor === 'string' ? p.fillColor : defaults.fillColor,
+    gradientColor: typeof p.gradientColor === 'string' ? p.gradientColor : defaults.gradientColor,
+    shadowColor: typeof p.shadowColor === 'string' ? p.shadowColor : defaults.shadowColor,
+    specular: p.specular ?? defaults.specular,
+    specularSharpness: p.specularSharpness ?? defaults.specularSharpness,
+    bgColor: typeof p.bgColor === 'string' ? p.bgColor : defaults.bgColor,
+  };
+}
+
+export function getFilenameHint(p) {
+  const bw = p.borderWidth ?? defaults.borderWidth;
+  const bc = p.bevelCurvature ?? defaults.bevelCurvature;
+  const la = p.lightAngle ?? defaults.lightAngle;
+  const fill = String(p.fillColor ?? defaults.fillColor).replace('#', '');
+  const grad = String(p.gradientColor ?? defaults.gradientColor).replace('#', '');
+  const bg = String(p.bgColor ?? defaults.bgColor).replace('#', '');
+  return `bw${bw} bc${bc} la${la} ${fill} ${grad} ${bg}`;
+}
