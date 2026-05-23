@@ -5,7 +5,7 @@
 // Inspired by https://shaderfun.com/2018/07/23/signed-distance-fields-part-8-gradients-bevels-and-noise/
 // MIT license
 
-const SDF_SCALE = 1; // full-resolution — O(n) EDT makes this cheap
+const SDF_SCALE = 2; // full-resolution — O(n) EDT makes this cheap
 
 /** Default parameter values for the SDF bevel tool. */
 export const defaults = {
@@ -14,6 +14,7 @@ export const defaults = {
   lightAngle: 315, // degrees clockwise from top (315 = upper-left)
   fillColor: '#ffffff', // text fill
   gradientColor: '#3300ff', // bevel fades to this color
+  shadowColor: '#000000', // shadow side of bevel (replaces desaturation-to-black)
   bgColor: '#fff', // background
 };
 
@@ -42,6 +43,7 @@ export function render(
   const LY = -Math.cos(angleRad);
   const fill = _hexToRgb(params.fillColor ?? defaults.fillColor);
   const grad = _hexToRgb(params.gradientColor ?? defaults.gradientColor);
+  const shadow = _hexToRgb(params.shadowColor ?? defaults.shadowColor);
   const bg = _hexToRgb(params.bgColor ?? defaults.bgColor);
   // ── 1. Render black text on white at SDF scale ────────────────────────────
   const sw = Math.max(2, Math.round(cssW * SDF_SCALE));
@@ -117,26 +119,30 @@ export function render(
       // Inside geometry → fill color
       [r, g, b] = fill;
     } else if (d < borderWidth) {
-      // Bevel band: fill → gradientColor, modulated by diffuse lighting
+      // Bevel band: fill → gradientColor, lit side stays bright, shadow side lerps to shadowColor
       const t = d / borderWidth;
       const curvature = Math.pow(t, bevelCurvature);
       const lit = 1 - curvature + diffuse * curvature;
-      const lighting = lit * 0.75 + 0.25;
+      const lighting = lit * 0.75 + 0.25; // 0.25..1.0
       const blend = Math.max(0, Math.min(1, d)); // 1-SDF-px AA at inner edge
-      // lerp fill → grad outward, then apply lighting
+      // lerp fill → grad outward
       const cr = fill[0] + (grad[0] - fill[0]) * t;
       const cg = fill[1] + (grad[1] - fill[1]) * t;
       const cb = fill[2] + (grad[2] - fill[2]) * t;
-      r = (fill[0] * (1 - blend) + cr * lighting * blend) | 0;
-      g = (fill[1] * (1 - blend) + cg * lighting * blend) | 0;
-      b = (fill[2] * (1 - blend) + cb * lighting * blend) | 0;
+      // lerp shadow → color by lighting (replaces multiply-to-black)
+      r = (fill[0] * (1 - blend) + (shadow[0] + (cr - shadow[0]) * lighting) * blend) | 0;
+      g = (fill[1] * (1 - blend) + (shadow[1] + (cg - shadow[1]) * lighting) * blend) | 0;
+      b = (fill[2] * (1 - blend) + (shadow[2] + (cb - shadow[2]) * lighting) * blend) | 0;
     } else {
-      // Outside bevel: grad*lighting fades into solid bg over 1 SDF-px
+      // Outside bevel: grad fades into solid bg, shadow side lerps to shadowColor
       const blend = Math.max(0, Math.min(1, d - borderWidth));
       const lighting = diffuse * 0.75 + 0.25;
-      r = (grad[0] * lighting * (1 - blend) + bg[0] * blend) | 0;
-      g = (grad[1] * lighting * (1 - blend) + bg[1] * blend) | 0;
-      b = (grad[2] * lighting * (1 - blend) + bg[2] * blend) | 0;
+      const lr = shadow[0] + (grad[0] - shadow[0]) * lighting;
+      const lg = shadow[1] + (grad[1] - shadow[1]) * lighting;
+      const lb = shadow[2] + (grad[2] - shadow[2]) * lighting;
+      r = (lr * (1 - blend) + bg[0] * blend) | 0;
+      g = (lg * (1 - blend) + bg[1] * blend) | 0;
+      b = (lb * (1 - blend) + bg[2] * blend) | 0;
     }
 
     imgData.data[i * 4] = r;

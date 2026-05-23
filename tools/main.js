@@ -29,6 +29,7 @@ const INITIAL_CODE = [
   `  lightAngle: ${_fmtVal(sdfDefaults.lightAngle)},       // degrees clockwise from top (315 = upper-left)`,
   `  fillColor: ${_fmtVal(sdfDefaults.fillColor)},  // text fill`,
   `  gradientColor: ${_fmtVal(sdfDefaults.gradientColor)}, // bevel fades to this color`,
+  `  shadowColor: ${_fmtVal(sdfDefaults.shadowColor)}, // shadow side of bevel`,
   `  bgColor: ${_fmtVal(sdfDefaults.bgColor)},    // background`,
   '}',
 ].join('\n');
@@ -174,6 +175,7 @@ function render() {
     fillColor: typeof p.fillColor === 'string' ? p.fillColor : sdfDefaults.fillColor,
     gradientColor:
       typeof p.gradientColor === 'string' ? p.gradientColor : sdfDefaults.gradientColor,
+    shadowColor: typeof p.shadowColor === 'string' ? p.shadowColor : sdfDefaults.shadowColor,
     bgColor: typeof p.bgColor === 'string' ? p.bgColor : sdfDefaults.bgColor,
   };
 
