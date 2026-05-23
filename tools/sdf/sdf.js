@@ -7,6 +7,16 @@
 
 const SDF_SCALE = 1; // full-resolution — O(n) EDT makes this cheap
 
+/** Default parameter values for the SDF bevel tool. */
+export const defaults = {
+  borderWidth: 0.45, // fraction of fontSize
+  bevelCurvature: 1.0, // 0 = flat, higher = rounder bevel
+  lightAngle: 315, // degrees clockwise from top (315 = upper-left)
+  fillColor: '#ffffff', // text fill
+  gradientColor: '#3300ff', // bevel fades to this color
+  bgColor: '#fff', // background
+};
+
 /**
  * render(ctx, font, canvas, layout)
  *
@@ -24,15 +34,15 @@ export function render(
   // Resolve params with fallbacks
   // When maskCanvas is supplied (SVG case), fontSize is 0 — fall back to cssH/6
   const effectiveFontSize = fontSize > 0 ? fontSize : cssH / 6;
-  const borderWidth = effectiveFontSize * SDF_SCALE * (params.borderWidth ?? 0.45);
-  const bevelCurvature = params.bevelCurvature ?? 1.0;
-  const angleRad = ((params.lightAngle ?? 315) * Math.PI) / 180;
+  const borderWidth = effectiveFontSize * SDF_SCALE * (params.borderWidth ?? defaults.borderWidth);
+  const bevelCurvature = params.bevelCurvature ?? defaults.bevelCurvature;
+  const angleRad = ((params.lightAngle ?? defaults.lightAngle) * Math.PI) / 180;
   // lightAngle is degrees clockwise from top → convert to screen-space direction vector
   const LX = Math.sin(angleRad);
   const LY = -Math.cos(angleRad);
-  const fill = _hexToRgb(params.fillColor ?? '#ffffff');
-  const grad = _hexToRgb(params.gradientColor ?? '#000000');
-  const bg = _hexToRgb(params.bgColor ?? '#000000');
+  const fill = _hexToRgb(params.fillColor ?? defaults.fillColor);
+  const grad = _hexToRgb(params.gradientColor ?? defaults.gradientColor);
+  const bg = _hexToRgb(params.bgColor ?? defaults.bgColor);
   // ── 1. Render black text on white at SDF scale ────────────────────────────
   const sw = Math.max(2, Math.round(cssW * SDF_SCALE));
   const sh = Math.max(2, Math.round(cssH * SDF_SCALE));

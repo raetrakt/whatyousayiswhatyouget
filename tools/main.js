@@ -1,11 +1,16 @@
 import { EditorView, minimalSetup } from 'codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { parse as parseFont } from 'opentype.js';
-import { render as renderSDF } from './sdf/sdf.js';
+import { render as renderSDF, defaults as sdfDefaults } from './sdf/sdf.js';
+import { colorPickerExt } from './color-picker-ext.js';
 
 const FONT_URL = new URL('../assets/fonts/texgyretermes-regular.otf', import.meta.url).href;
 const TITLE_SVG_URL = new URL('../assets/svg/title_layout.svg', import.meta.url).href;
 const A4 = 1 / Math.SQRT2;
+
+function _fmtVal(v) {
+  return typeof v === 'string' ? JSON.stringify(v) : String(v);
+}
 
 const INITIAL_CODE = [
   'const text = "What You Say Is What You Get?"',
@@ -19,12 +24,12 @@ const INITIAL_CODE = [
   '  height: 297,           // mm',
   '',
   '  // sdf',
-  '  borderWidth: 0.45,     // fraction of fontSize',
-  '  bevelCurvature: 1.0,   // 0 = flat, higher = rounder',
-  '  lightAngle: 315,       // degrees clockwise from top (315 = upper-left)',
-  '  fillColor: "#ffffff",  // text fill',
-  '  gradientColor: "#3300ff", // bevel fades to this color',
-  '  bgColor: "#fff",    // background',
+  `  borderWidth: ${_fmtVal(sdfDefaults.borderWidth)},     // fraction of fontSize`,
+  `  bevelCurvature: ${_fmtVal(sdfDefaults.bevelCurvature)},   // 0 = flat, higher = rounder`,
+  `  lightAngle: ${_fmtVal(sdfDefaults.lightAngle)},       // degrees clockwise from top (315 = upper-left)`,
+  `  fillColor: ${_fmtVal(sdfDefaults.fillColor)},  // text fill`,
+  `  gradientColor: ${_fmtVal(sdfDefaults.gradientColor)}, // bevel fades to this color`,
+  `  bgColor: ${_fmtVal(sdfDefaults.bgColor)},    // background`,
   '}',
 ].join('\n');
 
@@ -41,6 +46,7 @@ const editorView = new EditorView({
   extensions: [
     minimalSetup,
     javascript(),
+    colorPickerExt,
     EditorView.updateListener.of((u) => {
       if (u.docChanged) scheduleRender();
     }),
@@ -162,12 +168,13 @@ function render() {
     tracking: p.tracking ?? 0,
     width: p.width ?? 210,
     height: p.height ?? 297,
-    borderWidth: p.borderWidth ?? 0.45,
-    bevelCurvature: p.bevelCurvature ?? 1.0,
-    lightAngle: p.lightAngle ?? 315,
-    fillColor: typeof p.fillColor === 'string' ? p.fillColor : '#ffffff',
-    gradientColor: typeof p.gradientColor === 'string' ? p.gradientColor : '#000000',
-    bgColor: typeof p.bgColor === 'string' ? p.bgColor : '#000000',
+    borderWidth: p.borderWidth ?? sdfDefaults.borderWidth,
+    bevelCurvature: p.bevelCurvature ?? sdfDefaults.bevelCurvature,
+    lightAngle: p.lightAngle ?? sdfDefaults.lightAngle,
+    fillColor: typeof p.fillColor === 'string' ? p.fillColor : sdfDefaults.fillColor,
+    gradientColor:
+      typeof p.gradientColor === 'string' ? p.gradientColor : sdfDefaults.gradientColor,
+    bgColor: typeof p.bgColor === 'string' ? p.bgColor : sdfDefaults.bgColor,
   };
 
   ctx.clearRect(0, 0, cssW, cssH);
@@ -250,12 +257,12 @@ function _currentFilename() {
   const result = evaluate(editorView.state.doc.toString());
   const text = (typeof result?.text === 'string' && result.text) || 'export';
   const p = result?.params || {};
-  const bw = p.borderWidth ?? 0.45;
-  const bc = p.bevelCurvature ?? 1.0;
-  const la = p.lightAngle ?? 315;
-  const fill = String(p.fillColor ?? '#ffffff').replace('#', '');
-  const grad = String(p.gradientColor ?? '#000000').replace('#', '');
-  const bg = String(p.bgColor ?? '#000000').replace('#', '');
+  const bw = p.borderWidth ?? sdfDefaults.borderWidth;
+  const bc = p.bevelCurvature ?? sdfDefaults.bevelCurvature;
+  const la = p.lightAngle ?? sdfDefaults.lightAngle;
+  const fill = String(p.fillColor ?? sdfDefaults.fillColor).replace('#', '');
+  const grad = String(p.gradientColor ?? sdfDefaults.gradientColor).replace('#', '');
+  const bg = String(p.bgColor ?? sdfDefaults.bgColor).replace('#', '');
   const paramStr = `bw${bw} bc${bc} la${la} ${fill} ${grad} ${bg}`;
   return _slugify(text) + '-' + _slugify(paramStr);
 }
