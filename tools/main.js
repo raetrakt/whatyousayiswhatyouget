@@ -23,6 +23,7 @@ const INITIAL_CODE = [
   '  bevelCurvature: 1.0,   // 0 = flat, higher = rounder',
   '  lightAngle: 315,       // degrees clockwise from top (315 = upper-left)',
   '  fillColor: "#ffa600",  // text fill',
+  '  gradientColor: "#4d00c8", // bevel fades to this color',
   '  bgColor: "#fff",    // background',
   '}',
 ].join('\n');
@@ -32,6 +33,8 @@ let cssW = 0;
 let cssH = 0;
 let fontLoaded = false;
 let renderTimer = null;
+let _titleSvgImage = null; // cached HTMLImageElement once loaded
+let _titleSvgRequested = false; // true while fetch is in-flight
 
 const editorView = new EditorView({
   doc: INITIAL_CODE,
@@ -163,12 +166,54 @@ function render() {
     bevelCurvature: p.bevelCurvature ?? 1.0,
     lightAngle: p.lightAngle ?? 315,
     fillColor: typeof p.fillColor === 'string' ? p.fillColor : '#ffffff',
+    gradientColor: typeof p.gradientColor === 'string' ? p.gradientColor : '#000000',
     bgColor: typeof p.bgColor === 'string' ? p.bgColor : '#000000',
   };
 
   ctx.clearRect(0, 0, cssW, cssH);
   ctx.fillStyle = params.bgColor;
   ctx.fillRect(0, 0, cssW, cssH);
+
+  const isA4 = Math.abs(params.width / params.height - A4) < 0.01;
+  if (text === 'What You Say Is What You Get?' && isA4) {
+    if (!_titleSvgImage) {
+      if (!_titleSvgRequested) {
+        _titleSvgRequested = true;
+        const img = new Image();
+        img.onload = () => {
+          _titleSvgImage = img;
+          _titleSvgRequested = false;
+          render();
+        };
+        img.onerror = () => {
+          _titleSvgRequested = false;
+        };
+        img.src = TITLE_SVG_URL;
+      }
+      return;
+    }
+    const m = params.margin;
+    const svgW = cssW - m * 2;
+    const svgH = (_titleSvgImage.naturalHeight / _titleSvgImage.naturalWidth) * svgW;
+    const maskCanvas = document.createElement('canvas');
+    maskCanvas.width = cssW;
+    maskCanvas.height = cssH;
+    const mctx = maskCanvas.getContext('2d');
+    mctx.fillStyle = '#fff';
+    mctx.fillRect(0, 0, cssW, cssH);
+    mctx.drawImage(_titleSvgImage, m, m, svgW, svgH);
+    renderSDF(ctx, font, canvas, {
+      maskCanvas,
+      lines: [],
+      fontSize: 0,
+      startY: 0,
+      lineH: 0,
+      params,
+      cssW,
+      cssH,
+    });
+    return;
+  }
 
   const fontSize = params.fontSize > 0 ? params.fontSize : fitFontSize(text, params);
   const maxW = cssW - params.margin * 2;

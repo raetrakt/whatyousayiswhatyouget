@@ -15,15 +15,23 @@ const SDF_SCALE = 1; // full-resolution — O(n) EDT makes this cheap
  * canvas  — the main HTMLCanvasElement
  * layout  — { lines, fontSize, startY, lineH, params, cssW, cssH }
  */
-export function render(ctx, font, canvas, { lines, fontSize, startY, lineH, params, cssW, cssH }) {
+export function render(
+  ctx,
+  font,
+  canvas,
+  { lines, fontSize, startY, lineH, params, cssW, cssH, maskCanvas },
+) {
   // Resolve params with fallbacks
-  const borderWidth = fontSize * SDF_SCALE * (params.borderWidth ?? 0.45);
+  // When maskCanvas is supplied (SVG case), fontSize is 0 — fall back to cssH/6
+  const effectiveFontSize = fontSize > 0 ? fontSize : cssH / 6;
+  const borderWidth = effectiveFontSize * SDF_SCALE * (params.borderWidth ?? 0.45);
   const bevelCurvature = params.bevelCurvature ?? 1.0;
   const angleRad = ((params.lightAngle ?? 315) * Math.PI) / 180;
   // lightAngle is degrees clockwise from top → convert to screen-space direction vector
   const LX = Math.sin(angleRad);
   const LY = -Math.cos(angleRad);
   const fill = _hexToRgb(params.fillColor ?? '#ffffff');
+  const grad = _hexToRgb(params.gradientColor ?? '#000000');
   const bg = _hexToRgb(params.bgColor ?? '#000000');
   // ── 1. Render black text on white at SDF scale ────────────────────────────
   const sw = Math.max(2, Math.round(cssW * SDF_SCALE));
@@ -36,9 +44,16 @@ export function render(ctx, font, canvas, { lines, fontSize, startY, lineH, para
 
   octx.fillStyle = '#fff';
   octx.fillRect(0, 0, sw, sh);
-  octx.setTransform(SDF_SCALE, 0, 0, SDF_SCALE, 0, 0);
-  _drawGlyphs(octx, font, lines, fontSize, startY, lineH, params, cssW, '#000');
-  octx.setTransform(1, 0, 0, 1, 0, 0);
+  if (maskCanvas) {
+    // Scale the pre-rendered CSS-size mask down to SDF resolution
+    octx.imageSmoothingEnabled = true;
+    octx.imageSmoothingQuality = 'high';
+    octx.drawImage(maskCanvas, 0, 0, sw, sh);
+  } else {
+    octx.setTransform(SDF_SCALE, 0, 0, SDF_SCALE, 0, 0);
+    _drawGlyphs(octx, font, lines, fontSize, startY, lineH, params, cssW, '#000');
+    octx.setTransform(1, 0, 0, 1, 0, 0);
+  }
 
   // ── 2. Classify pixels ────────────────────────────────────────────────────
   const pxData = octx.getImageData(0, 0, sw, sh).data;
@@ -92,24 +107,26 @@ export function render(ctx, font, canvas, { lines, fontSize, startY, lineH, para
       // Inside geometry → fill color
       [r, g, b] = fill;
     } else if (d < borderWidth) {
-      // Bevel border band
+      // Bevel band: fill → gradientColor, modulated by diffuse lighting
       const t = d / borderWidth;
       const curvature = Math.pow(t, bevelCurvature);
-      const lit = 1 - curvature + diffuse * curvature; // lerp(1, diffuse, curvature)
-      const lighting = lit * 0.75 + 0.25; // 75% diffuse + 25% ambient
+      const lit = 1 - curvature + diffuse * curvature;
+      const lighting = lit * 0.75 + 0.25;
       const blend = Math.max(0, Math.min(1, d)); // 1-SDF-px AA at inner edge
-      // lerp(fill, fill*lighting, blend)
-      r = (fill[0] * (1 - blend) + fill[0] * lighting * blend) | 0;
-      g = (fill[1] * (1 - blend) + fill[1] * lighting * blend) | 0;
-      b = (fill[2] * (1 - blend) + fill[2] * lighting * blend) | 0;
+      // lerp fill → grad outward, then apply lighting
+      const cr = fill[0] + (grad[0] - fill[0]) * t;
+      const cg = fill[1] + (grad[1] - fill[1]) * t;
+      const cb = fill[2] + (grad[2] - fill[2]) * t;
+      r = (fill[0] * (1 - blend) + cr * lighting * blend) | 0;
+      g = (fill[1] * (1 - blend) + cg * lighting * blend) | 0;
+      b = (fill[2] * (1 - blend) + cb * lighting * blend) | 0;
     } else {
-      // Background, with 1-SDF-px AA at outer edge
+      // Outside bevel: grad*lighting fades into solid bg over 1 SDF-px
       const blend = Math.max(0, Math.min(1, d - borderWidth));
       const lighting = diffuse * 0.75 + 0.25;
-      // lerp(fill*lighting, bg, blend)
-      r = (fill[0] * lighting * (1 - blend) + bg[0] * blend) | 0;
-      g = (fill[1] * lighting * (1 - blend) + bg[1] * blend) | 0;
-      b = (fill[2] * lighting * (1 - blend) + bg[2] * blend) | 0;
+      r = (grad[0] * lighting * (1 - blend) + bg[0] * blend) | 0;
+      g = (grad[1] * lighting * (1 - blend) + bg[1] * blend) | 0;
+      b = (grad[2] * lighting * (1 - blend) + bg[2] * blend) | 0;
     }
 
     imgData.data[i * 4] = r;
