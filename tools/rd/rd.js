@@ -16,14 +16,15 @@ export const defaults = {
   feed: 0.055, // feed rate of U (0.01–0.08)
   kill: 0.062, // kill rate of V (0.04–0.07)
   speed: 8, // steps per animation frame
-  scale: 2, // grid resolution (higher = faster but coarser)
+  scale: 2,    // simulation grid divisor — controls pattern thickness
+  renderScale: 1, // render output divisor — 1 = full quality, 2 = half res
   // appearance
   thresh: false, // snap to solid colors instead of smooth gradient
   threshVal: 0.2, // V cutoff for solid mode (0–1)
   sharpen: true, // sharpen edges in gradient mode
   colorHigh: '#000000', // color at dense areas (high V)
   colorLow: '#002aff', // color at sparse areas (low V)
-  lowPos: 10, // where colorLow sits in brightness (0 = hard edge, 128 = halfway)
+  lowPos: 50, // where colorLow sits in brightness (0 = hard edge, 128 = halfway)
   hardCut: true, // true = sharp edge at lowPos; false = fade to transparent
   bgColor: '#ffffff', // canvas background
   // brush
@@ -57,6 +58,7 @@ export function render(
   const k = params.kill ?? defaults.kill;
   const stepsPerFrame = Math.max(1, Math.round(params.speed ?? defaults.speed));
   const sc = Math.max(1, Math.round(params.scale ?? defaults.scale));
+  const renderSc = Math.max(1, Math.round(params.renderScale ?? defaults.renderScale));
   const thresh = params.thresh ?? defaults.thresh;
   const threshVal = params.threshVal ?? defaults.threshVal;
   const sharpen = params.sharpen ?? defaults.sharpen;
@@ -184,13 +186,36 @@ export function render(
   const [fr, fg, fb] = _hexToRgb(fillColor);
   const [br, bg2, bb] = _hexToRgb(bgColor);
 
+  const fW = Math.max(4, Math.floor(cssW / renderSc));
+  const fH = Math.max(4, Math.floor(cssH / renderSc));
+  const fn = fW * fH;
+  const needsInterp = fW !== gW || fH !== gH;
+
   const frame = document.createElement('canvas');
-  frame.width = gW;
-  frame.height = gH;
+  frame.width = fW;
+  frame.height = fH;
   const fctx = frame.getContext('2d');
-  const frameData = fctx.createImageData(gW, gH);
+  const frameData = fctx.createImageData(fW, fH);
   const fd = frameData.data;
   let vSharp = null; // lazily allocated sharpen buffer
+
+  // ── 5b. Text mask at frame resolution (brush mode) ────────────────────────
+  // textCanvas is full CSS-size; downscale to frame size so text boundaries
+  // sit at frame-pixel resolution rather than the coarser sim grid.
+  const textAlphaFrame = new Float32Array(fn);
+  if (brushMode) {
+    const ftc = document.createElement('canvas');
+    ftc.width = fW;
+    ftc.height = fH;
+    const ftctx = ftc.getContext('2d');
+    ftctx.imageSmoothingEnabled = true;
+    ftctx.imageSmoothingQuality = 'high';
+    ftctx.drawImage(textCanvas, 0, 0, fW, fH);
+    const ftd = ftctx.getImageData(0, 0, fW, fH).data;
+    for (let i = 0; i < fn; i++) {
+      textAlphaFrame[i] = 1 - ftd[i * 4] / 255;
+    }
+  }
 
   // ── 6. Animation loop ──────────────────────────────────────────────────────
   function loop() {
@@ -230,26 +255,41 @@ export function render(
     // Precompute brightness thresholds (V maps to t = clamp(v*2.5, 0, 1)).
     const tLow = lowPos / 255;
 
-    for (let i = 0; i < n; i++) {
+    for (let i = 0; i < fn; i++) {
       const j = i * 4;
-      if (brushMode && textMask[i]) {
-        // Overlay text as solid colorHigh regardless of simulation state.
-        fd[j] = fr;
-        fd[j + 1] = fg;
-        fd[j + 2] = fb;
-        fd[j + 3] = 255;
-      } else if (thresh) {
-        const on = vSrc[i] >= threshVal;
-        // Off pixels are transparent — bgColor shows through underneath.
-        fd[j] = on ? fr : 0;
-        fd[j + 1] = on ? fg : 0;
-        fd[j + 2] = on ? fb : 0;
-        fd[j + 3] = on ? 255 : 0;
+
+      // Resolve V for this frame pixel (bilinear if sim grid ≠ frame size).
+      let v;
+      if (needsInterp) {
+        const fx = i % fW;
+        const fy = Math.floor(i / fW);
+        const gxf = (fx + 0.5) * gW / fW - 0.5;
+        const gyf = (fy + 0.5) * gH / fH - 0.5;
+        const gx0 = Math.max(0, Math.floor(gxf));
+        const gy0 = Math.max(0, Math.floor(gyf));
+        const gx1 = Math.min(gx0 + 1, gW - 1);
+        const gy1 = Math.min(gy0 + 1, gH - 1);
+        const tx = gxf - gx0;
+        const ty = gyf - gy0;
+        v =
+          vSrc[gy0 * gW + gx0] * (1 - tx) * (1 - ty) +
+          vSrc[gy0 * gW + gx1] * tx * (1 - ty) +
+          vSrc[gy1 * gW + gx0] * (1 - tx) * ty +
+          vSrc[gy1 * gW + gx1] * tx * ty;
       } else {
-        const v = vSrc[i];
+        v = vSrc[i];
+      }
+
+      // Compute simulation color from V.
+      let r, g, b, a;
+      if (thresh) {
+        const on = v >= threshVal;
+        r = on ? fr : 0;
+        g = on ? fg : 0;
+        b = on ? fb : 0;
+        a = on ? 255 : 0;
+      } else {
         const t = Math.min(1, v * 2.5);
-        // Color: colorLow below tLow, lerp colorLow→colorHigh above tLow.
-        let r, g, b;
         if (tLow > 0 && t < tLow) {
           r = br;
           g = bg2;
@@ -261,27 +301,35 @@ export function render(
           g = Math.round(bg2 + (fg - bg2) * sc2);
           b = Math.round(bb + (fb - bb) * sc2);
         }
-        // Alpha: hard cut at tLow, or smooth fade from 0 up to tLow.
-        const a = hardCut
+        a = hardCut
           ? t >= tLow
             ? 255
             : 0
           : tLow > 0
             ? Math.round(Math.min(1, t / tLow) * 255)
             : 255;
-        fd[j] = r;
-        fd[j + 1] = g;
-        fd[j + 2] = b;
-        fd[j + 3] = a;
       }
+
+      // Text mask (brush mode): hard override — letter pixels are always colorHigh.
+      // Use a low threshold (not 0.5) so sub-pixel edge frame-pixels that sit
+      // between a text sim-pixel (V=0) and a reaction sim-pixel also get
+      // overridden, preventing colorLow contamination and white gaps at edges.
+      if (textAlphaFrame[i] > 0.01) {
+        r = fr; g = fg; b = fb; a = 255;
+      }
+
+      fd[j] = r;
+      fd[j + 1] = g;
+      fd[j + 2] = b;
+      fd[j + 3] = a;
     }
     fctx.putImageData(frameData, 0, 0);
 
     // Fill canvas with bgColor, then composite transparent RD frame on top.
     ctx.fillStyle = canvasBg;
     ctx.fillRect(0, 0, cssW, cssH);
-    // imageSmoothingEnabled = false gives a pixelated look at scale > 1.
-    ctx.imageSmoothingEnabled = sc === 1;
+    ctx.imageSmoothingEnabled = renderSc === 1;
+    ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(frame, 0, 0, cssW, cssH);
 
     requestAnimationFrame(loop);
@@ -396,7 +444,8 @@ export function getParamLines(fmtVal) {
     `  feed: ${fmtVal(defaults.feed)},   // how fast the activator is fed in`,
     `  kill: ${fmtVal(defaults.kill)},   // how fast the activator is consumed`,
     `  speed: ${fmtVal(defaults.speed)},   // steps per animation frame — higher = faster growth`,
-    `  scale: ${fmtVal(defaults.scale)},   // grid resolution — higher = faster but coarser`,
+    `  scale: ${fmtVal(defaults.scale)},   // pattern thickness — higher = thicker lines, coarser simulation`,
+    `  renderScale: ${fmtVal(defaults.renderScale)},   // render resolution — 1 = full quality, 2 = half res`,
     '',
     '  // ── Appearance ───────────────────────────────────────────────────',
     `  thresh: ${fmtVal(defaults.thresh)},   // true: snap to solid colors  |  false: smooth gradient`,
@@ -420,6 +469,7 @@ export function normalizeParams(p) {
     kill: p.kill ?? defaults.kill,
     speed: p.speed ?? defaults.speed,
     scale: p.scale ?? defaults.scale,
+    renderScale: p.renderScale ?? defaults.renderScale,
     thresh: p.thresh ?? defaults.thresh,
     threshVal: p.threshVal ?? defaults.threshVal,
     sharpen: p.sharpen ?? defaults.sharpen,
