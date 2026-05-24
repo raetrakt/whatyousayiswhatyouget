@@ -436,12 +436,7 @@ export function getParamLines(fmtVal) {
   return [
     '',
     '  // ── Simulation ────────────────────────────────────────────────────',
-    '  //   try these presets (change feed + kill together):',
-    '  //     spots:    feed 0.055  kill 0.062',
-    '  //     cells:    feed 0.037  kill 0.060',
-    '  //     spirals:  feed 0.025  kill 0.050',
-    '  //     stripes:  feed 0.039  kill 0.058',
-    '  //     lines:    feed 0.050  kill 0.064',
+    '  //   for best results keep k > f and within 0.03 and 0.07'
     `  feed: ${fmtVal(defaults.feed)},   // how fast the activator is fed in`,
     `  kill: ${fmtVal(defaults.kill)},   // how fast the activator is consumed`,
     `  speed: ${fmtVal(defaults.speed)},   // steps per animation frame — higher = faster growth`,
