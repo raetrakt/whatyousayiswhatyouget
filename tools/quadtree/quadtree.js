@@ -9,7 +9,20 @@ export const defaults = {
   lineColor: '#000000',
   lineWidth: 0.5,
   bgColor: '#ffffff',
+  brushMode: false,  // paint higher detail where you drag
+  brushRadius: 30,   // brush size in CSS px
 };
+
+// ─── Brush state (persists across renders; reset on canvas resize) ───────────
+let _version = 0;
+let _brushGrid   = null;   // Uint8Array — accumulated depth per pixel
+let _strokeGrid  = null;   // Uint8Array — mask for current stroke (prevents double-increment per drag)
+let _brushW = 0;
+let _brushH = 0;
+let _brushModeActive = false;
+let _brushRadiusPx   = 30;
+let _painting = false;
+let _brushDirty = false;
 
 /**
  * render(ctx, font, canvas, layout)
@@ -25,7 +38,8 @@ export function render(
   canvas,
   { lines, fontSize, startY, lineH, params, cssW, cssH, maskCanvas },
 ) {
-  const maxDepth = params.maxDepth ?? defaults.maxDepth;
+  const maxDepth  = params.maxDepth  ?? defaults.maxDepth;
+  const brushMode = params.brushMode ?? defaults.brushMode;
   const fillColor = typeof params.fillColor === 'string' ? params.fillColor : defaults.fillColor;
   const lineColor =
     params.lineColor === null
@@ -35,6 +49,23 @@ export function render(
         : defaults.lineColor;
   const lineWidth = params.lineWidth ?? defaults.lineWidth;
   const bgColor = typeof params.bgColor === 'string' ? params.bgColor : defaults.bgColor;
+
+  // Keep module-level brush params in sync — event handlers read these.
+  const version = ++_version;
+  _brushModeActive = brushMode;
+  _brushRadiusPx   = params.brushRadius    ?? defaults.brushRadius;
+
+  // Reset brush strokes on every render (code change or resize).
+  _brushGrid  = new Uint8Array(cssW * cssH);
+  _strokeGrid = new Uint8Array(cssW * cssH);
+  _brushW = cssW;
+  _brushH = cssH;
+
+  if (brushMode) _setupBrushListeners(canvas);
+
+  // Sync cursor style and indicator visibility on every render.
+  canvas.style.cursor = brushMode ? 'none' : '';
+  if (canvas.__qtIndicator) canvas.__qtIndicator.style.display = 'none';
 
   // ── 1. Rasterize text (black on white) to offscreen canvas ───────────────
   const off = document.createElement('canvas');
@@ -54,8 +85,7 @@ export function render(
 
   const imgData = octx.getImageData(0, 0, cssW, cssH).data;
 
-  // ── 2. Summed-area table (integral image) ────────────────────────────────
-  // sat[(y+1)*(cssW+1) + (x+1)] = count of inside pixels in rect [0,0)→[x,y)
+  // ── 2. Summed-area table ─────────────────────────────────────────────────
   const W1 = cssW + 1;
   const sat = new Int32Array(W1 * (cssH + 1));
   for (let y = 0; y < cssH; y++) {
@@ -75,53 +105,169 @@ export function render(
     return { sum, total: (x2 - x) * (y2 - y) };
   }
 
-  // ── 3. Recursive quadtree subdivision ────────────────────────────────────
-  // Start from the smallest power-of-2 square covering the canvas so all
-  // interior cells are perfectly square. Edge cells are clipped to canvas bounds.
+  // ── 3. Frame draw (called once, or each dirty tick in brush mode) ──────────
   const startSize = 1 << Math.ceil(Math.log2(Math.max(cssW, cssH)));
-  const leaves = []; // { x, y, w, h, inside }
 
-  function subdivide(x, y, size, depth) {
-    if (x >= cssW || y >= cssH) return; // entirely outside canvas
-    const { sum, total } = cellSumClamped(x, y, size);
-    if (total === 0) return;
-
-    // Leaf: uniform cell or maximum depth reached
-    if (sum === 0 || sum === total || depth >= maxDepth) {
-      leaves.push({
-        x,
-        y,
-        w: Math.min(size, cssW - x),
-        h: Math.min(size, cssH - y),
-        inside: sum > 0,
-      });
-      return;
+  function drawFrame() {
+    // Build a SAT of the brush grid so we can query painted regions in O(1).
+    let bsat = null;
+    let BW1  = 0;
+    if (brushMode && _brushGrid) {
+      ({ sat: bsat, W1: BW1 } = _buildBrushSAT(_brushGrid, cssW, cssH));
     }
 
-    const half = size >> 1;
-    subdivide(x, y, half, depth + 1);
-    subdivide(x + half, y, half, depth + 1);
-    subdivide(x, y + half, half, depth + 1);
-    subdivide(x + half, y + half, half, depth + 1);
+    function brushDepthInCell(x, y, size) {
+      if (!bsat) return 0;
+      const x2 = Math.min(x + size, cssW);
+      const y2 = Math.min(y + size, cssH);
+      if (x2 <= x || y2 <= y) return 0;
+      const sum = bsat[y2 * BW1 + x2] - bsat[y * BW1 + x2] - bsat[y2 * BW1 + x] + bsat[y * BW1 + x];
+      if (sum === 0) return 0;
+      const total = (x2 - x) * (y2 - y);
+      return Math.ceil(sum / total);
+    }
+
+    const leaves = [];
+    function subdivide(x, y, size, depth) {
+      if (x >= cssW || y >= cssH) return;
+      const { sum, total } = cellSumClamped(x, y, size);
+      if (total === 0) return;
+      const localMax = maxDepth + brushDepthInCell(x, y, size);
+      if (sum === 0 || sum === total || depth >= localMax) {
+        leaves.push({ x, y, w: Math.min(size, cssW - x), h: Math.min(size, cssH - y), inside: sum > 0 });
+        return;
+      }
+      const half = size >> 1;
+      subdivide(x,        y,        half, depth + 1);
+      subdivide(x + half, y,        half, depth + 1);
+      subdivide(x,        y + half, half, depth + 1);
+      subdivide(x + half, y + half, half, depth + 1);
+    }
+    subdivide(0, 0, startSize, 0);
+
+    ctx.save();
+    ctx.fillStyle = bgColor;
+    ctx.fillRect(0, 0, cssW, cssH);
+    for (const { x, y, w, h, inside } of leaves) {
+      if (inside) {
+        ctx.fillStyle = fillColor;
+        ctx.fillRect(x, y, w, h);
+      }
+      if (lineColor) {
+        ctx.strokeStyle = lineColor;
+        ctx.lineWidth = lineWidth;
+        ctx.strokeRect(x + lineWidth / 2, y + lineWidth / 2, w - lineWidth, h - lineWidth);
+      }
+    }
+    ctx.restore();
+    return { leaves };
   }
 
-  subdivide(0, 0, startSize, 0);
+  if (!brushMode) {
+    return drawFrame();
+  }
 
-  // ── 4. Draw leaf cells ────────────────────────────────────────────────────
-  ctx.save();
-  for (const { x, y, w, h, inside } of leaves) {
-    if (inside) {
-      ctx.fillStyle = fillColor;
-      ctx.fillRect(x, y, w, h);
+  // ── 4. Brush animation loop ───────────────────────────────────────────────
+  let lastResult = drawFrame();
+  _brushDirty = false;
+
+  function loop() {
+    if (_version !== version) return;
+    if (_brushDirty) {
+      _brushDirty = false;
+      lastResult = drawFrame();
     }
-    if (lineColor) {
-      ctx.strokeStyle = lineColor;
-      ctx.lineWidth = lineWidth;
-      ctx.strokeRect(x + lineWidth / 2, y + lineWidth / 2, w - lineWidth, h - lineWidth);
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  return lastResult;
+}
+
+// ─── Brush helpers ────────────────────────────────────────────────────────────
+
+function _setupBrushListeners(canvas) {
+  if (canvas.__qtBrushAttached) return;
+  canvas.__qtBrushAttached = true;
+
+  // Brush size indicator — fixed-position circle that follows the cursor.
+  const indicator = document.createElement('div');
+  indicator.style.cssText = [
+    'position:fixed',
+    'display:none',
+    'pointer-events:none',
+    'border-radius:50%',
+    'border:1.5px solid #000',
+    'outline:1px solid #fff',
+    'box-sizing:border-box',
+    'transform:translate(-50%,-50%)',
+  ].join(';');
+  document.body.appendChild(indicator);
+  canvas.__qtIndicator = indicator;
+
+  function moveIndicator(e) {
+    if (!_brushModeActive) return;
+    const d = _brushRadiusPx * 2;
+    indicator.style.width  = `${d}px`;
+    indicator.style.height = `${d}px`;
+    indicator.style.left   = `${e.clientX}px`;
+    indicator.style.top    = `${e.clientY}px`;
+    indicator.style.display = 'block';
+  }
+
+  canvas.addEventListener('mouseenter', moveIndicator);
+  canvas.addEventListener('mousemove', (e) => {
+    moveIndicator(e);
+    if (!_brushModeActive || !_painting) return;
+    _paint(e);
+  });
+  canvas.addEventListener('mouseleave', () => {
+    _painting = false;
+    indicator.style.display = 'none';
+  });
+  canvas.addEventListener('mousedown', (e) => {
+    if (!_brushModeActive) return;
+    _painting = true;
+    if (_strokeGrid) _strokeGrid.fill(0);
+    _paint(e);
+  });
+  canvas.addEventListener('mouseup', () => { _painting = false; });
+}
+
+function _paint(e) {
+  if (!_brushGrid) return;
+  const cx = Math.round(e.offsetX);
+  const cy = Math.round(e.offsetY);
+  const r  = _brushRadiusPx;
+  const r2 = r * r;
+  const x0 = Math.max(0, cx - r);
+  const x1 = Math.min(_brushW - 1, cx + r);
+  const y0 = Math.max(0, cy - r);
+  const y1 = Math.min(_brushH - 1, cy + r);
+  for (let y = y0; y <= y1; y++) {
+    for (let x = x0; x <= x1; x++) {
+      if ((x - cx) ** 2 + (y - cy) ** 2 <= r2) {
+        const i = y * _brushW + x;
+        if (_strokeGrid && _strokeGrid[i] === 0) {
+          if (_brushGrid[i] < 200) _brushGrid[i]++;
+          _strokeGrid[i] = 1;
+        }
+      }
     }
   }
-  ctx.restore();
-  return { leaves };
+  _brushDirty = true;
+}
+
+function _buildBrushSAT(grid, gW, gH) {
+  const W1  = gW + 1;
+  const sat = new Int32Array(W1 * (gH + 1));
+  for (let y = 0; y < gH; y++) {
+    for (let x = 0; x < gW; x++) {
+      sat[(y + 1) * W1 + (x + 1)] =
+        grid[y * gW + x] + sat[y * W1 + (x + 1)] + sat[(y + 1) * W1 + x] - sat[y * W1 + x];
+    }
+  }
+  return { sat, W1 };
 }
 
 // ─── Glyph rendering helpers ─────────────────────────────────────────────────
@@ -166,6 +312,8 @@ export function getParamLines(fmtVal) {
     `  lineColor: ${fmtVal(defaults.lineColor)},  // cell border color (null = none)`,
     `  lineWidth: ${fmtVal(defaults.lineWidth)},        // border width px`,
     `  bgColor: ${fmtVal(defaults.bgColor)},    // background`,
+    `  brushMode: ${fmtVal(defaults.brushMode)},     // enable detail brush`,
+    `  brushRadius: ${fmtVal(defaults.brushRadius)},        // brush size (CSS px)`,
   ];
 }
 
@@ -181,6 +329,8 @@ export function normalizeParams(p) {
           : defaults.lineColor,
     lineWidth: p.lineWidth ?? defaults.lineWidth,
     bgColor: typeof p.bgColor === 'string' ? p.bgColor : defaults.bgColor,
+    brushMode:     p.brushMode     ?? defaults.brushMode,
+    brushRadius:   p.brushRadius   ?? defaults.brushRadius,
   };
 }
 
