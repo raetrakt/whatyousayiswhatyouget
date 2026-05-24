@@ -107,6 +107,7 @@ export function render(
 
   // ── 3. Frame draw (called once, or each dirty tick in brush mode) ──────────
   const startSize = 1 << Math.ceil(Math.log2(Math.max(cssW, cssH)));
+  const liveResult = { leaves: [] };
 
   function drawFrame() {
     // Build a SAT of the brush grid so we can query painted regions in O(1).
@@ -166,7 +167,8 @@ export function render(
       }
     }
     ctx.restore();
-    return { leaves };
+    liveResult.leaves = leaves;
+    return liveResult;
   }
 
   if (!brushMode) {
@@ -350,12 +352,13 @@ export function getFilenameHint(p) {
 }
 
 /** Called after render(). Returns the getSVG callback for the save button. */
-export function afterRender({ leaves }, params, cssW, cssH) {
-  const snapshot = { leaves, params: { ...params }, cssW, cssH };
+export function afterRender(result, params, cssW, cssH) {
+  const snapshot = { result, params: { ...params }, cssW, cssH };
   return () => _generateSVG(snapshot);
 }
 
-function _generateSVG({ leaves, params, cssW, cssH }) {
+function _generateSVG({ result, params, cssW, cssH }) {
+  const { leaves } = result;
   const sx = params.width / cssW;
   const sy = params.height / cssH;
   const fill = params.fillColor;
