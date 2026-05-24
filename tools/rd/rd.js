@@ -16,12 +16,14 @@ export const defaults = {
   kill: 0.062, // kill rate of V (0.04–0.07)
   speed: 8, // simulation steps per frame
   scale: 2, // grid resolution divisor (higher = faster but coarser)
-  thresh: true, // snap to solid fill/bg colors instead of smooth gradient
+  thresh: false, // snap to solid fill/bg colors instead of smooth gradient
   threshVal: 0.2, // V cutoff when thresh is true (0–1, try 0.1–0.3)
+  sharpen: true, // sharpen V values before colorizing (only when thresh is false)
   brushMode: false, // paint to seed reaction; type stays stable
   brushRadius: 30, // brush size in CSS px
-  fillColor: '#000000',
-  bgColor: '#ffffff',
+  colorHigh: '#000000', // high-V color
+  colorLow:  '#ffffff', // low-V color
+  bgColor:   '#ffffff', // canvas background (separate from gradient)
 };
 
 // Version counter cancels stale animation loops on re-render.
@@ -50,10 +52,12 @@ export function render(
   const k = params.kill ?? defaults.kill;
   const stepsPerFrame = Math.max(1, Math.round(params.speed ?? defaults.speed));
   const sc = Math.max(1, Math.round(params.scale ?? defaults.scale));
-  const thresh = params.thresh ?? defaults.thresh;
+  const thresh    = params.thresh    ?? defaults.thresh;
   const threshVal = params.threshVal ?? defaults.threshVal;
-  const fillColor = params.fillColor ?? defaults.fillColor;
-  const bgColor = params.bgColor ?? defaults.bgColor;
+  const sharpen   = params.sharpen   ?? defaults.sharpen;
+  const fillColor = params.colorHigh ?? defaults.colorHigh;
+  const bgColor   = params.colorLow  ?? defaults.colorLow;
+  const canvasBg  = params.bgColor   ?? defaults.bgColor;
   const brushMode = params.brushMode ?? defaults.brushMode;
   const brushRadius = params.brushRadius ?? defaults.brushRadius;
 
@@ -179,6 +183,7 @@ export function render(
   const fctx = frame.getContext('2d');
   const frameData = fctx.createImageData(gW, gH);
   const fd = frameData.data;
+  let vSharp = null; // lazily allocated sharpen buffer
 
   // ── 6. Animation loop ──────────────────────────────────────────────────────
   function loop() {
@@ -198,29 +203,53 @@ export function render(
     }
 
     // Map V → color.
+    let vSrc = vA;
+    if (!thresh && sharpen) {
+      if (!vSharp) vSharp = new Float32Array(n);
+      for (let y = 0; y < gH; y++) {
+        const ym = y > 0 ? y - 1 : 0;
+        const yp = y < gH - 1 ? y + 1 : gH - 1;
+        for (let x = 0; x < gW; x++) {
+          const xm = x > 0 ? x - 1 : 0;
+          const xp = x < gW - 1 ? x + 1 : gW - 1;
+          const i  = y * gW + x;
+          const lap = vA[ym * gW + x] + vA[yp * gW + x] + vA[y * gW + xm] + vA[y * gW + xp];
+          vSharp[i] = Math.max(0, Math.min(1, 5 * vA[i] - lap));
+        }
+      }
+      vSrc = vSharp;
+    }
     for (let i = 0; i < n; i++) {
       const j = i * 4;
       if (brushMode && textMask[i]) {
-        // Overlay text as solid fill color regardless of simulation state.
-        fd[j] = fr;
-        fd[j + 1] = fg;
-        fd[j + 2] = fb;
+        // Overlay text as solid colorHigh regardless of simulation state.
+        fd[j] = fr; fd[j + 1] = fg; fd[j + 2] = fb; fd[j + 3] = 255;
       } else if (thresh) {
-        const on = vA[i] >= threshVal;
-        fd[j] = on ? fr : br;
-        fd[j + 1] = on ? fg : bg2;
-        fd[j + 2] = on ? fb : bb;
+        const on = vSrc[i] >= threshVal;
+        // Off pixels are transparent — bgColor shows through underneath.
+        fd[j] = on ? fr : 0;
+        fd[j + 1] = on ? fg : 0;
+        fd[j + 2] = on ? fb : 0;
+        fd[j + 3] = on ? 255 : 0;
       } else {
-        const t = Math.min(1, vA[i] * 2.5);
-        fd[j] = Math.round(br + (fr - br) * t);
-        fd[j + 1] = Math.round(bg2 + (fg - bg2) * t);
-        fd[j + 2] = Math.round(bb + (fb - bb) * t);
+        const v = vSrc[i];
+        if (v < 0.01) {
+          // True background — transparent so bgColor shows through.
+          fd[j] = 0; fd[j + 1] = 0; fd[j + 2] = 0; fd[j + 3] = 0;
+        } else {
+          const t = Math.min(1, v * 2.5);
+          fd[j]     = Math.round(br + (fr - br) * t);
+          fd[j + 1] = Math.round(bg2 + (fg - bg2) * t);
+          fd[j + 2] = Math.round(bb + (fb - bb) * t);
+          fd[j + 3] = 255;
+        }
       }
-      fd[j + 3] = 255;
     }
     fctx.putImageData(frameData, 0, 0);
 
-    ctx.clearRect(0, 0, cssW, cssH);
+    // Fill canvas with bgColor, then composite transparent RD frame on top.
+    ctx.fillStyle = canvasBg;
+    ctx.fillRect(0, 0, cssW, cssH);
     // imageSmoothingEnabled = false gives a pixelated look at scale > 1.
     ctx.imageSmoothingEnabled = sc === 1;
     ctx.drawImage(frame, 0, 0, cssW, cssH);
@@ -339,10 +368,12 @@ export function getParamLines(fmtVal) {
     `  scale: ${fmtVal(defaults.scale)},            // grid resolution divisor`,
     `  thresh: ${fmtVal(defaults.thresh)},         // snap to solid colors`,
     `  threshVal: ${fmtVal(defaults.threshVal)},       // V cutoff (0–1)`,
+    `  sharpen: ${fmtVal(defaults.sharpen)},          // sharpen when thresh is off`,
     `  brushMode: ${fmtVal(defaults.brushMode)},      // paint to seed reaction; type stays stable`,
     `  brushRadius: ${fmtVal(defaults.brushRadius)},       // brush size (CSS px)`,
-    `  fillColor: ${fmtVal(defaults.fillColor)},  // high-V color`,
-    `  bgColor: ${fmtVal(defaults.bgColor)},    // low-V / background color`,
+    `  colorHigh: ${fmtVal(defaults.colorHigh)},  // high-V color`,
+    `  colorLow:  ${fmtVal(defaults.colorLow)},  // low-V color`,
+    `  bgColor:   ${fmtVal(defaults.bgColor)},  // canvas background`,
   ];
 }
 
@@ -354,17 +385,19 @@ export function normalizeParams(p) {
     scale: p.scale ?? defaults.scale,
     thresh: p.thresh ?? defaults.thresh,
     threshVal: p.threshVal ?? defaults.threshVal,
+    sharpen:   p.sharpen   ?? defaults.sharpen,
     brushMode: p.brushMode ?? defaults.brushMode,
     brushRadius: p.brushRadius ?? defaults.brushRadius,
-    fillColor: typeof p.fillColor === 'string' ? p.fillColor : defaults.fillColor,
-    bgColor: typeof p.bgColor === 'string' ? p.bgColor : defaults.bgColor,
+    colorHigh: typeof p.colorHigh === 'string' ? p.colorHigh : defaults.colorHigh,
+    colorLow:  typeof p.colorLow  === 'string' ? p.colorLow  : defaults.colorLow,
+    bgColor:   typeof p.bgColor   === 'string' ? p.bgColor   : defaults.bgColor,
   };
 }
 
 export function getFilenameHint(p) {
   const feed = p.feed ?? defaults.feed;
   const kill = p.kill ?? defaults.kill;
-  const fill = String(p.fillColor ?? defaults.fillColor).replace('#', '');
-  const bg = String(p.bgColor ?? defaults.bgColor).replace('#', '');
-  return `rd f${feed} k${kill} ${fill} ${bg}`;
+  const high = String(p.colorHigh ?? defaults.colorHigh).replace('#', '');
+  const low  = String(p.colorLow  ?? defaults.colorLow).replace('#', '');
+  return `rd f${feed} k${kill} ${high}-${low}`;
 }
