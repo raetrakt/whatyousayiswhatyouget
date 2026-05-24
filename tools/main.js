@@ -306,6 +306,7 @@ function saveSVG() {
   URL.revokeObjectURL(url);
 }
 
+document.getElementById('btn-reset').addEventListener('click', render);
 document.getElementById('btn-save-png').addEventListener('click', savePNG);
 document.getElementById('btn-save-svg').addEventListener('click', saveSVG);
 
