@@ -21,7 +21,6 @@ export const defaults = {
   // appearance
   thresh: false, // snap to solid colors instead of smooth gradient
   threshVal: 0.2, // V cutoff for solid mode (0–1)
-  sharpen: true, // sharpen edges in gradient mode
   colorHigh: '#000000', // color at dense areas (high V)
   colorLow: '#002aff', // color at sparse areas (low V)
   lowPos: 50, // where colorLow sits in brightness (0 = hard edge, 128 = halfway)
@@ -61,7 +60,6 @@ export function render(
   const renderSc = Math.max(1, Math.round(params.renderScale ?? defaults.renderScale));
   const thresh = params.thresh ?? defaults.thresh;
   const threshVal = params.threshVal ?? defaults.threshVal;
-  const sharpen = params.sharpen ?? defaults.sharpen;
   const lowPos = params.lowPos ?? defaults.lowPos;
   const hardCut = params.hardCut ?? defaults.hardCut;
   const fillColor = params.colorHigh ?? defaults.colorHigh;
@@ -197,7 +195,6 @@ export function render(
   const fctx = frame.getContext('2d');
   const frameData = fctx.createImageData(fW, fH);
   const fd = frameData.data;
-  let vSharp = null; // lazily allocated sharpen buffer
 
   // ── 5b. Text mask at frame resolution (brush mode) ────────────────────────
   // Downscale full-res textCanvas to frame size for a crisp glyph boundary.
@@ -234,22 +231,7 @@ export function render(
     }
 
     // Map V → color.
-    let vSrc = vA;
-    if (!thresh && sharpen) {
-      if (!vSharp) vSharp = new Float32Array(n);
-      for (let y = 0; y < gH; y++) {
-        const ym = y > 0 ? y - 1 : 0;
-        const yp = y < gH - 1 ? y + 1 : gH - 1;
-        for (let x = 0; x < gW; x++) {
-          const xm = x > 0 ? x - 1 : 0;
-          const xp = x < gW - 1 ? x + 1 : gW - 1;
-          const i = y * gW + x;
-          const lap = vA[ym * gW + x] + vA[yp * gW + x] + vA[y * gW + xm] + vA[y * gW + xp];
-          vSharp[i] = Math.max(0, Math.min(1, 5 * vA[i] - lap));
-        }
-      }
-      vSrc = vSharp;
-    }
+    const vSrc = vA;
 
     // Precompute brightness thresholds (V maps to t = clamp(v*2.5, 0, 1)).
     const tLow = lowPos / 255;
@@ -279,10 +261,14 @@ export function render(
           const w01 = textMask[gy1 * gW + gx0] ? 0 : (1 - tx) * ty;
           const w11 = textMask[gy1 * gW + gx1] ? 0 : tx * ty;
           const wSum = w00 + w10 + w01 + w11;
-          v = wSum > 0
-            ? (vSrc[gy0 * gW + gx0] * w00 + vSrc[gy0 * gW + gx1] * w10 +
-               vSrc[gy1 * gW + gx0] * w01 + vSrc[gy1 * gW + gx1] * w11) / wSum
-            : 0;
+          v =
+            wSum > 0
+              ? (vSrc[gy0 * gW + gx0] * w00 +
+                  vSrc[gy0 * gW + gx1] * w10 +
+                  vSrc[gy1 * gW + gx0] * w01 +
+                  vSrc[gy1 * gW + gx1] * w11) /
+                wSum
+              : 0;
         } else {
           v =
             vSrc[gy0 * gW + gx0] * (1 - tx) * (1 - ty) +
@@ -464,7 +450,6 @@ export function getParamLines(fmtVal) {
     '  // ── Appearance ───────────────────────────────────────────────────',
     `  thresh: ${fmtVal(defaults.thresh)},   // true: snap to solid colors  |  false: smooth gradient`,
     `  threshVal: ${fmtVal(defaults.threshVal)},   // cutoff for solid mode (0–1; smaller = more ink)`,
-    `  sharpen: ${fmtVal(defaults.sharpen)},   // sharpen edges in gradient mode`,
     `  colorHigh: ${fmtVal(defaults.colorHigh)},   // color at dense areas`,
     `  colorLow: ${fmtVal(defaults.colorLow)},   // color at sparse areas`,
     `  lowPos: ${fmtVal(defaults.lowPos)},   // where colorLow sits (0 = at edge, 128 = halfway into gradient)`,
@@ -486,7 +471,6 @@ export function normalizeParams(p) {
     renderScale: p.renderScale ?? defaults.renderScale,
     thresh: p.thresh ?? defaults.thresh,
     threshVal: p.threshVal ?? defaults.threshVal,
-    sharpen: p.sharpen ?? defaults.sharpen,
     lowPos: p.lowPos ?? defaults.lowPos,
     hardCut: p.hardCut ?? defaults.hardCut,
     brushMode: p.brushMode ?? defaults.brushMode,
