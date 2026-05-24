@@ -7,6 +7,8 @@ import { colorPickerExt } from './color-picker-ext.js';
 const TOOLS = {
   sdf: () => import('./sdf/sdf.js'),
   quadtree: () => import('./quadtree/quadtree.js'),
+  sand: () => import('./sand/sand.js'),
+  rd: () => import('./rd/rd.js'),
 };
 
 const toolName = new URLSearchParams(location.search).get('tool') ?? 'sdf';
