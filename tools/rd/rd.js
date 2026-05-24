@@ -12,18 +12,23 @@
 //   feed 0.039  kill 0.058  → labyrinthine stripes
 
 export const defaults = {
+  // simulation
   feed: 0.055, // feed rate of U (0.01–0.08)
   kill: 0.062, // kill rate of V (0.04–0.07)
-  speed: 8, // simulation steps per frame
-  scale: 2, // grid resolution divisor (higher = faster but coarser)
-  thresh: false, // snap to solid fill/bg colors instead of smooth gradient
-  threshVal: 0.2, // V cutoff when thresh is true (0–1, try 0.1–0.3)
-  sharpen: true, // sharpen V values before colorizing (only when thresh is false)
-  brushMode: false, // paint to seed reaction; type stays stable
+  speed: 8, // steps per animation frame
+  scale: 2, // grid resolution (higher = faster but coarser)
+  // appearance
+  thresh: false, // snap to solid colors instead of smooth gradient
+  threshVal: 0.2, // V cutoff for solid mode (0–1)
+  sharpen: true, // sharpen edges in gradient mode
+  colorHigh: '#000000', // color at dense areas (high V)
+  colorLow: '#002aff', // color at sparse areas (low V)
+  lowPos: 10, // where colorLow sits in brightness (0 = hard edge, 128 = halfway)
+  hardCut: true, // true = sharp edge at lowPos; false = fade to transparent
+  bgColor: '#ffffff', // canvas background
+  // brush
+  brushMode: false, // paint to seed reaction; letters stay stable
   brushRadius: 30, // brush size in CSS px
-  colorHigh: '#000000', // high-V color
-  colorLow:  '#ffffff', // low-V color
-  bgColor:   '#ffffff', // canvas background (separate from gradient)
 };
 
 // Version counter cancels stale animation loops on re-render.
@@ -52,12 +57,14 @@ export function render(
   const k = params.kill ?? defaults.kill;
   const stepsPerFrame = Math.max(1, Math.round(params.speed ?? defaults.speed));
   const sc = Math.max(1, Math.round(params.scale ?? defaults.scale));
-  const thresh    = params.thresh    ?? defaults.thresh;
+  const thresh = params.thresh ?? defaults.thresh;
   const threshVal = params.threshVal ?? defaults.threshVal;
-  const sharpen   = params.sharpen   ?? defaults.sharpen;
+  const sharpen = params.sharpen ?? defaults.sharpen;
+  const lowPos = params.lowPos ?? defaults.lowPos;
+  const hardCut = params.hardCut ?? defaults.hardCut;
   const fillColor = params.colorHigh ?? defaults.colorHigh;
-  const bgColor   = params.colorLow  ?? defaults.colorLow;
-  const canvasBg  = params.bgColor   ?? defaults.bgColor;
+  const bgColor = params.colorLow ?? defaults.colorLow;
+  const canvasBg = params.bgColor ?? defaults.bgColor;
   const brushMode = params.brushMode ?? defaults.brushMode;
   const brushRadius = params.brushRadius ?? defaults.brushRadius;
 
@@ -212,18 +219,25 @@ export function render(
         for (let x = 0; x < gW; x++) {
           const xm = x > 0 ? x - 1 : 0;
           const xp = x < gW - 1 ? x + 1 : gW - 1;
-          const i  = y * gW + x;
+          const i = y * gW + x;
           const lap = vA[ym * gW + x] + vA[yp * gW + x] + vA[y * gW + xm] + vA[y * gW + xp];
           vSharp[i] = Math.max(0, Math.min(1, 5 * vA[i] - lap));
         }
       }
       vSrc = vSharp;
     }
+
+    // Precompute brightness thresholds (V maps to t = clamp(v*2.5, 0, 1)).
+    const tLow = lowPos / 255;
+
     for (let i = 0; i < n; i++) {
       const j = i * 4;
       if (brushMode && textMask[i]) {
         // Overlay text as solid colorHigh regardless of simulation state.
-        fd[j] = fr; fd[j + 1] = fg; fd[j + 2] = fb; fd[j + 3] = 255;
+        fd[j] = fr;
+        fd[j + 1] = fg;
+        fd[j + 2] = fb;
+        fd[j + 3] = 255;
       } else if (thresh) {
         const on = vSrc[i] >= threshVal;
         // Off pixels are transparent — bgColor shows through underneath.
@@ -233,16 +247,32 @@ export function render(
         fd[j + 3] = on ? 255 : 0;
       } else {
         const v = vSrc[i];
-        if (v < 0.01) {
-          // True background — transparent so bgColor shows through.
-          fd[j] = 0; fd[j + 1] = 0; fd[j + 2] = 0; fd[j + 3] = 0;
+        const t = Math.min(1, v * 2.5);
+        // Color: colorLow below tLow, lerp colorLow→colorHigh above tLow.
+        let r, g, b;
+        if (tLow > 0 && t < tLow) {
+          r = br;
+          g = bg2;
+          b = bb;
         } else {
-          const t = Math.min(1, v * 2.5);
-          fd[j]     = Math.round(br + (fr - br) * t);
-          fd[j + 1] = Math.round(bg2 + (fg - bg2) * t);
-          fd[j + 2] = Math.round(bb + (fb - bb) * t);
-          fd[j + 3] = 255;
+          const s = tLow < 1 ? (tLow > 0 ? (t - tLow) / (1 - tLow) : t) : 1;
+          const sc2 = Math.max(0, Math.min(1, s));
+          r = Math.round(br + (fr - br) * sc2);
+          g = Math.round(bg2 + (fg - bg2) * sc2);
+          b = Math.round(bb + (fb - bb) * sc2);
         }
+        // Alpha: hard cut at tLow, or smooth fade from 0 up to tLow.
+        const a = hardCut
+          ? t >= tLow
+            ? 255
+            : 0
+          : tLow > 0
+            ? Math.round(Math.min(1, t / tLow) * 255)
+            : 255;
+        fd[j] = r;
+        fd[j + 1] = g;
+        fd[j + 2] = b;
+        fd[j + 3] = a;
       }
     }
     fctx.putImageData(frameData, 0, 0);
@@ -357,23 +387,30 @@ function _hexToRgb(hex) {
 export function getParamLines(fmtVal) {
   return [
     '',
-    '  // rd — Gray-Scott reaction diffusion',
-    '  //   spots:    feed 0.055  kill 0.062',
-    '  //   cells:    feed 0.037  kill 0.060',
-    '  //   spirals:  feed 0.025  kill 0.050',
-    '  //   stripes:  feed 0.039  kill 0.058',
-    `  feed: ${fmtVal(defaults.feed)},           // feed rate of U`,
-    `  kill: ${fmtVal(defaults.kill)},           // kill rate of V`,
-    `  speed: ${fmtVal(defaults.speed)},            // steps per frame`,
-    `  scale: ${fmtVal(defaults.scale)},            // grid resolution divisor`,
-    `  thresh: ${fmtVal(defaults.thresh)},         // snap to solid colors`,
-    `  threshVal: ${fmtVal(defaults.threshVal)},       // V cutoff (0–1)`,
-    `  sharpen: ${fmtVal(defaults.sharpen)},          // sharpen when thresh is off`,
-    `  brushMode: ${fmtVal(defaults.brushMode)},      // paint to seed reaction; type stays stable`,
-    `  brushRadius: ${fmtVal(defaults.brushRadius)},       // brush size (CSS px)`,
-    `  colorHigh: ${fmtVal(defaults.colorHigh)},  // high-V color`,
-    `  colorLow:  ${fmtVal(defaults.colorLow)},  // low-V color`,
-    `  bgColor:   ${fmtVal(defaults.bgColor)},  // canvas background`,
+    '  // ── Simulation ────────────────────────────────────────────────────',
+    '  //   try these presets (change feed + kill together):',
+    '  //     spots:    feed 0.055  kill 0.062',
+    '  //     cells:    feed 0.037  kill 0.060',
+    '  //     spirals:  feed 0.025  kill 0.050',
+    '  //     stripes:  feed 0.039  kill 0.058',
+    `  feed: ${fmtVal(defaults.feed)},   // how fast the activator is fed in`,
+    `  kill: ${fmtVal(defaults.kill)},   // how fast the activator is consumed`,
+    `  speed: ${fmtVal(defaults.speed)},   // steps per animation frame — higher = faster growth`,
+    `  scale: ${fmtVal(defaults.scale)},   // grid resolution — higher = faster but coarser`,
+    '',
+    '  // ── Appearance ───────────────────────────────────────────────────',
+    `  thresh: ${fmtVal(defaults.thresh)},   // true: snap to solid colors  |  false: smooth gradient`,
+    `  threshVal: ${fmtVal(defaults.threshVal)},   // cutoff for solid mode (0–1; smaller = more ink)`,
+    `  sharpen: ${fmtVal(defaults.sharpen)},   // sharpen edges in gradient mode`,
+    `  colorHigh: ${fmtVal(defaults.colorHigh)},   // color at dense areas`,
+    `  colorLow: ${fmtVal(defaults.colorLow)},   // color at sparse areas`,
+    `  lowPos: ${fmtVal(defaults.lowPos)},   // where colorLow sits (0 = at edge, 128 = halfway into gradient)`,
+    `  hardCut: ${fmtVal(defaults.hardCut)},   // true: sharp edge at lowPos  |  false: fade to transparent`,
+    `  bgColor: ${fmtVal(defaults.bgColor)},   // canvas background color`,
+    '',
+    '  // ── Brush ────────────────────────────────────────────────────────',
+    `  brushMode: ${fmtVal(defaults.brushMode)},   // paint to grow the reaction — letters stay stable`,
+    `  brushRadius: ${fmtVal(defaults.brushRadius)},   // brush size in pixels`,
   ];
 }
 
@@ -385,12 +422,14 @@ export function normalizeParams(p) {
     scale: p.scale ?? defaults.scale,
     thresh: p.thresh ?? defaults.thresh,
     threshVal: p.threshVal ?? defaults.threshVal,
-    sharpen:   p.sharpen   ?? defaults.sharpen,
+    sharpen: p.sharpen ?? defaults.sharpen,
+    lowPos: p.lowPos ?? defaults.lowPos,
+    hardCut: p.hardCut ?? defaults.hardCut,
     brushMode: p.brushMode ?? defaults.brushMode,
     brushRadius: p.brushRadius ?? defaults.brushRadius,
     colorHigh: typeof p.colorHigh === 'string' ? p.colorHigh : defaults.colorHigh,
-    colorLow:  typeof p.colorLow  === 'string' ? p.colorLow  : defaults.colorLow,
-    bgColor:   typeof p.bgColor   === 'string' ? p.bgColor   : defaults.bgColor,
+    colorLow: typeof p.colorLow === 'string' ? p.colorLow : defaults.colorLow,
+    bgColor: typeof p.bgColor === 'string' ? p.bgColor : defaults.bgColor,
   };
 }
 
@@ -398,6 +437,6 @@ export function getFilenameHint(p) {
   const feed = p.feed ?? defaults.feed;
   const kill = p.kill ?? defaults.kill;
   const high = String(p.colorHigh ?? defaults.colorHigh).replace('#', '');
-  const low  = String(p.colorLow  ?? defaults.colorLow).replace('#', '');
+  const low = String(p.colorLow ?? defaults.colorLow).replace('#', '');
   return `rd f${feed} k${kill} ${high}-${low}`;
 }
