@@ -24,7 +24,7 @@ export const defaults = {
   colorHigh: '#000000', // color at dense areas (high V)
   colorLow: '#002aff', // color at sparse areas (low V)
   lowPos: 50, // where colorLow sits in brightness (0 = hard edge, 128 = halfway)
-  hardCut: true, // true = sharp edge at lowPos; false = fade to transparent
+  hardCut: false, // true = sharp edge at lowPos; false = fade to transparent
   bgColor: '#ffffff', // canvas background
   // brush
   brushMode: false, // paint to seed reaction; letters stay stable
@@ -441,6 +441,7 @@ export function getParamLines(fmtVal) {
     '  //     cells:    feed 0.037  kill 0.060',
     '  //     spirals:  feed 0.025  kill 0.050',
     '  //     stripes:  feed 0.039  kill 0.058',
+    '  //     lines:    feed 0.050  kill 0.064',
     `  feed: ${fmtVal(defaults.feed)},   // how fast the activator is fed in`,
     `  kill: ${fmtVal(defaults.kill)},   // how fast the activator is consumed`,
     `  speed: ${fmtVal(defaults.speed)},   // steps per animation frame — higher = faster growth`,
@@ -482,9 +483,22 @@ export function normalizeParams(p) {
 }
 
 export function getFilenameHint(p) {
-  const feed = p.feed ?? defaults.feed;
-  const kill = p.kill ?? defaults.kill;
-  const high = String(p.colorHigh ?? defaults.colorHigh).replace('#', '');
-  const low = String(p.colorLow ?? defaults.colorLow).replace('#', '');
-  return `rd f${feed} k${kill} ${high}-${low}`;
+  const v = (key) => p[key] ?? defaults[key];
+  const col = (key) => String(v(key)).replace('#', '');
+
+  const parts = [
+    'rd',
+    `f${v('feed')}`,
+    `k${v('kill')}`,
+    `sp${v('speed')}`,
+    `sc${v('scale')}`,
+    `rs${v('renderScale')}`,
+    v('thresh') ? `th${v('threshVal')}` : 'noth',
+    `${col('colorHigh')}-${col('colorLow')}`,
+    `lp${v('lowPos')}`,
+    v('hardCut') ? 'hc' : 'nohc',
+    `bg${col('bgColor')}`,
+    v('brushMode') ? `brush${v('brushRadius')}` : 'nobrush',
+  ];
+  return parts.join(' ');
 }
