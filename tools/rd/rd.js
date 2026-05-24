@@ -18,12 +18,17 @@ export const defaults = {
   scale: 2, // grid resolution divisor (higher = faster but coarser)
   thresh: true, // snap to solid fill/bg colors instead of smooth gradient
   threshVal: 0.2, // V cutoff when thresh is true (0–1, try 0.1–0.3)
+  brushMode: false, // paint to seed reaction; type stays stable
+  brushRadius: 30, // brush size in CSS px
   fillColor: '#000000',
   bgColor: '#ffffff',
 };
 
 // Version counter cancels stale animation loops on re-render.
 let _version = 0;
+let _rdBrushMode = false;
+let _rdBrushRadius = 30;
+let _rdSeedFn = null; // set each render; called by listener with CSS coords
 
 /**
  * render(ctx, font, canvas, layout)
@@ -49,6 +54,14 @@ export function render(
   const threshVal = params.threshVal ?? defaults.threshVal;
   const fillColor = params.fillColor ?? defaults.fillColor;
   const bgColor = params.bgColor ?? defaults.bgColor;
+  const brushMode = params.brushMode ?? defaults.brushMode;
+  const brushRadius = params.brushRadius ?? defaults.brushRadius;
+
+  // Sync module-level brush state for the persistent listener.
+  _rdBrushMode = brushMode;
+  _rdBrushRadius = brushRadius;
+  canvas.style.cursor = brushMode ? 'none' : '';
+  if (canvas.__rdIndicator) canvas.__rdIndicator.style.display = 'none';
 
   // Simulation grid dimensions (smaller than canvas for performance).
   const gW = Math.max(4, Math.floor(cssW / sc));
@@ -88,12 +101,35 @@ export function render(
   let uB = new Float32Array(n);
   let vB = new Float32Array(n);
 
+  // Build text mask; seed text pixels only in normal (non-brush) mode.
+  const textMask = new Uint8Array(n);
   for (let i = 0; i < n; i++) {
     if (pxData[i * 4] < 128) {
-      uA[i] = 0.5 + (Math.random() - 0.5) * 0.1;
-      vA[i] = 0.25 + Math.random() * 0.05;
+      textMask[i] = 1;
+      if (!brushMode) {
+        uA[i] = 0.5 + (Math.random() - 0.5) * 0.1;
+        vA[i] = 0.25 + Math.random() * 0.05;
+      }
     }
   }
+
+  // Seed function — called by brush listeners with CSS-space coordinates.
+  _rdSeedFn = brushMode
+    ? (cssX, cssY) => {
+        const gx = Math.round(cssX / sc);
+        const gy = Math.round(cssY / sc);
+        const gr = Math.max(1, Math.round(brushRadius / sc));
+        const gr2 = gr * gr;
+        for (let y = Math.max(0, gy - gr); y <= Math.min(gH - 1, gy + gr); y++) {
+          for (let x = Math.max(0, gx - gr); x <= Math.min(gW - 1, gx + gr); x++) {
+            if ((x - gx) ** 2 + (y - gy) ** 2 <= gr2) {
+              uA[y * gW + x] = 0.5;
+              vA[y * gW + x] = 0.25;
+            }
+          }
+        }
+      }
+    : null;
 
   // ── 3. Diffusion rates (standard Gray-Scott, Du:Dv = 2:1) ─────────────────
   const Du = 0.2097;
@@ -148,12 +184,28 @@ export function render(
   function loop() {
     if (_version !== version) return; // stale render — stop
 
-    for (let i = 0; i < stepsPerFrame; i++) stepOnce();
+    for (let s = 0; s < stepsPerFrame; s++) {
+      stepOnce();
+      // In brush mode, pin text pixels to steady state so letters stay stable.
+      if (brushMode) {
+        for (let i = 0; i < n; i++) {
+          if (textMask[i]) {
+            uA[i] = 1;
+            vA[i] = 0;
+          }
+        }
+      }
+    }
 
     // Map V → color.
     for (let i = 0; i < n; i++) {
       const j = i * 4;
-      if (thresh) {
+      if (brushMode && textMask[i]) {
+        // Overlay text as solid fill color regardless of simulation state.
+        fd[j] = fr;
+        fd[j + 1] = fg;
+        fd[j + 2] = fb;
+      } else if (thresh) {
         const on = vA[i] >= threshVal;
         fd[j] = on ? fr : br;
         fd[j + 1] = on ? fg : bg2;
@@ -176,7 +228,60 @@ export function render(
     requestAnimationFrame(loop);
   }
 
+  if (brushMode) _setupRDBrushListeners(canvas);
   loop();
+}
+
+// ─── RD Brush helpers ────────────────────────────────────────────────────────
+
+function _setupRDBrushListeners(canvas) {
+  if (canvas.__rdBrushAttached) return;
+  canvas.__rdBrushAttached = true;
+
+  const indicator = document.createElement('div');
+  indicator.style.cssText = [
+    'position:fixed',
+    'display:none',
+    'pointer-events:none',
+    'border-radius:50%',
+    'border:1.5px solid #000',
+    'outline:1px solid #fff',
+    'box-sizing:border-box',
+    'transform:translate(-50%,-50%)',
+  ].join(';');
+  document.body.appendChild(indicator);
+  canvas.__rdIndicator = indicator;
+
+  let painting = false;
+
+  function moveIndicator(e) {
+    if (!_rdBrushMode) return;
+    const d = _rdBrushRadius * 2;
+    indicator.style.width = `${d}px`;
+    indicator.style.height = `${d}px`;
+    indicator.style.left = `${e.clientX}px`;
+    indicator.style.top = `${e.clientY}px`;
+    indicator.style.display = 'block';
+  }
+
+  canvas.addEventListener('mouseenter', moveIndicator);
+  canvas.addEventListener('mousemove', (e) => {
+    moveIndicator(e);
+    if (!_rdBrushMode || !painting) return;
+    if (_rdSeedFn) _rdSeedFn(e.offsetX, e.offsetY);
+  });
+  canvas.addEventListener('mouseleave', () => {
+    painting = false;
+    indicator.style.display = 'none';
+  });
+  canvas.addEventListener('mousedown', (e) => {
+    if (!_rdBrushMode) return;
+    painting = true;
+    if (_rdSeedFn) _rdSeedFn(e.offsetX, e.offsetY);
+  });
+  canvas.addEventListener('mouseup', () => {
+    painting = false;
+  });
 }
 
 // ─── Glyph rendering helpers ──────────────────────────────────────────────────
@@ -234,6 +339,8 @@ export function getParamLines(fmtVal) {
     `  scale: ${fmtVal(defaults.scale)},            // grid resolution divisor`,
     `  thresh: ${fmtVal(defaults.thresh)},         // snap to solid colors`,
     `  threshVal: ${fmtVal(defaults.threshVal)},       // V cutoff (0–1)`,
+    `  brushMode: ${fmtVal(defaults.brushMode)},      // paint to seed reaction; type stays stable`,
+    `  brushRadius: ${fmtVal(defaults.brushRadius)},       // brush size (CSS px)`,
     `  fillColor: ${fmtVal(defaults.fillColor)},  // high-V color`,
     `  bgColor: ${fmtVal(defaults.bgColor)},    // low-V / background color`,
   ];
@@ -247,6 +354,8 @@ export function normalizeParams(p) {
     scale: p.scale ?? defaults.scale,
     thresh: p.thresh ?? defaults.thresh,
     threshVal: p.threshVal ?? defaults.threshVal,
+    brushMode: p.brushMode ?? defaults.brushMode,
+    brushRadius: p.brushRadius ?? defaults.brushRadius,
     fillColor: typeof p.fillColor === 'string' ? p.fillColor : defaults.fillColor,
     bgColor: typeof p.bgColor === 'string' ? p.bgColor : defaults.bgColor,
   };

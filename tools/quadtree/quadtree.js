@@ -9,18 +9,18 @@ export const defaults = {
   lineColor: '#000000',
   lineWidth: 0.5,
   bgColor: '#ffffff',
-  brushMode: false,  // paint higher detail where you drag
-  brushRadius: 30,   // brush size in CSS px
+  brushMode: false, // paint higher detail where you drag
+  brushRadius: 30, // brush size in CSS px
 };
 
 // ─── Brush state (persists across renders; reset on canvas resize) ───────────
 let _version = 0;
-let _brushGrid   = null;   // Uint8Array — accumulated depth per pixel
-let _strokeGrid  = null;   // Uint8Array — mask for current stroke (prevents double-increment per drag)
+let _brushGrid = null; // Uint8Array — accumulated depth per pixel
+let _strokeGrid = null; // Uint8Array — mask for current stroke (prevents double-increment per drag)
 let _brushW = 0;
 let _brushH = 0;
 let _brushModeActive = false;
-let _brushRadiusPx   = 30;
+let _brushRadiusPx = 30;
 let _painting = false;
 let _brushDirty = false;
 
@@ -38,7 +38,7 @@ export function render(
   canvas,
   { lines, fontSize, startY, lineH, params, cssW, cssH, maskCanvas },
 ) {
-  const maxDepth  = params.maxDepth  ?? defaults.maxDepth;
+  const maxDepth = params.maxDepth ?? defaults.maxDepth;
   const brushMode = params.brushMode ?? defaults.brushMode;
   const fillColor = typeof params.fillColor === 'string' ? params.fillColor : defaults.fillColor;
   const lineColor =
@@ -53,10 +53,10 @@ export function render(
   // Keep module-level brush params in sync — event handlers read these.
   const version = ++_version;
   _brushModeActive = brushMode;
-  _brushRadiusPx   = params.brushRadius    ?? defaults.brushRadius;
+  _brushRadiusPx = params.brushRadius ?? defaults.brushRadius;
 
   // Reset brush strokes on every render (code change or resize).
-  _brushGrid  = new Uint8Array(cssW * cssH);
+  _brushGrid = new Uint8Array(cssW * cssH);
   _strokeGrid = new Uint8Array(cssW * cssH);
   _brushW = cssW;
   _brushH = cssH;
@@ -111,7 +111,7 @@ export function render(
   function drawFrame() {
     // Build a SAT of the brush grid so we can query painted regions in O(1).
     let bsat = null;
-    let BW1  = 0;
+    let BW1 = 0;
     if (brushMode && _brushGrid) {
       ({ sat: bsat, W1: BW1 } = _buildBrushSAT(_brushGrid, cssW, cssH));
     }
@@ -134,13 +134,19 @@ export function render(
       if (total === 0) return;
       const localMax = maxDepth + brushDepthInCell(x, y, size);
       if (sum === 0 || sum === total || depth >= localMax) {
-        leaves.push({ x, y, w: Math.min(size, cssW - x), h: Math.min(size, cssH - y), inside: sum > 0 });
+        leaves.push({
+          x,
+          y,
+          w: Math.min(size, cssW - x),
+          h: Math.min(size, cssH - y),
+          inside: sum > 0,
+        });
         return;
       }
       const half = size >> 1;
-      subdivide(x,        y,        half, depth + 1);
-      subdivide(x + half, y,        half, depth + 1);
-      subdivide(x,        y + half, half, depth + 1);
+      subdivide(x, y, half, depth + 1);
+      subdivide(x + half, y, half, depth + 1);
+      subdivide(x, y + half, half, depth + 1);
       subdivide(x + half, y + half, half, depth + 1);
     }
     subdivide(0, 0, startSize, 0);
@@ -208,10 +214,10 @@ function _setupBrushListeners(canvas) {
   function moveIndicator(e) {
     if (!_brushModeActive) return;
     const d = _brushRadiusPx * 2;
-    indicator.style.width  = `${d}px`;
+    indicator.style.width = `${d}px`;
     indicator.style.height = `${d}px`;
-    indicator.style.left   = `${e.clientX}px`;
-    indicator.style.top    = `${e.clientY}px`;
+    indicator.style.left = `${e.clientX}px`;
+    indicator.style.top = `${e.clientY}px`;
     indicator.style.display = 'block';
   }
 
@@ -231,14 +237,16 @@ function _setupBrushListeners(canvas) {
     if (_strokeGrid) _strokeGrid.fill(0);
     _paint(e);
   });
-  canvas.addEventListener('mouseup', () => { _painting = false; });
+  canvas.addEventListener('mouseup', () => {
+    _painting = false;
+  });
 }
 
 function _paint(e) {
   if (!_brushGrid) return;
   const cx = Math.round(e.offsetX);
   const cy = Math.round(e.offsetY);
-  const r  = _brushRadiusPx;
+  const r = _brushRadiusPx;
   const r2 = r * r;
   const x0 = Math.max(0, cx - r);
   const x1 = Math.min(_brushW - 1, cx + r);
@@ -259,7 +267,7 @@ function _paint(e) {
 }
 
 function _buildBrushSAT(grid, gW, gH) {
-  const W1  = gW + 1;
+  const W1 = gW + 1;
   const sat = new Int32Array(W1 * (gH + 1));
   for (let y = 0; y < gH; y++) {
     for (let x = 0; x < gW; x++) {
@@ -329,8 +337,8 @@ export function normalizeParams(p) {
           : defaults.lineColor,
     lineWidth: p.lineWidth ?? defaults.lineWidth,
     bgColor: typeof p.bgColor === 'string' ? p.bgColor : defaults.bgColor,
-    brushMode:     p.brushMode     ?? defaults.brushMode,
-    brushRadius:   p.brushRadius   ?? defaults.brushRadius,
+    brushMode: p.brushMode ?? defaults.brushMode,
+    brushRadius: p.brushRadius ?? defaults.brushRadius,
   };
 }
 
