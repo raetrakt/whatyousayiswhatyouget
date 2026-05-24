@@ -21,6 +21,7 @@ export const defaults = {
   // appearance
   thresh: false, // snap to solid colors instead of smooth gradient
   threshVal: 0.2, // V cutoff for solid mode (0–1)
+  sharpen: true, // sharpen edges in gradient mode
   colorHigh: '#000000', // color at dense areas (high V)
   colorLow: '#002aff', // color at sparse areas (low V)
   lowPos: 50, // where colorLow sits in brightness (0 = hard edge, 128 = halfway)
@@ -60,6 +61,7 @@ export function render(
   const renderSc = Math.max(1, Math.round(params.renderScale ?? defaults.renderScale));
   const thresh = params.thresh ?? defaults.thresh;
   const threshVal = params.threshVal ?? defaults.threshVal;
+  const sharpen = params.sharpen ?? defaults.sharpen;
   const lowPos = params.lowPos ?? defaults.lowPos;
   const hardCut = params.hardCut ?? defaults.hardCut;
   const fillColor = params.colorHigh ?? defaults.colorHigh;
@@ -195,10 +197,10 @@ export function render(
   const fctx = frame.getContext('2d');
   const frameData = fctx.createImageData(fW, fH);
   const fd = frameData.data;
+  let vSharp = null; // lazily allocated sharpen buffer
 
   // ── 5b. Text mask at frame resolution (brush mode) ────────────────────────
-  // textCanvas is full CSS-size; downscale to frame size so text boundaries
-  // sit at frame-pixel resolution rather than the coarser sim grid.
+  // Downscale full-res textCanvas to frame size for a crisp glyph boundary.
   const textAlphaFrame = new Float32Array(fn);
   if (brushMode) {
     const ftc = document.createElement('canvas');
@@ -232,7 +234,22 @@ export function render(
     }
 
     // Map V → color.
-    const vSrc = vA;
+    let vSrc = vA;
+    if (!thresh && sharpen) {
+      if (!vSharp) vSharp = new Float32Array(n);
+      for (let y = 0; y < gH; y++) {
+        const ym = y > 0 ? y - 1 : 0;
+        const yp = y < gH - 1 ? y + 1 : gH - 1;
+        for (let x = 0; x < gW; x++) {
+          const xm = x > 0 ? x - 1 : 0;
+          const xp = x < gW - 1 ? x + 1 : gW - 1;
+          const i = y * gW + x;
+          const lap = vA[ym * gW + x] + vA[yp * gW + x] + vA[y * gW + xm] + vA[y * gW + xp];
+          vSharp[i] = Math.max(0, Math.min(1, 5 * vA[i] - lap));
+        }
+      }
+      vSrc = vSharp;
+    }
 
     // Precompute brightness thresholds (V maps to t = clamp(v*2.5, 0, 1)).
     const tLow = lowPos / 255;
@@ -253,11 +270,26 @@ export function render(
         const gy1 = Math.min(gy0 + 1, gH - 1);
         const tx = gxf - gx0;
         const ty = gyf - gy0;
-        v =
-          vSrc[gy0 * gW + gx0] * (1 - tx) * (1 - ty) +
-          vSrc[gy0 * gW + gx1] * tx * (1 - ty) +
-          vSrc[gy1 * gW + gx0] * (1 - tx) * ty +
-          vSrc[gy1 * gW + gx1] * tx * ty;
+        if (brushMode) {
+          // In brush mode, text sim-pixels are pinned to V=0. Exclude them
+          // from bilinear weights so they don't contaminate neighbouring frame
+          // pixels with artificially low V.
+          const w00 = textMask[gy0 * gW + gx0] ? 0 : (1 - tx) * (1 - ty);
+          const w10 = textMask[gy0 * gW + gx1] ? 0 : tx * (1 - ty);
+          const w01 = textMask[gy1 * gW + gx0] ? 0 : (1 - tx) * ty;
+          const w11 = textMask[gy1 * gW + gx1] ? 0 : tx * ty;
+          const wSum = w00 + w10 + w01 + w11;
+          v = wSum > 0
+            ? (vSrc[gy0 * gW + gx0] * w00 + vSrc[gy0 * gW + gx1] * w10 +
+               vSrc[gy1 * gW + gx0] * w01 + vSrc[gy1 * gW + gx1] * w11) / wSum
+            : 0;
+        } else {
+          v =
+            vSrc[gy0 * gW + gx0] * (1 - tx) * (1 - ty) +
+            vSrc[gy0 * gW + gx1] * tx * (1 - ty) +
+            vSrc[gy1 * gW + gx0] * (1 - tx) * ty +
+            vSrc[gy1 * gW + gx1] * tx * ty;
+        }
       } else {
         v = vSrc[i];
       }
@@ -292,10 +324,7 @@ export function render(
             : 255;
       }
 
-      // Text mask (brush mode): hard override — letter pixels are always colorHigh.
-      // Use a low threshold (not 0.5) so sub-pixel edge frame-pixels that sit
-      // between a text sim-pixel (V=0) and a reaction sim-pixel also get
-      // overridden, preventing colorLow contamination and white gaps at edges.
+      // Text mask (brush mode): override to colorHigh inside the glyph.
       if (textAlphaFrame[i] > 0.01) {
         r = fr;
         g = fg;
@@ -435,6 +464,7 @@ export function getParamLines(fmtVal) {
     '  // ── Appearance ───────────────────────────────────────────────────',
     `  thresh: ${fmtVal(defaults.thresh)},   // true: snap to solid colors  |  false: smooth gradient`,
     `  threshVal: ${fmtVal(defaults.threshVal)},   // cutoff for solid mode (0–1; smaller = more ink)`,
+    `  sharpen: ${fmtVal(defaults.sharpen)},   // sharpen edges in gradient mode`,
     `  colorHigh: ${fmtVal(defaults.colorHigh)},   // color at dense areas`,
     `  colorLow: ${fmtVal(defaults.colorLow)},   // color at sparse areas`,
     `  lowPos: ${fmtVal(defaults.lowPos)},   // where colorLow sits (0 = at edge, 128 = halfway into gradient)`,
@@ -456,6 +486,7 @@ export function normalizeParams(p) {
     renderScale: p.renderScale ?? defaults.renderScale,
     thresh: p.thresh ?? defaults.thresh,
     threshVal: p.threshVal ?? defaults.threshVal,
+    sharpen: p.sharpen ?? defaults.sharpen,
     lowPos: p.lowPos ?? defaults.lowPos,
     hardCut: p.hardCut ?? defaults.hardCut,
     brushMode: p.brushMode ?? defaults.brushMode,
