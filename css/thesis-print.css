@@ -46,6 +46,10 @@
     position: running(titleText);
   }
 
+  .title-text br {
+    line-height: 0;
+  }
+
   :root .title-text p {
     font-family: 'True Sans Mono', monospace;
     font-size: var(--notes-size);
@@ -82,7 +86,7 @@
     overflow: visible;
   }
 
-  .table-of-contents p{
+  .table-of-contents p {
     break-inside: avoid;
   }
 
@@ -195,5 +199,9 @@
   .bibliography p {
     break-inside: avoid;
     page-break-inside: avoid;
+  }
+
+  .hide-in-print {
+    display: none;
   }
 }
