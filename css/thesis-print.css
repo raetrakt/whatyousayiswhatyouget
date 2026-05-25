@@ -22,6 +22,12 @@
   margin-bottom: 70mm;
 }
 
+  @page :left {
+    .pagedjs_margin-bottom::after {
+      display: none;
+    }
+  }
+
 @page title {
   margin-bottom: 8mm;
 
@@ -48,6 +54,13 @@
 
   .title-text br {
     line-height: 0;
+  }
+
+  :root .title-text p,   :root .title-text a {
+    font-family: 'True Sans Mono', monospace;
+    font-size: var(--notes-size);
+    line-height: var(--notes-line-height);
+    margin-bottom: 8mm;
   }
 
   :root .title-text p {
