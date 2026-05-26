@@ -23,7 +23,7 @@ function _fmtVal(v) {
 }
 
 const INITIAL_CODE = [
-  'const text = "What You Say Is What You Get?"',
+  'const text = "What You Say Is What You Get?" // type \\n for new line',
   '',
   'const params = {',
   '  fontSize: 160,         // null = auto-fit',
@@ -121,19 +121,28 @@ function drawLine(line, x, y, fontSize, tracking) {
 }
 
 function wrapWords(text, maxWidth, fontSize, tracking) {
-  const words = text.split(/\s+/).filter(Boolean);
   const lines = [];
-  let line = '';
-  for (const word of words) {
-    const candidate = line ? `${line} ${word}` : word;
-    if (measureWidth(candidate, fontSize, tracking) > maxWidth && line) {
-      lines.push(line);
-      line = word;
-    } else {
-      line = candidate;
+  for (const manualLine of text.split('\n')) {
+    const trimmed = manualLine.trimEnd(); // preserve leading spaces, strip trailing
+    if (!trimmed || measureWidth(trimmed, fontSize, tracking) <= maxWidth) {
+      lines.push(trimmed);
+      continue;
     }
+    // Split into alternating word-runs and space-runs to preserve spacing
+    const tokens = trimmed.split(/( +)/);
+    let line = '';
+    for (const token of tokens) {
+      const isSpace = /^ +$/.test(token);
+      const candidate = line + token;
+      if (line && measureWidth(candidate, fontSize, tracking) > maxWidth) {
+        lines.push(line.trimEnd());
+        line = isSpace ? '' : token; // drop inter-word spaces at break points
+      } else {
+        line = candidate;
+      }
+    }
+    if (line.trim()) lines.push(line);
   }
-  if (line) lines.push(line);
   return lines;
 }
 
