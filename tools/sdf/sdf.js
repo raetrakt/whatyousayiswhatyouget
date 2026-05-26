@@ -281,17 +281,17 @@ function _hexToRgb(hex) {
 export function getParamLines(fmtVal) {
   return [
     '',
-    '  // sdf',
-    `  borderWidth: ${fmtVal(defaults.borderWidth)},     // fraction of fontSize`,
-    `  bevelCurvature: ${fmtVal(defaults.bevelCurvature)},   // 0 = flat, higher = rounder`,
-    `  bevelPeak: ${fmtVal(defaults.bevelPeak)},         // 0 = edge peak, 0.5 = mid ridge, 1 = outer lip`,
-    `  lightAngle: ${fmtVal(defaults.lightAngle)},       // degrees clockwise from top (315 = upper-left)`,
-    `  specular: ${fmtVal(defaults.specular)},         // specular highlight (0 = off)`,
+    '  // Signed Distance Field parameters',
+    `  borderWidth: ${fmtVal(defaults.borderWidth)}, // fraction of fontSize`,
+    `  bevelCurvature: ${fmtVal(defaults.bevelCurvature)}, // 0 = flat, higher = rounder`,
+    `  bevelPeak: ${fmtVal(defaults.bevelPeak)}, // 0 = edge peak, 0.5 = mid ridge, 1 = outer lip`,
+    `  lightAngle: ${fmtVal(defaults.lightAngle)}, // degrees clockwise from top (315 = upper-left)`,
+    `  specular: ${fmtVal(defaults.specular)}, // specular highlight (0 = off)`,
     `  specularSharpness: ${fmtVal(defaults.specularSharpness)}, // tightness of highlight spot`,
-    `  fillColor: ${fmtVal(defaults.fillColor)},  // text fill`,
+    `  fillColor: ${fmtVal(defaults.fillColor)}, // text fill`,
     `  gradientColor: ${fmtVal(defaults.gradientColor)}, // bevel fades to this color`,
     `  shadowColor: ${fmtVal(defaults.shadowColor)}, // shadow side of bevel`,
-    `  bgColor: ${fmtVal(defaults.bgColor)},    // background`,
+    `  bgColor: ${fmtVal(defaults.bgColor)}, // background`,
   ];
 }
 

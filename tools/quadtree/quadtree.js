@@ -317,13 +317,13 @@ export function getParamLines(fmtVal) {
   return [
     '',
     '  // quadtree',
-    `  maxDepth: ${fmtVal(defaults.maxDepth)},           // max subdivision levels`,
-    `  fillColor: ${fmtVal(defaults.fillColor)},  // inside cell color`,
-    `  lineColor: ${fmtVal(defaults.lineColor)},  // cell border color (null = none)`,
-    `  lineWidth: ${fmtVal(defaults.lineWidth)},        // border width px`,
-    `  bgColor: ${fmtVal(defaults.bgColor)},    // background`,
-    `  brushMode: ${fmtVal(defaults.brushMode)},     // enable detail brush`,
-    `  brushRadius: ${fmtVal(defaults.brushRadius)},        // brush size (CSS px)`,
+    `  maxDepth: ${fmtVal(defaults.maxDepth)}, // max subdivision levels`,
+    `  fillColor: ${fmtVal(defaults.fillColor)}, // inside cell color`,
+    `  lineColor: ${fmtVal(defaults.lineColor)}, // cell border color (null = none)`,
+    `  lineWidth: ${fmtVal(defaults.lineWidth)}, // border width px`,
+    `  bgColor: ${fmtVal(defaults.bgColor)}, // background`,
+    `  brushMode: ${fmtVal(defaults.brushMode)}, // enable detail brush`,
+    `  brushRadius: ${fmtVal(defaults.brushRadius)}, // brush size (CSS px)`,
   ];
 }
 

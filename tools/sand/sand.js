@@ -192,10 +192,10 @@ export function getParamLines(fmtVal) {
   return [
     '',
     '  // sand',
-    `  speed: ${fmtVal(defaults.speed)},             // simulation steps per frame`,
-    `  threshold: ${fmtVal(defaults.threshold)},         // pixel brightness cutoff (0–255); higher = more soft-edge pixels`,
-    `  fillColor: ${fmtVal(defaults.fillColor)},  // particle color`,
-    `  bgColor: ${fmtVal(defaults.bgColor)},    // background`,
+    `  speed: ${fmtVal(defaults.speed)}, // simulation steps per frame`,
+    `  threshold: ${fmtVal(defaults.threshold)}, // pixel brightness cutoff (0–255); higher = more soft-edge pixels`,
+    `  fillColor: ${fmtVal(defaults.fillColor)}, // particle color`,
+    `  bgColor: ${fmtVal(defaults.bgColor)}, // background`,
   ];
 }
 
