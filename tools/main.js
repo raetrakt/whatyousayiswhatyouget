@@ -16,6 +16,7 @@ const tool = await (TOOLS[toolName] ?? TOOLS.sdf)();
 
 const FONT_URL = new URL('../assets/fonts/texgyretermes-regular.otf', import.meta.url).href;
 const TITLE_SVG_URL = new URL('../assets/svg/title_layout.svg', import.meta.url).href;
+const TITLE_16BY9_SVG_URL = new URL('../assets/svg/title_16by9.svg', import.meta.url).href;
 const A4 = 1 / Math.SQRT2;
 
 function _fmtVal(v) {
@@ -44,6 +45,7 @@ let fontLoaded = false;
 let renderTimer = null;
 let _titleSvgImage = null; // cached HTMLImageElement once loaded
 let _titleSvgRequested = false; // true while fetch is in-flight
+let _titleSvgImageSrc = null; // URL of currently cached title image
 
 const editorView = new EditorView({
   doc: INITIAL_CODE,
@@ -213,8 +215,20 @@ function render() {
   ctx.fillStyle = params.bgColor;
   ctx.fillRect(0, 0, cssW, cssH);
 
-  const isA4 = Math.abs(params.width / params.height - A4) < 0.01;
-  if (text === 'What You Say Is What You Get?' && isA4) {
+  const ratio = params.width / params.height;
+  const isA4 = Math.abs(ratio - A4) < 0.01;
+  const is16by9 = Math.abs(ratio - 16 / 9) < 0.01;
+  const isDefaultTitle = text === 'What You Say Is What You Get?';
+  if (isDefaultTitle && (isA4 || is16by9)) {
+    const selectedTitleSvgUrl = is16by9 ? TITLE_16BY9_SVG_URL : TITLE_SVG_URL;
+
+    // Reset cache when switching between title assets.
+    if (_titleSvgImageSrc !== selectedTitleSvgUrl) {
+      _titleSvgImage = null;
+      _titleSvgRequested = false;
+      _titleSvgImageSrc = selectedTitleSvgUrl;
+    }
+
     if (!_titleSvgImage) {
       if (!_titleSvgRequested) {
         _titleSvgRequested = true;
@@ -227,7 +241,7 @@ function render() {
         img.onerror = () => {
           _titleSvgRequested = false;
         };
-        img.src = TITLE_SVG_URL;
+        img.src = selectedTitleSvgUrl;
       }
       return;
     }
