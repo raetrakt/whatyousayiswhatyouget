@@ -31,8 +31,8 @@ const INITIAL_CODE = [
   '  leading: .6,',
   '  margin: 25, // mm whitespace on each side',
   '  tracking: -3, // px added between characters',
-  '  width: 210, // mm',
-  '  height: 297, // mm',
+  '  width: 1920,',
+  '  height: 1080,',
   '  valign: "top", // top | center | bottom',
   ...tool.getParamLines(_fmtVal),
   '}',
@@ -66,8 +66,12 @@ const canvasPanel = document.getElementById('canvas-panel');
 const errorDisplay = document.getElementById('error-display');
 
 // ── Video recording ───────────────────────────────────────────────────────────
-let _recorder = null;
-let _recordingChunks = [];
+const RECORD_FPS = 30;
+let _isRecording = false;
+let _videoEncoder = null;
+let _muxer = null;
+let _recordRafId = null;
+let _recordFrameIndex = 0;
 
 // Highlight the active tool button
 document.querySelectorAll('.tool-btn[data-tool]').forEach((btn) => {
@@ -415,45 +419,84 @@ function _downloadBlob(blob, ext) {
   URL.revokeObjectURL(url);
 }
 
-function _nativeMp4MimeType() {
-  return (
-    ['video/mp4;codecs=avc1.42E01E', 'video/mp4;codecs=avc1.4D401E', 'video/mp4'].find((t) =>
-      MediaRecorder.isTypeSupported(t),
-    ) ?? null
-  );
-}
+async function startRecording() {
+  if (_isRecording) return;
+  const { Muxer, ArrayBufferTarget } = await import('mp4-muxer');
 
-function startRecording() {
-  const nativeMp4 = _nativeMp4MimeType();
-  _recordingChunks = [];
-  _recorder = new MediaRecorder(canvas.captureStream(60), nativeMp4 ? { mimeType: nativeMp4 } : {});
-  _recorder.ondataavailable = (e) => {
-    if (e.data.size > 0) _recordingChunks.push(e.data);
-  };
-  _recorder.start(100);
+  // H.264 requires even dimensions
+  const w = canvas.width & ~1;
+  const h = canvas.height & ~1;
+
+  _muxer = new Muxer({
+    target: new ArrayBufferTarget(),
+    video: { codec: 'avc', width: w, height: h, frameRate: RECORD_FPS },
+    fastStart: 'in-memory',
+  });
+
+  _videoEncoder = new VideoEncoder({
+    output: (chunk, meta) => _muxer.addVideoChunk(chunk, meta),
+    error: (e) => { console.error('VideoEncoder:', e); stopRecording(); },
+  });
+  _videoEncoder.configure({
+    codec: 'avc1.640034', // H.264 High Profile Level 5.2 — no practical resolution cap
+    width: w,
+    height: h,
+    bitrate: 12_000_000,
+    framerate: RECORD_FPS,
+    avc: { format: 'avc' },
+  });
+
+  _recordFrameIndex = 0;
+  _isRecording = true;
+
   const btn = document.getElementById('btn-record');
   btn.textContent = 'stop';
   btn.classList.add('recording');
+
+  const frameIntervalMs = 1000 / RECORD_FPS;
+  let lastFrameTs = -Infinity;
+
+  function captureLoop(ts) {
+    if (!_isRecording) return;
+    if (ts - lastFrameTs >= frameIntervalMs && _videoEncoder.encodeQueueSize < 10) {
+      lastFrameTs = ts;
+      const timestamp = Math.round(_recordFrameIndex * (1_000_000 / RECORD_FPS));
+      const frame = new VideoFrame(canvas, { timestamp });
+      _videoEncoder.encode(frame, { keyFrame: _recordFrameIndex % 150 === 0 });
+      frame.close();
+      _recordFrameIndex++;
+    }
+    _recordRafId = requestAnimationFrame(captureLoop);
+  }
+  _recordRafId = requestAnimationFrame(captureLoop);
 }
 
-function stopRecording() {
-  const recorder = _recorder;
-  const chunks = _recordingChunks;
-  _recorder = null;
-  _recordingChunks = [];
-  recorder.onstop = () => {
-    const blob = new Blob(chunks, { type: recorder.mimeType });
-    const ext = recorder.mimeType.includes('mp4') ? 'mp4' : 'webm';
-    _downloadBlob(blob, ext);
-  };
-  recorder.stop();
+async function stopRecording() {
+  if (!_isRecording) return;
+  _isRecording = false;
+  cancelAnimationFrame(_recordRafId);
+  _recordRafId = null;
+
   const btn = document.getElementById('btn-record');
+  btn.disabled = true;
+  btn.textContent = 'encoding…';
+
+  await _videoEncoder.flush();
+  _videoEncoder.close();
+  _videoEncoder = null;
+
+  _muxer.finalize();
+  const { buffer } = _muxer.target;
+  _muxer = null;
+
+  _downloadBlob(new Blob([buffer], { type: 'video/mp4' }), 'mp4');
+  btn.disabled = false;
   btn.textContent = 'record';
   btn.classList.remove('recording');
 }
 
 document.getElementById('btn-record').addEventListener('click', () => {
-  if (_recorder) stopRecording();
+  if (_isRecording) stopRecording();
   else startRecording();
 });
 

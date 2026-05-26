@@ -9,6 +9,7 @@
   "dependencies": {
     "@codemirror/lang-javascript": "^6.2.5",
     "codemirror": "^6.0.2",
+    "mp4-muxer": "^5.2.2",
     "opentype.js": "^2.0.0",
     "p5": "^2.2.3",
     "paper": "^0.12.18"
