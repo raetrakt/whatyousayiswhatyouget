@@ -75,13 +75,13 @@ export function render(
   // Each pixel is claimed by the first (leftmost) glyph that covers it,
   // so kerning overlaps (e.g. "Yo") correctly belong to the earlier character.
   const charIdx = new Uint16Array(cssW * cssH); // 1-based; 0 = unassigned
-  const frozen  = new Uint8Array(cssW * cssH);  // 1 = locked, 0 = active
+  const frozen = new Uint8Array(cssW * cssH); // 1 = locked, 0 = active
   let charPixelLists = []; // charPixelLists[ci] → grid indices owned by char ci
 
   if (!maskCanvas && lines.length > 0 && collapseDelay > 0) {
     const charList = _enumerateChars(font, lines, fontSize, startY, lineH, params, cssW);
     const scale = fontSize / font.unitsPerEm;
-    const tmp  = document.createElement('canvas');
+    const tmp = document.createElement('canvas');
     const tctx = tmp.getContext('2d');
 
     for (let ci = 0; ci < charList.length; ci++) {
@@ -94,12 +94,13 @@ export function render(
           const bb = glyph.getBoundingBox();
           const bx1 = Math.max(0, Math.floor(cx + bb.x1 * scale) - 2);
           const by1 = Math.max(0, Math.floor(cy - bb.y2 * scale) - 2);
-          const bx2 = Math.min(cssW, Math.ceil(cx  + bb.x2 * scale) + 2);
-          const by2 = Math.min(cssH, Math.ceil(cy  - bb.y1 * scale) + 2);
-          const bw = bx2 - bx1, bh = by2 - by1;
+          const bx2 = Math.min(cssW, Math.ceil(cx + bb.x2 * scale) + 2);
+          const by2 = Math.min(cssH, Math.ceil(cy - bb.y1 * scale) + 2);
+          const bw = bx2 - bx1,
+            bh = by2 - by1;
 
           if (bw > 0 && bh > 0) {
-            tmp.width  = bw;
+            tmp.width = bw;
             tmp.height = bh;
             tctx.fillStyle = '#fff';
             tctx.fillRect(0, 0, bw, bh);
@@ -113,7 +114,7 @@ export function render(
                 const fi = (by1 + ty) * cssW + (bx1 + tx);
                 if (charIdx[fi] === 0 && pd[(ty * bw + tx) * 4] < threshold && grid[fi] !== 0) {
                   charIdx[fi] = ci + 1;
-                  frozen[fi]  = 1;
+                  frozen[fi] = 1;
                   pixels.push(fi);
                 }
               }
@@ -131,7 +132,7 @@ export function render(
       for (let i = 0; i < cssW * cssH; i++) {
         if (grid[i] !== 0 && charIdx[i] === 0) {
           charIdx[i] = charPixelLists.length;
-          frozen[i]  = 1;
+          frozen[i] = 1;
           lastList.push(i);
         }
       }
@@ -149,7 +150,7 @@ export function render(
   // ── 5. Single simulation step ─────────────────────────────────────────────
   function stepOnce() {
     for (let y = cssH - 2; y >= 0; y--) {
-      const rowBase     = y * cssW;
+      const rowBase = y * cssW;
       const nextRowBase = (y + 1) * cssW;
       for (let x = 0; x < cssW; x++) {
         const idx = rowBase + x;
@@ -162,11 +163,11 @@ export function render(
           continue;
         }
 
-        const canLeft  = x > 0;
+        const canLeft = x > 0;
         const canRight = x < cssW - 1;
         if (canLeft && canRight) {
           const goLeft = Math.random() < 0.5;
-          const first  = goLeft ? downIdx - 1 : downIdx + 1;
+          const first = goLeft ? downIdx - 1 : downIdx + 1;
           const second = goLeft ? downIdx + 1 : downIdx - 1;
           if (grid[first] === 0) {
             grid[first] = grid[idx];
@@ -187,14 +188,23 @@ export function render(
   }
 
   // ── 6. Animation loop with left-to-right staged release ───────────────────
-  let frameCount  = 0;
+  // Precompute release frame per char; spaces don't increment the visible counter
+  // so they never add a pause between words.
+  let visibleCount = 0;
+  const releaseTimes = charPixelLists.map((pixels) => {
+    const t = visibleCount * collapseDelay;
+    if (pixels.length > 0) visibleCount++;
+    return t;
+  });
+
+  let frameCount = 0;
   let nextRelease = 0;
 
   function loop() {
     if (_version !== version) return;
 
     // Release characters whose frame has come; O(pixels-per-char) per release.
-    while (nextRelease < charPixelLists.length && frameCount >= nextRelease * collapseDelay) {
+    while (nextRelease < charPixelLists.length && frameCount >= releaseTimes[nextRelease]) {
       for (const i of charPixelLists[nextRelease]) {
         if (grid[i] !== 0) frozen[i] = 0;
       }

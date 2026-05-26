@@ -350,11 +350,15 @@ document.getElementById('btn-save-svg').addEventListener('click', saveSVG);
 // ── Record ────────────────────────────────────────────────────────────────────
 
 function startRecording() {
-  const mimeType = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm']
-    .find((t) => MediaRecorder.isTypeSupported(t)) ?? 'video/webm';
+  const mimeType =
+    ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'].find((t) =>
+      MediaRecorder.isTypeSupported(t),
+    ) ?? 'video/webm';
   _recordingChunks = [];
   _recorder = new MediaRecorder(canvas.captureStream(60), { mimeType });
-  _recorder.ondataavailable = (e) => { if (e.data.size > 0) _recordingChunks.push(e.data); };
+  _recorder.ondataavailable = (e) => {
+    if (e.data.size > 0) _recordingChunks.push(e.data);
+  };
   _recorder.start(100);
   const btn = document.getElementById('btn-record');
   btn.textContent = 'stop';
@@ -382,7 +386,8 @@ function stopRecording() {
 }
 
 document.getElementById('btn-record').addEventListener('click', () => {
-  if (_recorder) stopRecording(); else startRecording();
+  if (_recorder) stopRecording();
+  else startRecording();
 });
 
 // ── Export PNG sequence ─────────────────────────────────────────────────────
@@ -437,7 +442,8 @@ async function exportPNGSequence() {
   offCtx.fillRect(0, 0, exportW, exportH);
 
   // Build text layout at export resolution
-  const fontSize = params.fontSize > 0 ? params.fontSize : fitFontSize(text, params, exportW, exportH);
+  const fontSize =
+    params.fontSize > 0 ? params.fontSize : fitFontSize(text, params, exportW, exportH);
   const maxW = exportW - params.margin * 2;
   const lines = wrapWords(text, maxW, fontSize, params.tracking);
   const scale = fontSize / font.unitsPerEm;
@@ -453,8 +459,13 @@ async function exportPNGSequence() {
 
   // Kick off the tool's animation on the offscreen canvas
   tool.render(offCtx, font, offCanvas, {
-    lines, fontSize, startY, lineH,
-    params, cssW: exportW, cssH: exportH,
+    lines,
+    fontSize,
+    startY,
+    lineH,
+    params,
+    cssW: exportW,
+    cssH: exportH,
   });
 
   // Capture frames at the target fps independently of screen rendering
@@ -464,7 +475,10 @@ async function exportPNGSequence() {
 
   await new Promise((resolve) => {
     function loop(ts) {
-      if (capturedFrames >= totalFrames) { resolve(); return; }
+      if (capturedFrames >= totalFrames) {
+        resolve();
+        return;
+      }
       if (ts - lastCapture >= interval) {
         lastCapture = ts;
         const n = capturedFrames++;
