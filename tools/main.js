@@ -190,10 +190,34 @@ function evaluate(code) {
   }
 }
 
+// ── Animation loop ─────────────────────────────────────────────────────────────
+let _animateFn = null;
+let _animateFrame = 0;
+let _animateRafId = null;
+let _animateBaseValue = null;
+
+function _stopAnimation() {
+  if (_animateRafId) cancelAnimationFrame(_animateRafId);
+  _animateRafId = null;
+  _animateFn = null;
+  _animateFrame = 0;
+  _animateBaseValue = null;
+}
+
+function _animationLoop() {
+  if (!_animateFn || !_animateBaseValue) return;
+  const overrides = _animateFn(_animateFrame++) ?? {};
+  _renderWithValue(_animateBaseValue, overrides);
+  _animateRafId = requestAnimationFrame(_animationLoop);
+}
+
 function render() {
   if (!cssW || !fontLoaded) return;
-  const { value, error } = evaluate(editorView.state.doc.toString());
+  let _newAnimateFn = null;
+  const animateHook = (fn) => { _newAnimateFn = fn; };
+  const { value, error } = evaluate(editorView.state.doc.toString(), animateHook);
   if (error) {
+    _stopAnimation();
     canvas.style.display = 'none';
     errorDisplay.textContent = error;
     errorDisplay.style.display = 'block';
@@ -201,8 +225,22 @@ function render() {
   }
   canvas.style.display = '';
   errorDisplay.style.display = 'none';
+
+  if (_newAnimateFn) {
+    if (_animateRafId) cancelAnimationFrame(_animateRafId);
+    _animateFn = _newAnimateFn;
+    _animateFrame = 0;
+    _animateBaseValue = value;
+    _animateRafId = requestAnimationFrame(_animationLoop);
+  } else {
+    _stopAnimation();
+    _renderWithValue(value, {});
+  }
+}
+
+function _renderWithValue(value, overrides) {
   const text = (typeof value?.text === 'string' && value.text) || 'What You Say Is What You Get?';
-  const p = value?.params || {};
+  const p = { ...(value?.params || {}), ...overrides };
   const params = {
     fontSize: p.fontSize ?? null,
     leading: p.leading ?? 1.2,
