@@ -68,12 +68,6 @@ const errorDisplay = document.getElementById('error-display');
 // ── Video recording ───────────────────────────────────────────────────────────
 let _recorder = null;
 let _recordingChunks = [];
-let _ffmpeg = null;
-let _ffmpegLoadPromise = null;
-let _ffmpegFetchFile = null;
-// FFmpeg core assets are copied from node_modules into public/ffmpeg by scripts/sync-ffmpeg-core.mjs (build utility).
-// They are served locally — no CDN involved.
-const FFMPEG_CORE_BASE_URL = '/ffmpeg/';
 
 // Highlight the active tool button
 document.querySelectorAll('.tool-btn[data-tool]').forEach((btn) => {
@@ -175,16 +169,19 @@ function fitFontSize(text, params, w = cssW, h = cssH) {
   return lo;
 }
 
-function evaluate(code) {
+function evaluate(code, animateHook) {
   try {
-    const fn = new Function(`
+    const fn = new Function(
+      'animate',
+      `
       ${code}
       return {
         text: typeof text !== 'undefined' ? text : null,
         params: typeof params !== 'undefined' ? params : null,
       }
-    `);
-    return { value: fn(), error: null };
+    `,
+    );
+    return { value: fn(animateHook), error: null };
   } catch (err) {
     return { value: null, error: err.message };
   }
@@ -214,7 +211,9 @@ function _animationLoop() {
 function render() {
   if (!cssW || !fontLoaded) return;
   let _newAnimateFn = null;
-  const animateHook = (fn) => { _newAnimateFn = fn; };
+  const animateHook = (fn) => {
+    _newAnimateFn = fn;
+  };
   const { value, error } = evaluate(editorView.state.doc.toString(), animateHook);
   if (error) {
     _stopAnimation();
@@ -416,73 +415,18 @@ function _downloadBlob(blob, ext) {
   URL.revokeObjectURL(url);
 }
 
-async function _getFFmpeg() {
-  if (_ffmpeg) return _ffmpeg;
-  if (_ffmpegLoadPromise) return _ffmpegLoadPromise;
-  _ffmpegLoadPromise = (async () => {
-    const [{ FFmpeg }, ffmpegUtil] = await Promise.all([
-      import('@ffmpeg/ffmpeg'),
-      import('@ffmpeg/util'),
-    ]);
-    const { fetchFile } = ffmpegUtil;
-    const ffmpeg = new FFmpeg();
-    const coreURL = new URL('ffmpeg-core.js', FFMPEG_CORE_BASE_URL).href;
-    const wasmURL = new URL('ffmpeg-core.wasm', FFMPEG_CORE_BASE_URL).href;
-    await ffmpeg.load({ coreURL, wasmURL });
-    _ffmpegFetchFile = fetchFile;
-    _ffmpeg = ffmpeg;
-    return ffmpeg;
-  })();
-  try {
-    return await _ffmpegLoadPromise;
-  } finally {
-    if (!_ffmpeg) _ffmpegLoadPromise = null;
-  }
-}
-
-async function _convertBlobToMp4(blob) {
-  const ffmpeg = await _getFFmpeg();
-  const inputName = 'input.webm';
-  const outputName = 'output.mp4';
-  await ffmpeg.writeFile(inputName, await _ffmpegFetchFile(blob));
-  try {
-    await ffmpeg.exec([
-      '-i',
-      inputName,
-      '-c:v',
-      'libx264',
-      '-pix_fmt',
-      'yuv420p',
-      '-movflags',
-      'faststart',
-      outputName,
-    ]);
-  } catch {
-    await ffmpeg.exec([
-      '-i',
-      inputName,
-      '-c:v',
-      'mpeg4',
-      '-q:v',
-      '2',
-      '-movflags',
-      'faststart',
-      outputName,
-    ]);
-  }
-  const data = await ffmpeg.readFile(outputName);
-  try {
-    await ffmpeg.deleteFile(inputName);
-    await ffmpeg.deleteFile(outputName);
-  } catch {
-    // no-op cleanup best effort
-  }
-  return new Blob([data], { type: 'video/mp4' });
+function _nativeMp4MimeType() {
+  return (
+    ['video/mp4;codecs=avc1.42E01E', 'video/mp4;codecs=avc1.4D401E', 'video/mp4'].find((t) =>
+      MediaRecorder.isTypeSupported(t),
+    ) ?? null
+  );
 }
 
 function startRecording() {
+  const nativeMp4 = _nativeMp4MimeType();
   _recordingChunks = [];
-  _recorder = new MediaRecorder(canvas.captureStream(60));
+  _recorder = new MediaRecorder(canvas.captureStream(60), nativeMp4 ? { mimeType: nativeMp4 } : {});
   _recorder.ondataavailable = (e) => {
     if (e.data.size > 0) _recordingChunks.push(e.data);
   };
@@ -497,21 +441,10 @@ function stopRecording() {
   const chunks = _recordingChunks;
   _recorder = null;
   _recordingChunks = [];
-  recorder.onstop = async () => {
-    const btn = document.getElementById('btn-record');
-    const blob = new Blob(chunks, { type: 'video/webm' });
-    btn.disabled = true;
-    btn.textContent = 'converting';
-    try {
-      const mp4 = await _convertBlobToMp4(blob);
-      _downloadBlob(mp4, 'mp4');
-    } catch (err) {
-      console.error('MP4 conversion failed, downloading WebM instead:', err);
-      _downloadBlob(blob, 'webm');
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'record';
-    }
+  recorder.onstop = () => {
+    const blob = new Blob(chunks, { type: recorder.mimeType });
+    const ext = recorder.mimeType.includes('mp4') ? 'mp4' : 'webm';
+    _downloadBlob(blob, ext);
   };
   recorder.stop();
   const btn = document.getElementById('btn-record');
