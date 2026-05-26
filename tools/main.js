@@ -435,7 +435,10 @@ async function startRecording() {
 
   _videoEncoder = new VideoEncoder({
     output: (chunk, meta) => _muxer.addVideoChunk(chunk, meta),
-    error: (e) => { console.error('VideoEncoder:', e); stopRecording(); },
+    error: (e) => {
+      console.error('VideoEncoder:', e);
+      stopRecording();
+    },
   });
   _videoEncoder.configure({
     codec: 'avc1.640034', // H.264 High Profile Level 5.2 — no practical resolution cap
