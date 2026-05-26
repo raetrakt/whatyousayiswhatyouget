@@ -156,6 +156,7 @@ export function render(
     ctx.fillStyle = bgColor;
     ctx.fillRect(0, 0, cssW, cssH);
     for (const { x, y, w, h, inside } of leaves) {
+      if (x === 0 || y === 0 || x + w >= cssW || y + h >= cssH) continue;
       if (inside) {
         ctx.fillStyle = fillColor;
         ctx.fillRect(x, y, w, h);
@@ -373,6 +374,7 @@ function _generateSVG({ result, params, cssW, cssH }) {
   ];
 
   for (const { x, y, w, h, inside } of leaves) {
+    if (x === 0 || y === 0 || x + w >= cssW || y + h >= cssH) continue;
     const rx = (x * sx).toFixed(3);
     const ry = (y * sy).toFixed(3);
     const rw = (w * sx).toFixed(3);
