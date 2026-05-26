@@ -9,6 +9,7 @@ export const defaults = {
   threshold: 240, // pixel brightness cutoff (0–255): higher includes more anti-aliased edge pixels
   fillColor: '#000000',
   bgColor: '#ffffff',
+  collapseDelay: 8, // animation frames between each character's release (0 = all at once)
 };
 
 // Version counter cancels stale animation loops on re-render.
@@ -35,8 +36,9 @@ export function render(
   const bgColor = params.bgColor ?? defaults.bgColor;
   const stepsPerFrame = Math.max(1, Math.round(params.speed ?? defaults.speed));
   const threshold = Math.max(1, Math.min(255, Math.round(params.threshold ?? defaults.threshold)));
+  const collapseDelay = Math.max(0, Math.round(params.collapseDelay ?? defaults.collapseDelay));
 
-  // ── 1. Rasterize text black-on-white to offscreen canvas (CSS dimensions) ──
+  // ── 1. Rasterize all text together → source for per-pixel colour blending ──
   const off = document.createElement('canvas');
   off.width = cssW;
   off.height = cssH;
@@ -52,27 +54,91 @@ export function render(
     _drawGlyphs(octx, font, lines, fontSize, startY, lineH, params, cssW, '#000');
   }
 
-  // ── 2. Build particle grid ─────────────────────────────────────────────────
+  // ── 2. Build colour grid ───────────────────────────────────────────────────
   const [fr, fg, fb] = _hexToRgb(fillColor);
   const [br, bg2, bb] = _hexToRgb(bgColor);
-  // Packed RGBA in little-endian byte order (matches ImageData Uint8 layout).
   const bgU32 = br | (bg2 << 8) | (bb << 16) | (255 << 24);
-  const fillU32 = fr | (fg << 8) | (fb << 16) | (255 << 24);
 
   const pxData = octx.getImageData(0, 0, cssW, cssH).data;
   const grid = new Uint32Array(cssW * cssH);
   for (let i = 0; i < cssW * cssH; i++) {
-    const t = pxData[i * 4]; // R channel: 0 = black (text), 255 = white (bg)
-    if (t >= threshold) continue; // background — leave as 0 (empty)
-    // Blend fill→bg by darkness so edge pixels carry a proportionally lighter shade.
-    const s = t / threshold; // 0 at full black, approaching 1 at the cutoff edge
+    const t = pxData[i * 4];
+    if (t >= threshold) continue;
+    const s = t / threshold;
     const r = Math.round(fr + (br - fr) * s);
     const g = Math.round(fg + (bg2 - fg) * s);
     const b = Math.round(fb + (bb - fb) * s);
     grid[i] = r | (g << 8) | (b << 16) | (255 << 24);
   }
 
-  // ── 3. Frame canvas for blitting — created once, reused each tick ──────────
+  // ── 3. Per-character pixel ownership → staggered release ──────────────────
+  // Each pixel is claimed by the first (leftmost) glyph that covers it,
+  // so kerning overlaps (e.g. "Yo") correctly belong to the earlier character.
+  const charIdx = new Uint16Array(cssW * cssH); // 1-based; 0 = unassigned
+  const frozen  = new Uint8Array(cssW * cssH);  // 1 = locked, 0 = active
+  let charPixelLists = []; // charPixelLists[ci] → grid indices owned by char ci
+
+  if (!maskCanvas && lines.length > 0 && collapseDelay > 0) {
+    const charList = _enumerateChars(font, lines, fontSize, startY, lineH, params, cssW);
+    const scale = fontSize / font.unitsPerEm;
+    const tmp  = document.createElement('canvas');
+    const tctx = tmp.getContext('2d');
+
+    for (let ci = 0; ci < charList.length; ci++) {
+      const { ch, cx, cy } = charList[ci];
+      const pixels = [];
+
+      if (ch.trim() !== '') {
+        const glyph = font.charToGlyph(ch);
+        if (glyph?.path?.commands?.length > 0) {
+          const bb = glyph.getBoundingBox();
+          const bx1 = Math.max(0, Math.floor(cx + bb.x1 * scale) - 2);
+          const by1 = Math.max(0, Math.floor(cy - bb.y2 * scale) - 2);
+          const bx2 = Math.min(cssW, Math.ceil(cx  + bb.x2 * scale) + 2);
+          const by2 = Math.min(cssH, Math.ceil(cy  - bb.y1 * scale) + 2);
+          const bw = bx2 - bx1, bh = by2 - by1;
+
+          if (bw > 0 && bh > 0) {
+            tmp.width  = bw;
+            tmp.height = bh;
+            tctx.fillStyle = '#fff';
+            tctx.fillRect(0, 0, bw, bh);
+            const path = font.getPath(ch, cx - bx1, cy - by1, fontSize);
+            path.fill = '#000';
+            path.draw(tctx);
+            const pd = tctx.getImageData(0, 0, bw, bh).data;
+
+            for (let ty = 0; ty < bh; ty++) {
+              for (let tx = 0; tx < bw; tx++) {
+                const fi = (by1 + ty) * cssW + (bx1 + tx);
+                if (charIdx[fi] === 0 && pd[(ty * bw + tx) * 4] < threshold && grid[fi] !== 0) {
+                  charIdx[fi] = ci + 1;
+                  frozen[fi]  = 1;
+                  pixels.push(fi);
+                }
+              }
+            }
+          }
+        }
+      }
+
+      charPixelLists.push(pixels);
+    }
+
+    // Catch any unassigned text pixels (sub-pixel edges) → append to last char's list
+    const lastList = charPixelLists[charPixelLists.length - 1];
+    if (lastList) {
+      for (let i = 0; i < cssW * cssH; i++) {
+        if (grid[i] !== 0 && charIdx[i] === 0) {
+          charIdx[i] = charPixelLists.length;
+          frozen[i]  = 1;
+          lastList.push(i);
+        }
+      }
+    }
+  }
+
+  // ── 4. Frame canvas for blitting ──────────────────────────────────────────
   const frame = document.createElement('canvas');
   frame.width = cssW;
   frame.height = cssH;
@@ -80,64 +146,69 @@ export function render(
   const frameData = fctx.createImageData(cssW, cssH);
   const frameU32 = new Uint32Array(frameData.data.buffer);
 
-  // ── 4. Single simulation step ──────────────────────────────────────────────
+  // ── 5. Single simulation step ─────────────────────────────────────────────
   function stepOnce() {
-    // Scan bottom-to-top so falling particles don't cascade multiple rows per step.
     for (let y = cssH - 2; y >= 0; y--) {
-      const rowBase = y * cssW;
+      const rowBase     = y * cssW;
       const nextRowBase = (y + 1) * cssW;
       for (let x = 0; x < cssW; x++) {
         const idx = rowBase + x;
-        const val = grid[idx];
-        if (val === 0) continue;
+        if (grid[idx] === 0 || frozen[idx]) continue;
 
-        // Try straight down first.
         const downIdx = nextRowBase + x;
         if (grid[downIdx] === 0) {
-          grid[downIdx] = val;
+          grid[downIdx] = grid[idx];
           grid[idx] = 0;
           continue;
         }
 
-        // Try diagonal left/right with a random preference to avoid left/right bias.
-        const canLeft = x > 0;
+        const canLeft  = x > 0;
         const canRight = x < cssW - 1;
         if (canLeft && canRight) {
           const goLeft = Math.random() < 0.5;
-          const first = goLeft ? downIdx - 1 : downIdx + 1;
+          const first  = goLeft ? downIdx - 1 : downIdx + 1;
           const second = goLeft ? downIdx + 1 : downIdx - 1;
           if (grid[first] === 0) {
-            grid[first] = val;
+            grid[first] = grid[idx];
             grid[idx] = 0;
           } else if (grid[second] === 0) {
-            grid[second] = val;
+            grid[second] = grid[idx];
             grid[idx] = 0;
           }
         } else if (canLeft && grid[downIdx - 1] === 0) {
-          grid[downIdx - 1] = val;
+          grid[downIdx - 1] = grid[idx];
           grid[idx] = 0;
         } else if (canRight && grid[downIdx + 1] === 0) {
-          grid[downIdx + 1] = val;
+          grid[downIdx + 1] = grid[idx];
           grid[idx] = 0;
         }
       }
     }
   }
 
-  // ── 5. Animation loop ──────────────────────────────────────────────────────
+  // ── 6. Animation loop with left-to-right staged release ───────────────────
+  let frameCount  = 0;
+  let nextRelease = 0;
+
   function loop() {
-    if (_version !== version) return; // stale render — stop
+    if (_version !== version) return;
 
-    for (let i = 0; i < stepsPerFrame; i++) stepOnce();
+    // Release characters whose frame has come; O(pixels-per-char) per release.
+    while (nextRelease < charPixelLists.length && frameCount >= nextRelease * collapseDelay) {
+      for (const i of charPixelLists[nextRelease]) {
+        if (grid[i] !== 0) frozen[i] = 0;
+      }
+      nextRelease++;
+    }
+    frameCount++;
 
-    // Compose frame: fill background then overlay particles.
+    for (let s = 0; s < stepsPerFrame; s++) stepOnce();
+
     frameU32.fill(bgU32);
     for (let i = 0; i < grid.length; i++) {
       if (grid[i] !== 0) frameU32[i] = grid[i];
     }
     fctx.putImageData(frameData, 0, 0);
-
-    // ctx has DPR transform applied by main.js — drawImage fills the full canvas.
     ctx.clearRect(0, 0, cssW, cssH);
     ctx.drawImage(frame, 0, 0);
 
@@ -178,6 +249,23 @@ function _lineStartX(line, fontSize, params, font, cssW) {
   return (cssW - (w - (params.tracking || 0))) / 2;
 }
 
+function _enumerateChars(font, lines, fontSize, startY, lineH, params, cssW) {
+  const scale = fontSize / font.unitsPerEm;
+  const result = [];
+  for (let li = 0; li < lines.length; li++) {
+    const y = startY + li * lineH;
+    let cx = _lineStartX(lines[li], fontSize, params, font, cssW);
+    const chars = [...lines[li]];
+    const gs = chars.map((ch) => font.charToGlyph(ch));
+    for (let j = 0; j < chars.length; j++) {
+      result.push({ ch: chars[j], cx, cy: y });
+      const kern = j < chars.length - 1 ? font.getKerningValue(gs[j], gs[j + 1]) * scale : 0;
+      cx += gs[j].advanceWidth * scale + (params.tracking || 0) + kern;
+    }
+  }
+  return result;
+}
+
 function _hexToRgb(hex) {
   const h = hex.replace('#', '');
   if (h.length === 3) {
@@ -194,6 +282,7 @@ export function getParamLines(fmtVal) {
     '  // sand',
     `  speed: ${fmtVal(defaults.speed)}, // simulation steps per frame`,
     `  threshold: ${fmtVal(defaults.threshold)}, // pixel brightness cutoff (0–255); higher = more soft-edge pixels`,
+    `  collapseDelay: ${fmtVal(defaults.collapseDelay)}, // animation frames between each character's release (0 = all at once)`,
     `  fillColor: ${fmtVal(defaults.fillColor)}, // particle color`,
     `  bgColor: ${fmtVal(defaults.bgColor)}, // background`,
   ];
@@ -203,6 +292,7 @@ export function normalizeParams(p) {
   return {
     speed: p.speed ?? defaults.speed,
     threshold: p.threshold ?? defaults.threshold,
+    collapseDelay: p.collapseDelay ?? defaults.collapseDelay,
     fillColor: typeof p.fillColor === 'string' ? p.fillColor : defaults.fillColor,
     bgColor: typeof p.bgColor === 'string' ? p.bgColor : defaults.bgColor,
   };

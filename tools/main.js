@@ -63,6 +63,10 @@ const ctx = canvas.getContext('2d');
 const canvasPanel = document.getElementById('canvas-panel');
 const errorDisplay = document.getElementById('error-display');
 
+// ── Video recording ───────────────────────────────────────────────────────────
+let _recorder = null;
+let _recordingChunks = [];
+
 // Highlight the active tool button
 document.querySelectorAll('.tool-btn[data-tool]').forEach((btn) => {
   if (btn.dataset.tool === toolName) btn.classList.add('active');
@@ -146,11 +150,11 @@ function wrapWords(text, maxWidth, fontSize, tracking) {
   return lines;
 }
 
-function fitFontSize(text, params) {
-  const maxW = cssW - params.margin * 2;
-  const maxH = cssH - params.margin * 2;
+function fitFontSize(text, params, w = cssW, h = cssH) {
+  const maxW = w - params.margin * 2;
+  const maxH = h - params.margin * 2;
   let lo = 1,
-    hi = cssH * 0.5;
+    hi = h * 0.5;
   for (let i = 0; i < 20; i++) {
     const mid = (lo + hi) / 2;
     const lines = wrapWords(text, maxW, mid, params.tracking);
@@ -342,6 +346,147 @@ function saveSVG() {
 document.getElementById('btn-reset').addEventListener('click', render);
 document.getElementById('btn-save-png').addEventListener('click', savePNG);
 document.getElementById('btn-save-svg').addEventListener('click', saveSVG);
+
+// ── Record ────────────────────────────────────────────────────────────────────
+
+function startRecording() {
+  const mimeType = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm']
+    .find((t) => MediaRecorder.isTypeSupported(t)) ?? 'video/webm';
+  _recordingChunks = [];
+  _recorder = new MediaRecorder(canvas.captureStream(60), { mimeType });
+  _recorder.ondataavailable = (e) => { if (e.data.size > 0) _recordingChunks.push(e.data); };
+  _recorder.start(100);
+  const btn = document.getElementById('btn-record');
+  btn.textContent = 'stop';
+  btn.classList.add('recording');
+}
+
+function stopRecording() {
+  const recorder = _recorder;
+  const chunks = _recordingChunks;
+  _recorder = null;
+  _recordingChunks = [];
+  recorder.onstop = () => {
+    const blob = new Blob(chunks, { type: recorder.mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = _timestamp() + '-' + _currentFilename() + '.webm';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+  recorder.stop();
+  const btn = document.getElementById('btn-record');
+  btn.textContent = 'record';
+  btn.classList.remove('recording');
+}
+
+document.getElementById('btn-record').addEventListener('click', () => {
+  if (_recorder) stopRecording(); else startRecording();
+});
+
+// ── Export PNG sequence ─────────────────────────────────────────────────────
+
+async function exportPNGSequence() {
+  const exportW = parseInt(document.getElementById('export-w').value, 10);
+  const exportH = parseInt(document.getElementById('export-h').value, 10);
+  const exportFps = parseInt(document.getElementById('export-fps').value, 10);
+  const totalFrames = parseInt(document.getElementById('export-frames').value, 10);
+  if (!exportW || !exportH || !exportFps || !totalFrames) return;
+
+  let dirHandle;
+  try {
+    dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+  } catch {
+    return; // cancelled
+  }
+
+  const btn = document.getElementById('btn-export');
+  btn.disabled = true;
+
+  // Offscreen canvas at export resolution (no DPR scaling — we want exact pixels)
+  const offCanvas = document.createElement('canvas');
+  offCanvas.width = exportW;
+  offCanvas.height = exportH;
+  const offCtx = offCanvas.getContext('2d');
+
+  // Replicate the param-building logic from render()
+  const { value } = evaluate(editorView.state.doc.toString());
+  const text = (typeof value?.text === 'string' && value.text) || 'What You Say Is What You Get?';
+  const p = value?.params || {};
+  const params = {
+    fontSize: p.fontSize ?? null,
+    leading: p.leading ?? 1.2,
+    margin: p.margin ?? 15,
+    tracking: p.tracking ?? 0,
+    width: p.width ?? 210,
+    height: p.height ?? 297,
+    valign: p.valign ?? 'top',
+    ...tool.normalizeParams(p),
+  };
+  // Scale margin from mm to export pixels
+  params.margin = params.margin * (exportW / params.width);
+
+  // fontSize and tracking are authored in screen pixels — scale to export resolution
+  const screenScale = exportW / cssW;
+  if (params.fontSize > 0) params.fontSize = params.fontSize * screenScale;
+  params.tracking = (params.tracking ?? 0) * screenScale;
+
+  offCtx.clearRect(0, 0, exportW, exportH);
+  offCtx.fillStyle = params.bgColor ?? '#ffffff';
+  offCtx.fillRect(0, 0, exportW, exportH);
+
+  // Build text layout at export resolution
+  const fontSize = params.fontSize > 0 ? params.fontSize : fitFontSize(text, params, exportW, exportH);
+  const maxW = exportW - params.margin * 2;
+  const lines = wrapWords(text, maxW, fontSize, params.tracking);
+  const scale = fontSize / font.unitsPerEm;
+  const lineH = (font.ascender - font.descender) * scale * params.leading;
+  const firstChar = [...text].find((c) => c.trim()) || 'M';
+  const topOffset = font.charToGlyph(firstChar).getBoundingBox().y2 * scale;
+  const descenderOffset = -font.descender * scale;
+  const blockH = topOffset + (lines.length - 1) * lineH + descenderOffset;
+  let startY;
+  if (params.valign === 'bottom') startY = exportH - params.margin - blockH + topOffset;
+  else if (params.valign === 'center') startY = (exportH - blockH) / 2 + topOffset;
+  else startY = params.margin + topOffset;
+
+  // Kick off the tool's animation on the offscreen canvas
+  tool.render(offCtx, font, offCanvas, {
+    lines, fontSize, startY, lineH,
+    params, cssW: exportW, cssH: exportH,
+  });
+
+  // Capture frames at the target fps independently of screen rendering
+  let capturedFrames = 0;
+  let lastCapture = -Infinity;
+  const interval = 1000 / exportFps;
+
+  await new Promise((resolve) => {
+    function loop(ts) {
+      if (capturedFrames >= totalFrames) { resolve(); return; }
+      if (ts - lastCapture >= interval) {
+        lastCapture = ts;
+        const n = capturedFrames++;
+        btn.textContent = `${capturedFrames} / ${totalFrames}`;
+        offCanvas.toBlob(async (blob) => {
+          const name = `frame_${String(n).padStart(5, '0')}.png`;
+          const fh = await dirHandle.getFileHandle(name, { create: true });
+          const w = await fh.createWritable();
+          await w.write(blob);
+          await w.close();
+        }, 'image/png');
+      }
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+  });
+
+  btn.textContent = 'export';
+  btn.disabled = false;
+}
+
+document.getElementById('btn-export').addEventListener('click', exportPNGSequence);
 
 function scheduleRender() {
   clearTimeout(renderTimer);
