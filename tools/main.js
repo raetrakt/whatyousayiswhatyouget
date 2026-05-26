@@ -32,6 +32,7 @@ const INITIAL_CODE = [
   '  tracking: -3,          // px added between characters',
   '  width: 210,            // mm',
   '  height: 297,           // mm',
+  '  valign: "top",          // top | center | bottom',
   ...tool.getParamLines(_fmtVal),
   '}',
 ].join('\n');
@@ -67,25 +68,29 @@ document.querySelectorAll('.tool-btn[data-tool]').forEach((btn) => {
   if (btn.dataset.tool === toolName) btn.classList.add('active');
 });
 
-function resizeCanvas() {
+function applyCanvasSize(ratio) {
   const dpr = window.devicePixelRatio || 1;
   const style = getComputedStyle(canvasPanel);
   const pw =
     canvasPanel.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
   const ph =
     canvasPanel.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
-  if (pw / ph < A4) {
+  if (pw / ph < ratio) {
     cssW = Math.floor(pw);
-    cssH = Math.floor(pw / A4);
+    cssH = Math.floor(pw / ratio);
   } else {
     cssH = Math.floor(ph);
-    cssW = Math.floor(ph * A4);
+    cssW = Math.floor(ph * ratio);
   }
   canvas.width = cssW * dpr;
   canvas.height = cssH * dpr;
   canvas.style.width = cssW + 'px';
   canvas.style.height = cssH + 'px';
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+function resizeCanvas() {
+  applyCanvasSize(A4);
   render();
 }
 
@@ -184,8 +189,10 @@ function render() {
     tracking: p.tracking ?? 0,
     width: p.width ?? 210,
     height: p.height ?? 297,
+    valign: p.valign ?? 'top',
     ...tool.normalizeParams(p),
   };
+  applyCanvasSize(params.width / params.height);
   // Convert margin from mm to px
   params.margin = params.margin * (cssW / params.width);
 
@@ -214,13 +221,21 @@ function render() {
     const m = params.margin;
     const svgW = cssW - m * 2;
     const svgH = (_titleSvgImage.naturalHeight / _titleSvgImage.naturalWidth) * svgW;
+    let svgY;
+    if (params.valign === 'bottom') {
+      svgY = cssH - m - svgH;
+    } else if (params.valign === 'center') {
+      svgY = (cssH - svgH) / 2;
+    } else {
+      svgY = m;
+    }
     const maskCanvas = document.createElement('canvas');
     maskCanvas.width = cssW;
     maskCanvas.height = cssH;
     const mctx = maskCanvas.getContext('2d');
     mctx.fillStyle = '#fff';
     mctx.fillRect(0, 0, cssW, cssH);
-    mctx.drawImage(_titleSvgImage, m, m, svgW, svgH);
+    mctx.drawImage(_titleSvgImage, m, svgY, svgW, svgH);
     const result = tool.render(ctx, font, canvas, {
       maskCanvas,
       lines: [],
@@ -243,7 +258,16 @@ function render() {
   const lineH = (font.ascender - font.descender) * scale * params.leading;
   const firstChar = [...text].find((c) => c.trim()) || 'M';
   const topOffset = font.charToGlyph(firstChar).getBoundingBox().y2 * scale;
-  const startY = params.margin + topOffset;
+  const descenderOffset = -font.descender * scale;
+  const blockH = topOffset + (lines.length - 1) * lineH + descenderOffset;
+  let startY;
+  if (params.valign === 'bottom') {
+    startY = cssH - params.margin - blockH + topOffset;
+  } else if (params.valign === 'center') {
+    startY = (cssH - blockH) / 2 + topOffset;
+  } else {
+    startY = params.margin + topOffset;
+  }
 
   const result = tool.render(ctx, font, canvas, {
     lines,
