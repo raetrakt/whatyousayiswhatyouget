@@ -68,7 +68,8 @@ function _flattenPath(otPath, flatness) {
   function finishSubpath() {
     if (current.length > 1) {
       // Auto-close: fonts may omit the final Z, leaving the closing edge implicit.
-      const first = current[0], last = current[current.length - 1];
+      const first = current[0],
+        last = current[current.length - 1];
       if (first.x !== last.x || first.y !== last.y) {
         current.push({ x: first.x, y: first.y });
       }
@@ -174,8 +175,12 @@ function _resamplePolyline(pts, spacing) {
     for (let i = 0; i < segLens.length; i++) {
       if (walked + segLens[i] >= mid) {
         const frac = segLens[i] > 0 ? (mid - walked) / segLens[i] : 0;
-        return [{ x: pts[i].x + (pts[i + 1].x - pts[i].x) * frac,
-                  y: pts[i].y + (pts[i + 1].y - pts[i].y) * frac }];
+        return [
+          {
+            x: pts[i].x + (pts[i + 1].x - pts[i].x) * frac,
+            y: pts[i].y + (pts[i + 1].y - pts[i].y) * frac,
+          },
+        ];
       }
       walked += segLens[i];
     }
@@ -386,7 +391,8 @@ export function render(
   // so markers are sharp even at peak cursor influence.
   const maxMarkerSize = markerSize * Math.max(1, cursorScale);
   const OVER = 2; // oversample for crisp rendering
-  const offSize = (maxMarkerSize + 6) * OVER; // 6px padding so stroke isn't clipped
+  const pad = strokeColor ? strokeWidth / 2 + 2 : 2; // half stroke bleeds outside glyph bounds
+  const offSize = (maxMarkerSize + pad * 2) * OVER;
   const markerBitmap = document.createElement('canvas');
   markerBitmap.width = markerBitmap.height = offSize;
   const mctx = markerBitmap.getContext('2d');
