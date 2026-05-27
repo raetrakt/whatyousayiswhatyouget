@@ -17,7 +17,7 @@ export const defaults = {
   markerSize: 22, // font-size of the marker glyph (px)
   markerColor: '#6b3200',
   strokeColor: '#e2fe43', // stroke colour — null = no stroke
-  strokeWidth: 45, // stroke width (px)
+  strokeWidth: 10, // stroke width (px)
   bgColor: '#ffffff',
   flatness: 0.5, // bezier subdivision tolerance — font mode only (px)
   relax: false, // enable relaxation animation
@@ -390,8 +390,11 @@ export function render(
   // Rasterize at the maximum possible display size (markerSize * cursorScale)
   // so markers are sharp even at peak cursor influence.
   const maxMarkerSize = markerSize * Math.max(1, cursorScale);
-  const OVER = 2; // oversample for crisp rendering
-  const pad = strokeColor ? strokeWidth / 2 + 2 : 2; // half stroke bleeds outside glyph bounds
+  const OVER = 2;
+  // strokeWidth is authored in CSS px but scales with maxMarkerSize in the bitmap,
+  // so the rendered half-stroke bleed is strokeWidth/2 * (maxMarkerSize/markerSize).
+  const scaledStrokeHalf = strokeColor ? (strokeWidth / 2) * (maxMarkerSize / markerSize) : 0;
+  const pad = scaledStrokeHalf + 2;
   const offSize = (maxMarkerSize + pad * 2) * OVER;
   const markerBitmap = document.createElement('canvas');
   markerBitmap.width = markerBitmap.height = offSize;
