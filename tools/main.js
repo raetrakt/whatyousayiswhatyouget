@@ -738,6 +738,13 @@ function scheduleRender() {
   renderTimer = setTimeout(render, 250);
 }
 
+// ── Scroll accumulator ────────────────────────────────────────────────────────
+let _wheelValue = 1;
+canvas.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  _wheelValue = Math.max(0.01, _wheelValue - e.deltaY * 0.01);
+}, { passive: false });
+
 window.__tools = {
   editorView,
   canvas,
@@ -745,6 +752,8 @@ window.__tools = {
   render,
   savePNG,
   saveSVG,
+  get wheel() { return _wheelValue; },
+  set wheel(v) { _wheelValue = v; },
   // Tools that produce vector output set this to a function returning an SVG string.
   // Setting it also enables the SVG save button automatically.
   set getSVG(fn) {

@@ -17,7 +17,7 @@ export const defaults = {
   markerSize: 22, // font-size of the marker glyph (px)
   markerColor: '#6b3200',
   strokeColor: '#e2fe43', // stroke colour — null = no stroke
-  strokeWidth: 25, // stroke width (px)
+  strokeWidth: 45, // stroke width (px)
   bgColor: '#ffffff',
   flatness: 0.5, // bezier subdivision tolerance — font mode only (px)
   relax: false, // enable relaxation animation
@@ -401,7 +401,10 @@ export function render(
   mctx.textBaseline = 'middle';
   if (strokeColor) {
     mctx.strokeStyle = strokeColor;
-    mctx.lineWidth = strokeWidth * OVER;
+    // strokeWidth is authored in CSS px. The bitmap is rasterized at maxMarkerSize
+    // (which scales with cursorScale), so lineWidth must scale the same way to keep
+    // the rendered stroke width constant regardless of cursorScale.
+    mctx.lineWidth = strokeWidth * OVER * (maxMarkerSize / markerSize);
     mctx.strokeText(marker, offSize / 2, offSize / 2);
   }
   mctx.fillStyle = markerColor;
