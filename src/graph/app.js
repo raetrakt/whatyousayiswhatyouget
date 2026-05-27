@@ -64,6 +64,86 @@ svg.call(zoom.transform,
     .scale(0.7)  // your desired scale < 1
     .translate(-width / 2, -height / 2)
 );
+    // --- Smooth middle-mouse panning ---
+    let isMiddlePanning = false;
+    let lastPanPos = null;
+    let panVelocity = { x: 0, y: 0 };
+    let panAnimationId = null;
+    let lastFrameTime = null;
+
+    // Get current transform
+    function getCurrentTransform() {
+      const t = d3.zoomTransform(svg.node());
+      return t;
+    }
+
+    // Set transform
+    function setCurrentTransform(t) {
+      svg.call(zoom.transform, t);
+    }
+
+    function animatePan() {
+      if (!isMiddlePanning && Math.abs(panVelocity.x) < 0.01 && Math.abs(panVelocity.y) < 0.01) {
+        panAnimationId = null;
+        return;
+      }
+      const now = performance.now();
+      const dt = lastFrameTime ? (now - lastFrameTime) / 1000 : 0;
+      lastFrameTime = now;
+      // Apply velocity
+      if (dt > 0) {
+        const t = getCurrentTransform();
+        const next = t.translate(panVelocity.x * dt * 60, panVelocity.y * dt * 60);
+        setCurrentTransform(next);
+        // If not panning, decay velocity for smooth stop
+        if (!isMiddlePanning) {
+          panVelocity.x *= 0.92;
+          panVelocity.y *= 0.92;
+        }
+      }
+      panAnimationId = requestAnimationFrame(animatePan);
+    }
+
+    svg.on('mousedown.middlepan', (event) => {
+      if (event.button !== 1) return;
+      event.preventDefault();
+      isMiddlePanning = true;
+      lastPanPos = { x: event.clientX, y: event.clientY };
+      panVelocity = { x: 0, y: 0 };
+      lastFrameTime = null;
+      if (!panAnimationId) animatePan();
+    });
+
+    svg.on('mousemove.middlepan', (event) => {
+      if (!isMiddlePanning) return;
+      event.preventDefault();
+      const dx = event.clientX - lastPanPos.x;
+      const dy = event.clientY - lastPanPos.y;
+      lastPanPos = { x: event.clientX, y: event.clientY };
+      // Update transform immediately for responsiveness
+      const t = getCurrentTransform();
+      setCurrentTransform(t.translate(dx, dy));
+      // Easing: interpolate velocity toward new direction
+      const ease = 0.18; // 0=no easing, 1=instant, lower=smoother
+      panVelocity.x += (dx - panVelocity.x) * ease;
+      panVelocity.y += (dy - panVelocity.y) * ease;
+      if (!panAnimationId) animatePan();
+    });
+
+    svg.on('mouseup.middlepan', (event) => {
+      if (event.button !== 1) return;
+      event.preventDefault();
+      isMiddlePanning = false;
+      lastPanPos = null;
+      // Let velocity decay for smooth stop
+      if (!panAnimationId) animatePan();
+    });
+
+    // Stop panning if mouse leaves window
+    window.addEventListener('blur', () => {
+      isMiddlePanning = false;
+      lastPanPos = null;
+    });
 }
 svg.on('dblclick.zoom', null); // allow dblclick on links for delete in edit mode
 
