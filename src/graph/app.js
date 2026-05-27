@@ -198,7 +198,6 @@ bindSimulationTick(simulation, {
   getSelections: renderer.getSelections,
 });
 
-
 async function preloadWorkImages(works, { timeoutMs = 3500 } = {}) {
   const paths = [
     ...new Set((works ?? []).map((w) => String(w.media_path ?? '').trim()).filter(Boolean)),
@@ -250,7 +249,6 @@ async function preloadWorkImages(works, { timeoutMs = 3500 } = {}) {
   return loaded;
 }
 
-
 async function refreshDataAndRender({ force = false } = {}) {
   if (isRefreshing) return;
   isRefreshing = true;
@@ -267,7 +265,6 @@ async function refreshDataAndRender({ force = false } = {}) {
       renderer.setPreloadedMedia({ paths: preloadedMediaPaths });
       return loaded;
     });
-
 
     if (!hasRunOnboarding) {
       await runOnboardingReveal({
