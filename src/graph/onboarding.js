@@ -56,7 +56,7 @@ export function pushBatchOutward(batch, rootId, levelIndex, width, height) {
   const rootX = Number.isFinite(root.x) ? root.x : width / 2;
   const rootY = Number.isFinite(root.y) ? root.y : height / 2;
   const golden = Math.PI * (3 - Math.sqrt(5));
-  const stepDistance = 120;
+  const stepDistance = 160;
   batch.forEach((entry, i) => {
     const { id, parentId } = entry;
     const n = state.nodes.find((node) => node.id === id);
@@ -133,7 +133,15 @@ export async function runOnboardingReveal({
       renderer.renderGraph();
       renderer.measureNodes(onboardingCollision);
       pushBatchOutward(batch, rootId, i + 1, width, height);
+      // Keep the simulation warm so the tick handler flushes the new
+      // positions of the just-spawned batch onto the DOM. Without this,
+      // alpha can decay below alphaMin during the hold and the freshly
+      // appended foreignObjects stay pinned at their default x=0,y=0.
+      simulation.alpha(Math.max(simulation.alpha(), 0.18)).restart();
     }
+    // Hold on the final batch so the last spawned nodes have a moment to settle
+    // before the full graph reveal kicks in.
+    await sleep(ONBOARDING_BATCH_DELAY_MS);
     if (preloadPromise) {
       renderer.setPreloadedMedia({ paths: await preloadPromise });
     }
