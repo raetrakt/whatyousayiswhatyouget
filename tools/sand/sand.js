@@ -12,12 +12,12 @@ const _SENTINEL_R = 255,
   _SENTINEL_B = 254;
 
 export const defaults = {
-  speed: 4, // simulation steps per frame (higher = faster crumbling)
+  speed: 3, // simulation steps per frame (higher = faster crumbling)
   threshold: 0, // pixel brightness cutoff (0–255): higher includes more anti-aliased edge pixels
-  fillColor: '#542703',
+  fillColor: '#fa2507',
   bgColor: '#ffffff',
   collapseDelay: 8, // animation frames between each character's release (0 = all at once)
-  strokeColor: '#0b92d0', // stroke color (null = no stroke)
+  strokeColor: '#ffffff', // stroke color (null = no stroke)
   strokeWidth: 34, // stroke width in pixels
 };
 
