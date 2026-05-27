@@ -26,6 +26,7 @@ export const defaults = {
   cursorRadius: 150, // px — influence radius around cursor (0 = off)
   cursorScale: 2.5, // scale multiplier at cursor centre
   cursorRotation: 90, // degrees rotation at cursor centre
+  cursorFalloff: 4, // exponent — 1 = linear, 2 = quadratic, higher = sharper peak
 };
 
 // ─── Cursor tracking ─────────────────────────────────────────────────────────
@@ -332,24 +333,28 @@ export function render(
     }
   }
 
-  const strokeColor    = params.strokeColor    ?? defaults.strokeColor;
-  const strokeWidth    = params.strokeWidth    ?? defaults.strokeWidth;
+  const strokeColor = params.strokeColor ?? defaults.strokeColor;
+  const strokeWidth = params.strokeWidth ?? defaults.strokeWidth;
   const cursorRadius   = params.cursorRadius   ?? defaults.cursorRadius;
   const cursorScale    = params.cursorScale    ?? defaults.cursorScale;
   const cursorRotation = params.cursorRotation ?? defaults.cursorRotation;
+  const cursorFalloff  = params.cursorFalloff  ?? defaults.cursorFalloff;
 
   _setupCursorListener(canvas);
 
   // ── 3. Pre-rasterize marker to an offscreen bitmap ────────────────────────
   // Rasterizing text is expensive; doing it once and blitting with drawImage
   // is far cheaper than fillText/strokeText on every marker every frame.
-  const OVER     = 2;                          // oversample for crisp rendering
-  const offSize  = (markerSize + 6) * OVER;   // 6px padding so stroke isn't clipped
+  // Rasterize at the maximum possible display size (markerSize * cursorScale)
+  // so markers are sharp even at peak cursor influence.
+  const maxMarkerSize = markerSize * Math.max(1, cursorScale);
+  const OVER    = 2; // oversample for crisp rendering
+  const offSize = (maxMarkerSize + 6) * OVER; // 6px padding so stroke isn't clipped
   const markerBitmap = document.createElement('canvas');
   markerBitmap.width = markerBitmap.height = offSize;
   const mctx = markerBitmap.getContext('2d');
-  mctx.font         = `${markerSize * OVER}px serif`;
-  mctx.textAlign    = 'center';
+  mctx.font = `${maxMarkerSize * OVER}px serif`;
+  mctx.textAlign = 'center';
   mctx.textBaseline = 'middle';
   if (strokeColor) {
     mctx.strokeStyle = strokeColor;
@@ -362,6 +367,8 @@ export function render(
   // Displayed size of the bitmap at 1:1 scale (CSS px)
   const normSize = offSize / OVER;
   const halfNorm = normSize / 2;
+  // Scale factor to draw unaffected markers at their original size
+  const baseScale = markerSize / maxMarkerSize;
 
   // ── 4. Draw helper ────────────────────────────────────────────────────────
   function draw() {
@@ -369,27 +376,30 @@ export function render(
     ctx.fillRect(0, 0, cssW, cssH);
 
     const maxRotRad = (cursorRotation * Math.PI) / 180;
-    const cursorR2  = cursorRadius * cursorRadius;
-    const base      = ctx.getTransform();
+    const cursorR2 = cursorRadius * cursorRadius;
+    const base = ctx.getTransform();
 
     for (const { x, y } of pts) {
       let influence = 0;
       if (cursorRadius > 0) {
-        const dx = x - _cursor.x, dy = y - _cursor.y;
+        const dx = x - _cursor.x,
+          dy = y - _cursor.y;
         const d2 = dx * dx + dy * dy;
-        if (d2 < cursorR2) influence = 1 - Math.sqrt(d2) / cursorRadius;
+        if (d2 < cursorR2) { const t = 1 - Math.sqrt(d2) / cursorRadius; influence = Math.pow(t, cursorFalloff); }
       }
 
       if (influence > 0) {
-        const scale = 1 + (cursorScale - 1) * influence;
-        const rot   = maxRotRad * influence;
-        const cr    = Math.cos(rot) * scale;
-        const sr    = Math.sin(rot) * scale;
+        // scale is relative to maxMarkerSize (the bitmap's full size)
+        const scale = baseScale + (1 - baseScale) * influence;
+        const rot = maxRotRad * influence;
+        const cr = Math.cos(rot) * scale;
+        const sr = Math.sin(rot) * scale;
         ctx.transform(cr, sr, -sr, cr, x, y);
         ctx.drawImage(markerBitmap, -halfNorm, -halfNorm, normSize, normSize);
         ctx.setTransform(base);
       } else {
-        ctx.drawImage(markerBitmap, x - halfNorm, y - halfNorm, normSize, normSize);
+        const s = baseScale;
+        ctx.drawImage(markerBitmap, x - halfNorm * s, y - halfNorm * s, normSize * s, normSize * s);
       }
     }
 
@@ -530,6 +540,7 @@ export function getParamLines(fmtVal) {
     `  cursorRadius: ${fmtVal(defaults.cursorRadius)}, // px influence radius (0 = off)`,
     `  cursorScale: ${fmtVal(defaults.cursorScale)}, // scale at cursor centre`,
     `  cursorRotation: ${fmtVal(defaults.cursorRotation)}, // degrees rotation at cursor centre`,
+    `  cursorFalloff: ${fmtVal(defaults.cursorFalloff)}, // exponent — 1 linear, 2 quadratic, higher = sharper peak`,
   ];
 }
 
@@ -549,5 +560,6 @@ export function normalizeParams(p) {
     cursorRadius: p.cursorRadius ?? defaults.cursorRadius,
     cursorScale: p.cursorScale ?? defaults.cursorScale,
     cursorRotation: p.cursorRotation ?? defaults.cursorRotation,
+    cursorFalloff: p.cursorFalloff ?? defaults.cursorFalloff,
   };
 }
