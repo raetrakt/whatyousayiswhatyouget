@@ -451,19 +451,11 @@ export function createRenderer({
     const workStyle = getWorkStyleConfig();
 
     function measureRenderedContent(el) {
-      const rect = el.getBoundingClientRect();
-      const width = Math.max(
-        el.offsetWidth || 0,
-        el.clientWidth || 0,
-        el.scrollWidth || 0,
-        rect.width || 0,
-      );
-      const height = Math.max(
-        el.offsetHeight || 0,
-        el.clientHeight || 0,
-        el.scrollHeight || 0,
-        rect.height || 0,
-      );
+      // Use layout-box properties only (not getBoundingClientRect) because
+      // getBoundingClientRect returns screen pixels which are scaled by the
+      // SVG zoom transform, inflating the measured size and mis-centering nodes.
+      const width = Math.max(el.offsetWidth || 0, el.clientWidth || 0, el.scrollWidth || 0);
+      const height = Math.max(el.offsetHeight || 0, el.clientHeight || 0, el.scrollHeight || 0);
 
       return {
         w: Math.ceil(width),
@@ -567,7 +559,9 @@ export function createRenderer({
   // Pass collisionOptions to avoid disrupting the gentle onboarding simulation.
   function finalizePendingImages(collisionOptions = {}) {
     if (!nodeDiv) return;
-    const pendingDivs = nodeDiv.filter((d) => d.type === 'work').nodes()
+    const pendingDivs = nodeDiv
+      .filter((d) => d.type === 'work')
+      .nodes()
       .filter((el) => el.classList.contains('media-pending'));
     finalizeWorkDivs(pendingDivs, collisionOptions);
   }
