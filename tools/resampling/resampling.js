@@ -15,18 +15,18 @@ export const defaults = {
   spacing: 20, // arc-length gap between initial markers (px)
   marker: '✻', // unicode character placed at each point
   markerSize: 22, // font-size of the marker glyph (px)
-  markerColor: '#af4b4b',
-  strokeColor: '#b3ff75', // stroke colour — null = no stroke
-  strokeWidth: 5, // stroke width (px)
+  markerColor: '#6b3200',
+  strokeColor: '#e2fe43', // stroke colour — null = no stroke
+  strokeWidth: 25, // stroke width (px)
   bgColor: '#ffffff',
   flatness: 0.5, // bezier subdivision tolerance — font mode only (px)
   relax: false, // enable relaxation animation
-  relaxSpeed: 4, // pixels moved per step per unit force
+  relaxSpeed: 8, // pixels moved per step per unit force
   period: 6, // seconds for one full spread-and-return cycle
-  cursorRadius: 150, // px — influence radius around cursor (0 = off)
-  cursorScale: 2.5, // scale multiplier at cursor centre
-  cursorRotation: 90, // degrees rotation at cursor centre
-  cursorFalloff: 4, // exponent — 1 = linear, 2 = quadratic, higher = sharper peak
+  cursorRadius: 1650, // px — influence radius around cursor (0 = off)
+  cursorScale: 5, // scale multiplier at cursor centre
+  cursorRotation: 270, // degrees rotation at cursor centre
+  cursorFalloff: 4, // cycles — 1 = smooth cosine drop, 2 = ring (drops then rises), higher = more rings
 };
 
 // ─── Cursor tracking ─────────────────────────────────────────────────────────
@@ -49,74 +49,72 @@ function _setupCursorListener(canvas) {
 
 /** Flatten an opentype.js Path into an array of {x,y} polyline vertices. */
 function _flattenPath(otPath, flatness) {
-  const pts = [];
+  const subpaths = [];
+  let current = [];
   let cx = 0,
     cy = 0;
   let sx = 0,
     sy = 0;
 
   function add(x, y) {
-    if (!pts.length || pts[pts.length - 1].x !== x || pts[pts.length - 1].y !== y)
-      pts.push({ x, y });
-  }
-
-  function cubic(x0, y0, x1, y1, x2, y2, x3, y3, d) {
-    if (d > 12) {
-      add(x3, y3);
-      return;
-    }
-    const dx = x3 - x0,
-      dy = y3 - y0,
-      len = Math.sqrt(dx * dx + dy * dy) || 1;
     if (
-      (Math.abs((x1 - x3) * dy - (y1 - y3) * dx) + Math.abs((x2 - x3) * dy - (y2 - y3) * dx)) /
-        len <=
-      flatness
-    ) {
-      add(x3, y3);
-      return;
-    }
-    const ax = (x0 + x1) / 2,
-      ay = (y0 + y1) / 2;
-    const bx = (x1 + x2) / 2,
-      by = (y1 + y2) / 2;
-    const cx2 = (x2 + x3) / 2,
-      cy2 = (y2 + y3) / 2;
-    const dx2 = (ax + bx) / 2,
-      dy2 = (ay + by) / 2;
-    const ex = (bx + cx2) / 2,
-      ey = (by + cy2) / 2;
-    const fx = (dx2 + ex) / 2,
-      fy = (dy2 + ey) / 2;
-    cubic(x0, y0, ax, ay, dx2, dy2, fx, fy, d + 1);
-    cubic(fx, fy, ex, ey, cx2, cy2, x3, y3, d + 1);
+      !current.length ||
+      current[current.length - 1].x !== x ||
+      current[current.length - 1].y !== y
+    )
+      current.push({ x, y });
   }
 
-  function quad(x0, y0, x1, y1, x2, y2, d) {
-    if (d > 12) {
-      add(x2, y2);
-      return;
+  function finishSubpath() {
+    if (current.length > 1) {
+      // Auto-close: fonts may omit the final Z, leaving the closing edge implicit.
+      const first = current[0], last = current[current.length - 1];
+      if (first.x !== last.x || first.y !== last.y) {
+        current.push({ x: first.x, y: first.y });
+      }
+      subpaths.push(current);
     }
+    current = [];
+  }
+
+  // Sample a cubic Bézier at uniform t-intervals.
+  // n scales with chord length so tight curves get enough samples.
+  function sampleCubic(x0, y0, x1, y1, x2, y2, x3, y3) {
+    const dx = x3 - x0,
+      dy = y3 - y0;
+    const chord = Math.sqrt(dx * dx + dy * dy);
+    const n = Math.max(1, Math.ceil(chord / flatness));
+    for (let i = 1; i <= n; i++) {
+      const t = i / n;
+      const mt = 1 - t;
+      const mt2 = mt * mt,
+        t2 = t * t;
+      const mt3 = mt2 * mt,
+        t3 = t2 * t;
+      add(
+        mt3 * x0 + 3 * mt2 * t * x1 + 3 * mt * t2 * x2 + t3 * x3,
+        mt3 * y0 + 3 * mt2 * t * y1 + 3 * mt * t2 * y2 + t3 * y3,
+      );
+    }
+  }
+
+  // Sample a quadratic Bézier at uniform t-intervals.
+  function sampleQuad(x0, y0, x1, y1, x2, y2) {
     const dx = x2 - x0,
-      dy = y2 - y0,
-      len = Math.sqrt(dx * dx + dy * dy) || 1;
-    if (Math.abs((x1 - x2) * dy - (y1 - y2) * dx) / len <= flatness) {
-      add(x2, y2);
-      return;
+      dy = y2 - y0;
+    const chord = Math.sqrt(dx * dx + dy * dy);
+    const n = Math.max(1, Math.ceil(chord / flatness));
+    for (let i = 1; i <= n; i++) {
+      const t = i / n;
+      const mt = 1 - t;
+      add(mt * mt * x0 + 2 * mt * t * x1 + t * t * x2, mt * mt * y0 + 2 * mt * t * y1 + t * t * y2);
     }
-    const ax = (x0 + x1) / 2,
-      ay = (y0 + y1) / 2;
-    const bx = (x1 + x2) / 2,
-      by = (y1 + y2) / 2;
-    const mx = (ax + bx) / 2,
-      my = (ay + by) / 2;
-    quad(x0, y0, ax, ay, mx, my, d + 1);
-    quad(mx, my, bx, by, x2, y2, d + 1);
   }
 
   for (const cmd of otPath.commands) {
     switch (cmd.type) {
       case 'M':
+        finishSubpath();
         add(cmd.x, cmd.y);
         cx = sx = cmd.x;
         cy = sy = cmd.y;
@@ -127,42 +125,81 @@ function _flattenPath(otPath, flatness) {
         cy = cmd.y;
         break;
       case 'C':
-        cubic(cx, cy, cmd.x1, cmd.y1, cmd.x2, cmd.y2, cmd.x, cmd.y, 0);
+        sampleCubic(cx, cy, cmd.x1, cmd.y1, cmd.x2, cmd.y2, cmd.x, cmd.y);
         cx = cmd.x;
         cy = cmd.y;
         break;
       case 'Q':
-        quad(cx, cy, cmd.x1, cmd.y1, cmd.x, cmd.y, 0);
+        sampleQuad(cx, cy, cmd.x1, cmd.y1, cmd.x, cmd.y);
         cx = cmd.x;
         cy = cmd.y;
         break;
       case 'Z':
         add(sx, sy);
+        finishSubpath();
         cx = sx;
         cy = sy;
         break;
     }
   }
-  return pts;
+  finishSubpath();
+  return subpaths;
 }
 
-/** Walk a polyline emitting points at uniform arc-length `spacing`. */
+/**
+ * Walk a polyline emitting points at uniform arc-length `spacing`.
+ * Computes total length first, then places floor(total/spacing) markers
+ * centered within the path so no segment is ever skipped by a large rem.
+ */
 function _resamplePolyline(pts, spacing) {
-  if (pts.length < 2 || spacing <= 0) return pts.slice();
-  const out = [{ x: pts[0].x, y: pts[0].y }];
-  let rem = spacing; // distance until next emission
+  if (pts.length < 2 || spacing <= 0) return [];
+
+  // Build per-segment lengths
+  const segLens = [];
+  let total = 0;
   for (let i = 1; i < pts.length; i++) {
-    const dx = pts[i].x - pts[i - 1].x;
-    const dy = pts[i].y - pts[i - 1].y;
-    let seg = Math.sqrt(dx * dx + dy * dy);
-    if (seg === 0) continue;
-    while (rem <= seg) {
-      const t = rem / seg;
-      out.push({ x: pts[i - 1].x + dx * t, y: pts[i - 1].y + dy * t });
-      seg -= rem;
-      rem = spacing;
+    const dx = pts[i].x - pts[i - 1].x,
+      dy = pts[i].y - pts[i - 1].y;
+    const l = Math.sqrt(dx * dx + dy * dy);
+    segLens.push(l);
+    total += l;
+  }
+
+  const n = Math.floor(total / spacing);
+  // If the path is shorter than one spacing interval, place a single marker
+  // at its midpoint so short features (serifs, apex of A, etc.) aren't invisible.
+  if (n === 0) {
+    const mid = total / 2;
+    let walked = 0;
+    for (let i = 0; i < segLens.length; i++) {
+      if (walked + segLens[i] >= mid) {
+        const frac = segLens[i] > 0 ? (mid - walked) / segLens[i] : 0;
+        return [{ x: pts[i].x + (pts[i + 1].x - pts[i].x) * frac,
+                  y: pts[i].y + (pts[i + 1].y - pts[i].y) * frac }];
+      }
+      walked += segLens[i];
     }
-    rem -= seg;
+    return [{ x: pts[pts.length - 1].x, y: pts[pts.length - 1].y }];
+  }
+
+  // Center the markers: equal gap at both ends of the path
+  const startOffset = (total - n * spacing) / 2;
+  const out = [];
+  let segStart = 0; // cumulative length at start of current segment
+  let si = 0; // current segment index
+
+  for (let k = 0; k < n; k++) {
+    const target = startOffset + k * spacing;
+    // Advance to the segment containing `target`
+    while (si < segLens.length - 1 && segStart + segLens[si] < target) {
+      segStart += segLens[si];
+      si++;
+    }
+    const frac = segLens[si] > 0 ? (target - segStart) / segLens[si] : 0;
+    out.push({
+      x: pts[si].x + (pts[si + 1].x - pts[si].x) * frac,
+      y: pts[si].y + (pts[si + 1].y - pts[si].y) * frac,
+    });
   }
   return out;
 }
@@ -190,8 +227,8 @@ function _sampleLine(font, line, x, y, fontSize, tracking, spacing, flatness) {
   for (let i = 0; i < gs.length; i++) {
     if (chars[i].trim()) {
       const path = gs[i].getPath(cx, y, fontSize);
-      const poly = _flattenPath(path, flatness);
-      for (const p of _resamplePolyline(poly, spacing)) out.push(p);
+      const subpaths = _flattenPath(path, flatness);
+      for (const sub of subpaths) for (const p of _resamplePolyline(sub, spacing)) out.push(p);
     }
     const kern = i < gs.length - 1 ? font.getKerningValue(gs[i], gs[i + 1]) * scale : 0;
     cx += gs[i].advanceWidth * scale + tracking + kern;
@@ -335,10 +372,10 @@ export function render(
 
   const strokeColor = params.strokeColor ?? defaults.strokeColor;
   const strokeWidth = params.strokeWidth ?? defaults.strokeWidth;
-  const cursorRadius   = params.cursorRadius   ?? defaults.cursorRadius;
-  const cursorScale    = params.cursorScale    ?? defaults.cursorScale;
+  const cursorRadius = params.cursorRadius ?? defaults.cursorRadius;
+  const cursorScale = params.cursorScale ?? defaults.cursorScale;
   const cursorRotation = params.cursorRotation ?? defaults.cursorRotation;
-  const cursorFalloff  = params.cursorFalloff  ?? defaults.cursorFalloff;
+  const cursorFalloff = params.cursorFalloff ?? defaults.cursorFalloff;
 
   _setupCursorListener(canvas);
 
@@ -348,7 +385,7 @@ export function render(
   // Rasterize at the maximum possible display size (markerSize * cursorScale)
   // so markers are sharp even at peak cursor influence.
   const maxMarkerSize = markerSize * Math.max(1, cursorScale);
-  const OVER    = 2; // oversample for crisp rendering
+  const OVER = 2; // oversample for crisp rendering
   const offSize = (maxMarkerSize + 6) * OVER; // 6px padding so stroke isn't clipped
   const markerBitmap = document.createElement('canvas');
   markerBitmap.width = markerBitmap.height = offSize;
@@ -358,7 +395,7 @@ export function render(
   mctx.textBaseline = 'middle';
   if (strokeColor) {
     mctx.strokeStyle = strokeColor;
-    mctx.lineWidth   = strokeWidth * OVER;
+    mctx.lineWidth = strokeWidth * OVER;
     mctx.strokeText(marker, offSize / 2, offSize / 2);
   }
   mctx.fillStyle = markerColor;
@@ -385,7 +422,10 @@ export function render(
         const dx = x - _cursor.x,
           dy = y - _cursor.y;
         const d2 = dx * dx + dy * dy;
-        if (d2 < cursorR2) { const t = 1 - Math.sqrt(d2) / cursorRadius; influence = Math.pow(t, cursorFalloff); }
+        if (d2 < cursorR2) {
+          const norm = Math.sqrt(d2) / cursorRadius;
+          influence = 0.5 + 0.5 * Math.cos(norm * Math.PI * cursorFalloff);
+        }
       }
 
       if (influence > 0) {
@@ -531,7 +571,6 @@ export function getParamLines(fmtVal) {
     `  strokeColor: ${fmtVal(defaults.strokeColor)}, // stroke colour (null = no stroke)`,
     `  strokeWidth: ${fmtVal(defaults.strokeWidth)}, // stroke width (px)`,
     `  bgColor: ${fmtVal(defaults.bgColor)},`,
-    `  flatness: ${fmtVal(defaults.flatness)}, // curve subdivision tolerance (font mode only)`,
     '  // Particle relaxation',
     `  relax: ${fmtVal(defaults.relax)}, // animate spread-and-return loop`,
     `  relaxSpeed: ${fmtVal(defaults.relaxSpeed)}, // px moved per step per unit force`,
@@ -540,7 +579,7 @@ export function getParamLines(fmtVal) {
     `  cursorRadius: ${fmtVal(defaults.cursorRadius)}, // px influence radius (0 = off)`,
     `  cursorScale: ${fmtVal(defaults.cursorScale)}, // scale at cursor centre`,
     `  cursorRotation: ${fmtVal(defaults.cursorRotation)}, // degrees rotation at cursor centre`,
-    `  cursorFalloff: ${fmtVal(defaults.cursorFalloff)}, // exponent — 1 linear, 2 quadratic, higher = sharper peak`,
+    `  cursorFalloff: ${fmtVal(defaults.cursorFalloff)}, // cycles — 1 smooth drop, 2 = ring, higher = more rings`,
   ];
 }
 
