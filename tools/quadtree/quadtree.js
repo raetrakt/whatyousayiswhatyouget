@@ -4,9 +4,9 @@
 // Uses a summed-area table for O(1) cell coverage queries.
 
 export const defaults = {
-  maxDepth: 7, // max subdivision levels (depth 7 → ~cssW/128 min cell)
-  fillColor: '#000000',
-  lineColor: '#000000',
+  maxDepth: 8, // max subdivision levels (depth 7 → ~cssW/128 min cell)
+  fillColor: '#ff80c3',
+  lineColor: '#ff2e2e',
   lineWidth: 0.5,
   bgColor: '#ffffff',
   brushMode: false, // paint higher detail where you drag

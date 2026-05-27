@@ -20,7 +20,7 @@ export const defaults = {
   strokeWidth: 10, // stroke width (px)
   bgColor: '#ffffff',
   flatness: 0.5, // bezier subdivision tolerance — font mode only (px)
-  relax: false, // enable relaxation animation
+  relax: true, // enable relaxation animation
   relaxSpeed: 8, // pixels moved per step per unit force
   period: 6, // seconds for one full spread-and-return cycle
   cursorRadius: 650, // px — influence radius around cursor (0 = off)
@@ -28,6 +28,7 @@ export const defaults = {
   cursorRotation: 270, // degrees rotation at cursor centre
   cursorRepeat: false, // true = cosine repeats (ring at midpoint), false = smooth fade to 0
   cursorAmplitude: 0.5, // cosine amplitude (0 = flat 0.5 influence, 0.5 = full 0–1 swing)
+  cursorMode: true, // enable cursor interaction (false = static everywhere)
 };
 
 // ─── Cursor tracking ─────────────────────────────────────────────────────────
@@ -383,6 +384,7 @@ export function render(
   const cursorRotation = params.cursorRotation ?? defaults.cursorRotation;
   const cursorRepeat = params.cursorRepeat ?? defaults.cursorRepeat;
   const cursorAmplitude = params.cursorAmplitude ?? defaults.cursorAmplitude;
+  const cursorMode = params.cursorMode ?? defaults.cursorMode;
 
   _setupCursorListener(canvas);
 
@@ -594,6 +596,7 @@ export function getParamLines(fmtVal) {
     `  cursorRotation: ${fmtVal(defaults.cursorRotation)}, // degrees rotation at cursor centre`,
     `  cursorAmplitude: ${fmtVal(defaults.cursorAmplitude)}, // cosine amplitude (0 = flat, 0.5 = full 0–1 swing)`,
     `  cursorRepeat: ${fmtVal(defaults.cursorRepeat)}, // true = ring at midpoint, false = smooth fade`,
+    `  cursorMode: ${fmtVal(defaults.cursorMode)}, // enable cursor interaction (false = static everywhere)`,
   ];
 }
 
@@ -615,5 +618,6 @@ export function normalizeParams(p) {
     cursorRotation: p.cursorRotation ?? defaults.cursorRotation,
     cursorRepeat: p.cursorRepeat ?? defaults.cursorRepeat,
     cursorAmplitude: p.cursorAmplitude ?? defaults.cursorAmplitude,
+    cursorMode: p.cursorMode ?? defaults.cursorMode,
   };
 }

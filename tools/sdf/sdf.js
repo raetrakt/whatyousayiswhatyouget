@@ -9,15 +9,15 @@ const SDF_SCALE = 2; // full-resolution — O(n) EDT makes this cheap
 
 /** Default parameter values for the SDF bevel tool. */
 export const defaults = {
-  borderWidth: 0.45, // fraction of fontSize
-  bevelCurvature: 1.0, // 0 = flat, higher = rounder bevel
+  borderWidth: 0.3, // fraction of fontSize
+  bevelCurvature: 0.6, // 0 = flat, higher = rounder bevel
   bevelPeak: 0, // where brightness peaks within the bevel (0 = inner edge, 0.5 = ridge, 1 = outer edge)
   lightAngle: 315, // degrees clockwise from top (315 = upper-left)
-  specular: 0, // specular highlight intensity (0 = off)
+  specular: 0.2, // specular highlight intensity (0 = off)
   specularSharpness: 30, // Phong exponent — higher = tighter highlight spot
   fillColor: '#ffffff', // text fill
-  gradientColor: '#5e69ff', // bevel fades to this color
-  shadowColor: '#0800ff', // shadow side of bevel (replaces desaturation-to-black)
+  gradientColor: '#fe2020', // bevel fades to this color
+  shadowColor: '#2c00db', // shadow side of bevel (replaces desaturation-to-black)
   bgColor: '#fff', // background
 };
 
