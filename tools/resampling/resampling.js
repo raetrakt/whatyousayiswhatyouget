@@ -23,10 +23,11 @@ export const defaults = {
   relax: false, // enable relaxation animation
   relaxSpeed: 8, // pixels moved per step per unit force
   period: 6, // seconds for one full spread-and-return cycle
-  cursorRadius: 1650, // px — influence radius around cursor (0 = off)
+  cursorRadius: 650, // px — influence radius around cursor (0 = off)
   cursorScale: 5, // scale multiplier at cursor centre
   cursorRotation: 270, // degrees rotation at cursor centre
-  cursorFalloff: 4, // cycles — 1 = smooth cosine drop, 2 = ring (drops then rises), higher = more rings
+  cursorRepeat: false, // true = cosine repeats (ring at midpoint), false = smooth fade to 0
+  cursorAmplitude: 0.5, // cosine amplitude (0 = flat 0.5 influence, 0.5 = full 0–1 swing)
 };
 
 // ─── Cursor tracking ─────────────────────────────────────────────────────────
@@ -380,7 +381,8 @@ export function render(
   const cursorRadius = params.cursorRadius ?? defaults.cursorRadius;
   const cursorScale = params.cursorScale ?? defaults.cursorScale;
   const cursorRotation = params.cursorRotation ?? defaults.cursorRotation;
-  const cursorFalloff = params.cursorFalloff ?? defaults.cursorFalloff;
+  const cursorRepeat = params.cursorRepeat ?? defaults.cursorRepeat;
+  const cursorAmplitude = params.cursorAmplitude ?? defaults.cursorAmplitude;
 
   _setupCursorListener(canvas);
 
@@ -425,7 +427,6 @@ export function render(
     ctx.fillRect(0, 0, cssW, cssH);
 
     const maxRotRad = (cursorRotation * Math.PI) / 180;
-    const cursorR2 = cursorRadius * cursorRadius;
     const base = ctx.getTransform();
 
     for (const { x, y } of pts) {
@@ -433,10 +434,10 @@ export function render(
       if (cursorRadius > 0) {
         const dx = x - _cursor.x,
           dy = y - _cursor.y;
-        const d2 = dx * dx + dy * dy;
-        if (d2 < cursorR2) {
-          const norm = Math.sqrt(d2) / cursorRadius;
-          influence = 0.5 + 0.5 * Math.cos(norm * Math.PI * cursorFalloff);
+        const d = Math.sqrt(dx * dx + dy * dy);
+        if (cursorRepeat || d < cursorRadius) {
+          const norm = d / cursorRadius;
+          influence = 0.5 + cursorAmplitude * Math.cos(norm * Math.PI);
         }
       }
 
@@ -591,7 +592,8 @@ export function getParamLines(fmtVal) {
     `  cursorRadius: ${fmtVal(defaults.cursorRadius)}, // px influence radius (0 = off)`,
     `  cursorScale: ${fmtVal(defaults.cursorScale)}, // scale at cursor centre`,
     `  cursorRotation: ${fmtVal(defaults.cursorRotation)}, // degrees rotation at cursor centre`,
-    `  cursorFalloff: ${fmtVal(defaults.cursorFalloff)}, // cycles — 1 smooth drop, 2 = ring, higher = more rings`,
+    `  cursorAmplitude: ${fmtVal(defaults.cursorAmplitude)}, // cosine amplitude (0 = flat, 0.5 = full 0–1 swing)`,
+    `  cursorRepeat: ${fmtVal(defaults.cursorRepeat)}, // true = ring at midpoint, false = smooth fade`,
   ];
 }
 
@@ -611,6 +613,7 @@ export function normalizeParams(p) {
     cursorRadius: p.cursorRadius ?? defaults.cursorRadius,
     cursorScale: p.cursorScale ?? defaults.cursorScale,
     cursorRotation: p.cursorRotation ?? defaults.cursorRotation,
-    cursorFalloff: p.cursorFalloff ?? defaults.cursorFalloff,
+    cursorRepeat: p.cursorRepeat ?? defaults.cursorRepeat,
+    cursorAmplitude: p.cursorAmplitude ?? defaults.cursorAmplitude,
   };
 }
