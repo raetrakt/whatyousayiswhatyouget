@@ -12,24 +12,49 @@
 // interior. Version counter cancels stale loops on re-render.
 
 export const defaults = {
-  spacing: 12,          // arc-length gap between initial markers (px)
-  marker: '✻',          // unicode character placed at each point
-  markerSize: 14,       // font-size of the marker glyph (px)
-  markerColor: '#000000',
+  spacing: 20, // arc-length gap between initial markers (px)
+  marker: '✻', // unicode character placed at each point
+  markerSize: 22, // font-size of the marker glyph (px)
+  markerColor: "#af4b4b",
+  strokeColor: "#b3ff75",        // stroke colour — null = no stroke
+  strokeWidth: 5,           // stroke width (px)
   bgColor: '#ffffff',
-  flatness: 0.5,        // bezier subdivision tolerance — font mode only (px)
-  relax: true,          // enable relaxation animation
-  relaxSpeed: 2,        // pixels moved per step per unit force
-  period: 6,            // seconds for one full spread-and-return cycle
+  flatness: 0.5, // bezier subdivision tolerance — font mode only (px)
+  relax: true, // enable relaxation animation
+  relaxSpeed: 2, // pixels moved per step per unit force
+  period: 6, // seconds for one full spread-and-return cycle
+  cursorRadius: 150,  // px — influence radius around cursor (0 = off)
+  cursorScale: 2.5,   // scale multiplier at cursor centre
+  cursorRotation: 90, // degrees rotation at cursor centre
 };
 
-// ─── Font-path helpers ────────────────────────────────────────────────────────
+// ─── Cursor tracking ─────────────────────────────────────────────────────────
+
+let _cursor = { x: -9999, y: -9999 };
+
+function _setupCursorListener(canvas) {
+  if (canvas.__resamplingCursorAttached) return;
+  canvas.__resamplingCursorAttached = true;
+  canvas.addEventListener('mousemove', (e) => {
+    const r = canvas.getBoundingClientRect();
+    _cursor.x = e.clientX - r.left;
+    _cursor.y = e.clientY - r.top;
+  });
+  canvas.addEventListener('mouseleave', () => {
+    _cursor.x = -9999;
+    _cursor.y = -9999;
+  });
+}
+
+
 
 /** Flatten an opentype.js Path into an array of {x,y} polyline vertices. */
 function _flattenPath(otPath, flatness) {
   const pts = [];
-  let cx = 0, cy = 0;
-  let sx = 0, sy = 0;
+  let cx = 0,
+    cy = 0;
+  let sx = 0,
+    sy = 0;
 
   function add(x, y) {
     if (!pts.length || pts[pts.length - 1].x !== x || pts[pts.length - 1].y !== y)
@@ -37,42 +62,86 @@ function _flattenPath(otPath, flatness) {
   }
 
   function cubic(x0, y0, x1, y1, x2, y2, x3, y3, d) {
-    if (d > 12) { add(x3, y3); return; }
-    const dx = x3 - x0, dy = y3 - y0, len = Math.sqrt(dx * dx + dy * dy) || 1;
-    if ((Math.abs((x1 - x3) * dy - (y1 - y3) * dx) +
-         Math.abs((x2 - x3) * dy - (y2 - y3) * dx)) / len <= flatness) {
-      add(x3, y3); return;
+    if (d > 12) {
+      add(x3, y3);
+      return;
     }
-    const ax = (x0 + x1) / 2, ay = (y0 + y1) / 2;
-    const bx = (x1 + x2) / 2, by = (y1 + y2) / 2;
-    const cx2 = (x2 + x3) / 2, cy2 = (y2 + y3) / 2;
-    const dx2 = (ax + bx) / 2, dy2 = (ay + by) / 2;
-    const ex = (bx + cx2) / 2, ey = (by + cy2) / 2;
-    const fx = (dx2 + ex) / 2, fy = (dy2 + ey) / 2;
+    const dx = x3 - x0,
+      dy = y3 - y0,
+      len = Math.sqrt(dx * dx + dy * dy) || 1;
+    if (
+      (Math.abs((x1 - x3) * dy - (y1 - y3) * dx) + Math.abs((x2 - x3) * dy - (y2 - y3) * dx)) /
+        len <=
+      flatness
+    ) {
+      add(x3, y3);
+      return;
+    }
+    const ax = (x0 + x1) / 2,
+      ay = (y0 + y1) / 2;
+    const bx = (x1 + x2) / 2,
+      by = (y1 + y2) / 2;
+    const cx2 = (x2 + x3) / 2,
+      cy2 = (y2 + y3) / 2;
+    const dx2 = (ax + bx) / 2,
+      dy2 = (ay + by) / 2;
+    const ex = (bx + cx2) / 2,
+      ey = (by + cy2) / 2;
+    const fx = (dx2 + ex) / 2,
+      fy = (dy2 + ey) / 2;
     cubic(x0, y0, ax, ay, dx2, dy2, fx, fy, d + 1);
     cubic(fx, fy, ex, ey, cx2, cy2, x3, y3, d + 1);
   }
 
   function quad(x0, y0, x1, y1, x2, y2, d) {
-    if (d > 12) { add(x2, y2); return; }
-    const dx = x2 - x0, dy = y2 - y0, len = Math.sqrt(dx * dx + dy * dy) || 1;
-    if (Math.abs((x1 - x2) * dy - (y1 - y2) * dx) / len <= flatness) { add(x2, y2); return; }
-    const ax = (x0 + x1) / 2, ay = (y0 + y1) / 2;
-    const bx = (x1 + x2) / 2, by = (y1 + y2) / 2;
-    const mx = (ax + bx) / 2, my = (ay + by) / 2;
+    if (d > 12) {
+      add(x2, y2);
+      return;
+    }
+    const dx = x2 - x0,
+      dy = y2 - y0,
+      len = Math.sqrt(dx * dx + dy * dy) || 1;
+    if (Math.abs((x1 - x2) * dy - (y1 - y2) * dx) / len <= flatness) {
+      add(x2, y2);
+      return;
+    }
+    const ax = (x0 + x1) / 2,
+      ay = (y0 + y1) / 2;
+    const bx = (x1 + x2) / 2,
+      by = (y1 + y2) / 2;
+    const mx = (ax + bx) / 2,
+      my = (ay + by) / 2;
     quad(x0, y0, ax, ay, mx, my, d + 1);
     quad(mx, my, bx, by, x2, y2, d + 1);
   }
 
   for (const cmd of otPath.commands) {
     switch (cmd.type) {
-      case 'M': add(cmd.x, cmd.y); cx = sx = cmd.x; cy = sy = cmd.y; break;
-      case 'L': add(cmd.x, cmd.y); cx = cmd.x; cy = cmd.y; break;
-      case 'C': cubic(cx, cy, cmd.x1, cmd.y1, cmd.x2, cmd.y2, cmd.x, cmd.y, 0);
-                cx = cmd.x; cy = cmd.y; break;
-      case 'Q': quad(cx, cy, cmd.x1, cmd.y1, cmd.x, cmd.y, 0);
-                cx = cmd.x; cy = cmd.y; break;
-      case 'Z': add(sx, sy); cx = sx; cy = sy; break;
+      case 'M':
+        add(cmd.x, cmd.y);
+        cx = sx = cmd.x;
+        cy = sy = cmd.y;
+        break;
+      case 'L':
+        add(cmd.x, cmd.y);
+        cx = cmd.x;
+        cy = cmd.y;
+        break;
+      case 'C':
+        cubic(cx, cy, cmd.x1, cmd.y1, cmd.x2, cmd.y2, cmd.x, cmd.y, 0);
+        cx = cmd.x;
+        cy = cmd.y;
+        break;
+      case 'Q':
+        quad(cx, cy, cmd.x1, cmd.y1, cmd.x, cmd.y, 0);
+        cx = cmd.x;
+        cy = cmd.y;
+        break;
+      case 'Z':
+        add(sx, sy);
+        cx = sx;
+        cy = sy;
+        break;
     }
   }
   return pts;
@@ -189,15 +258,22 @@ function _sampleEdges(mask, cssW, cssH, cellSize) {
   const pts = [];
   for (let row = 0; row < rows; row++) {
     for (let col = 0; col < cols; col++) {
-      const x0 = col * cellSize, y0 = row * cellSize;
+      const x0 = col * cellSize,
+        y0 = row * cellSize;
       const x1 = Math.min(x0 + cellSize, cssW);
       const y1 = Math.min(y0 + cellSize, cssH);
-      let sx = 0, sy = 0, n = 0;
+      let sx = 0,
+        sy = 0,
+        n = 0;
       for (let y = y0; y < y1; y++) {
         for (let x = x0; x < x1; x++) {
-          if (isIn(x, y) && (!isIn(x - 1, y) || !isIn(x + 1, y) ||
-                              !isIn(x, y - 1) || !isIn(x, y + 1))) {
-            sx += x; sy += y; n++;
+          if (
+            isIn(x, y) &&
+            (!isIn(x - 1, y) || !isIn(x + 1, y) || !isIn(x, y - 1) || !isIn(x, y + 1))
+          ) {
+            sx += x;
+            sy += y;
+            n++;
           }
         }
       }
@@ -210,7 +286,7 @@ function _sampleEdges(mask, cssW, cssH, cellSize) {
 // ─── Render ───────────────────────────────────────────────────────────────────
 
 let _version = 0;
-let _points  = []; // last computed positions – reserved for future drag / stroke
+let _points = []; // last computed positions – reserved for future drag / stroke
 
 export function render(
   ctx,
@@ -218,22 +294,30 @@ export function render(
   canvas,
   { lines, fontSize, startY, lineH, params, cssW, cssH, maskCanvas },
 ) {
-  const version      = ++_version;
+  const version = ++_version;
 
-  const spacing      = Math.max(1,    params.spacing      ?? defaults.spacing);
-  const marker       =                params.marker        ?? defaults.marker;
-  const markerSize   = Math.max(2,    params.markerSize    ?? defaults.markerSize);
-  const markerColor  =                params.markerColor   ?? defaults.markerColor;
-  const bgColor      =                params.bgColor       ?? defaults.bgColor;
-  const flatness     = Math.max(0.05, params.flatness      ?? defaults.flatness);
-  const tracking     =                params.tracking      ?? 0;
-  const relax        =                params.relax         ?? defaults.relax;
-  const relaxSpeed   =                params.relaxSpeed    ?? defaults.relaxSpeed;
-  const period       = Math.max(0.5,  params.period        ?? defaults.period);
+  const spacing = Math.max(1, params.spacing ?? defaults.spacing);
+  const marker = params.marker ?? defaults.marker;
+  const markerSize = Math.max(2, params.markerSize ?? defaults.markerSize);
+  const markerColor = params.markerColor ?? defaults.markerColor;
+  const bgColor = params.bgColor ?? defaults.bgColor;
+  const flatness = Math.max(0.05, params.flatness ?? defaults.flatness);
+  const tracking = params.tracking ?? 0;
+  const relax = params.relax ?? defaults.relax;
+  const relaxSpeed = params.relaxSpeed ?? defaults.relaxSpeed;
+  const period = Math.max(0.5, params.period ?? defaults.period);
 
   // ── 1. Build inside mask ──────────────────────────────────────────────────
   const mask = _buildInsideMask(
-    maskCanvas, font, lines, fontSize, startY, lineH, tracking, cssW, cssH,
+    maskCanvas,
+    font,
+    lines,
+    fontSize,
+    startY,
+    lineH,
+    tracking,
+    cssW,
+    cssH,
   );
 
   // ── 2. Initial points on the outline ─────────────────────────────────────
@@ -250,22 +334,92 @@ export function render(
     }
   }
 
+  const strokeColor   = params.strokeColor    ?? defaults.strokeColor;
+  const strokeWidth    = params.strokeWidth    ?? defaults.strokeWidth;
+  const cursorRadius   = params.cursorRadius   ?? defaults.cursorRadius;
+  const cursorScale    = params.cursorScale    ?? defaults.cursorScale;
+  const cursorRotation = params.cursorRotation ?? defaults.cursorRotation;
+
+  _setupCursorListener(canvas);
+
   // ── 3. Draw helper ────────────────────────────────────────────────────────
   function draw() {
     ctx.fillStyle = bgColor;
     ctx.fillRect(0, 0, cssW, cssH);
     ctx.save();
-    ctx.fillStyle = markerColor;
     ctx.font = `${markerSize}px serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    for (const { x, y } of pts) ctx.fillText(marker, x, y);
+
+    // Pre-set shared stroke state to avoid redundant assignments in the loop.
+    if (strokeColor) {
+      ctx.strokeStyle = strokeColor;
+      ctx.lineWidth = strokeWidth;
+    }
+    ctx.fillStyle = markerColor;
+
+    const maxRotRad   = (cursorRotation * Math.PI) / 180;
+    const cursorR2    = cursorRadius * cursorRadius;
+    // Capture the DPR base transform so we can reset cheaply with setTransform
+    // instead of the heavier save/restore per marker.
+    const baseTransform = ctx.getTransform();
+
+    for (const { x, y } of pts) {
+      // Squared-distance check avoids sqrt for the common out-of-radius case.
+      let influence = 0;
+      if (cursorRadius > 0) {
+        const dx = x - _cursor.x, dy = y - _cursor.y;
+        const d2 = dx * dx + dy * dy;
+        if (d2 < cursorR2) influence = 1 - Math.sqrt(d2) / cursorRadius;
+      }
+
+      if (influence > 0) {
+        const scale = 1 + (cursorScale - 1) * influence;
+        const rot   = maxRotRad * influence;
+        // Combine translate(x,y) · rotate(rot) · scale(s) into one call:
+        // [s·cos(r)  -s·sin(r)  x]
+        // [s·sin(r)   s·cos(r)  y]
+        const cr = Math.cos(rot) * scale;
+        const sr = Math.sin(rot) * scale;
+        ctx.transform(cr, sr, -sr, cr, x, y);
+        if (strokeColor) {
+          ctx.lineWidth = strokeWidth / scale; // keep stroke width visually stable
+          ctx.strokeText(marker, 0, 0);
+          ctx.lineWidth = strokeWidth;         // restore for next unaffected marker
+        }
+        ctx.fillText(marker, 0, 0);
+        // Reset to base transform — cheaper than restore() which pops full state.
+        ctx.setTransform(baseTransform);
+      } else {
+        if (strokeColor) ctx.strokeText(marker, x, y);
+        ctx.fillText(marker, x, y);
+      }
+    }
+
     ctx.restore();
     _points = pts;
   }
 
   if (!relax) {
     draw();
+    // Redraw on mouse move so the cursor effect stays live.
+    // Throttled to one draw per animation frame to avoid flooding the renderer.
+    let _rafPending = false;
+    const onMove = () => {
+      if (_version !== version) return cleanup();
+      if (_rafPending) return;
+      _rafPending = true;
+      requestAnimationFrame(() => {
+        _rafPending = false;
+        if (_version === version) draw();
+      });
+    };
+    const cleanup = () => {
+      canvas.removeEventListener('mousemove', onMove);
+      canvas.removeEventListener('mouseleave', onMove);
+    };
+    canvas.addEventListener('mousemove', onMove);
+    canvas.addEventListener('mouseleave', onMove);
     return;
   }
 
@@ -275,7 +429,7 @@ export function render(
   //   spreadFactor = 0 → pure attraction toward origin (points return)
   // Both forces share the same magnitude scale so motion is balanced.
 
-  const repRadius  = spacing * 1.5;
+  const repRadius = spacing * 1.5;
   const repRadius2 = repRadius * repRadius;
 
   // Fixed origin positions — the outline points never change.
@@ -286,7 +440,7 @@ export function render(
     const cellSize = repRadius;
     const gridW = Math.ceil(cssW / cellSize) + 1;
     const gridH = Math.ceil(cssH / cellSize) + 1;
-    const grid  = Array.from({ length: gridW * gridH }, () => []);
+    const grid = Array.from({ length: gridW * gridH }, () => []);
 
     for (let i = 0; i < pts.length; i++) {
       const gx = (pts[i].x / cellSize) | 0;
@@ -297,7 +451,8 @@ export function render(
     const next = new Array(pts.length);
     for (let i = 0; i < pts.length; i++) {
       const p = pts[i];
-      let fx = 0, fy = 0;
+      let fx = 0,
+        fy = 0;
 
       // Repulsion from neighbours (active while spreading)
       if (spreadFactor > 0) {
@@ -305,13 +460,14 @@ export function render(
         const gy = (p.y / cellSize) | 0;
         for (let dy = -1; dy <= 1; dy++) {
           for (let dx = -1; dx <= 1; dx++) {
-            const nx = gx + dx, ny = gy + dy;
+            const nx = gx + dx,
+              ny = gy + dy;
             if (nx < 0 || ny < 0 || nx >= gridW || ny >= gridH) continue;
             for (const j of grid[ny * gridW + nx]) {
               if (j === i) continue;
               const ddx = p.x - pts[j].x;
               const ddy = p.y - pts[j].y;
-              const d2  = ddx * ddx + ddy * ddy;
+              const d2 = ddx * ddx + ddy * ddy;
               if (d2 < repRadius2 && d2 > 0) {
                 const d = Math.sqrt(d2);
                 const s = (repRadius - d) / repRadius;
@@ -328,7 +484,7 @@ export function render(
       if (returnFactor > 0) {
         const odx = originPts[i].x - p.x;
         const ody = originPts[i].y - p.y;
-        const od  = Math.sqrt(odx * odx + ody * ody);
+        const od = Math.sqrt(odx * odx + ody * ody);
         if (od > 0) {
           const s = Math.min(od / repRadius, 1);
           fx += (odx / od) * s * returnFactor;
@@ -347,7 +503,7 @@ export function render(
   const startTime = performance.now();
   function loop(now) {
     if (_version !== version) return;
-    const t = ((now - startTime) / 1000) / period;
+    const t = (now - startTime) / 1000 / period;
     const spreadFactor = (1 - Math.cos(2 * Math.PI * t)) / 2; // 0→1→0
     step(spreadFactor);
     draw();
@@ -366,24 +522,36 @@ export function getParamLines(fmtVal) {
     `  marker: ${fmtVal(defaults.marker)}, // unicode glyph placed at each point`,
     `  markerSize: ${fmtVal(defaults.markerSize)}, // font-size of marker (px)`,
     `  markerColor: ${fmtVal(defaults.markerColor)},`,
+    `  strokeColor: ${fmtVal(defaults.strokeColor)}, // stroke colour (null = no stroke)`,
+    `  strokeWidth: ${fmtVal(defaults.strokeWidth)}, // stroke width (px)`,
     `  bgColor: ${fmtVal(defaults.bgColor)},`,
     `  flatness: ${fmtVal(defaults.flatness)}, // curve subdivision tolerance (font mode only)`,
+    '  // Particle relaxation',
     `  relax: ${fmtVal(defaults.relax)}, // animate spread-and-return loop`,
     `  relaxSpeed: ${fmtVal(defaults.relaxSpeed)}, // px moved per step per unit force`,
     `  period: ${fmtVal(defaults.period)}, // seconds for one full spread-and-return cycle`,
+    '  // Cursor interaction',
+    `  cursorRadius: ${fmtVal(defaults.cursorRadius)}, // px influence radius (0 = off)`,
+    `  cursorScale: ${fmtVal(defaults.cursorScale)}, // scale at cursor centre`,
+    `  cursorRotation: ${fmtVal(defaults.cursorRotation)}, // degrees rotation at cursor centre`,
   ];
 }
 
 export function normalizeParams(p) {
   return {
-    spacing:       p.spacing       ?? defaults.spacing,
-    marker:        p.marker        ?? defaults.marker,
-    markerSize:    p.markerSize    ?? defaults.markerSize,
-    markerColor:   typeof p.markerColor === 'string' ? p.markerColor : defaults.markerColor,
-    bgColor:       typeof p.bgColor     === 'string' ? p.bgColor     : defaults.bgColor,
-    flatness:      p.flatness      ?? defaults.flatness,
-    relax:      p.relax      ?? defaults.relax,
+    spacing: p.spacing ?? defaults.spacing,
+    marker: p.marker ?? defaults.marker,
+    markerSize: p.markerSize ?? defaults.markerSize,
+    markerColor: typeof p.markerColor === 'string' ? p.markerColor : defaults.markerColor,
+    strokeColor: typeof p.strokeColor === 'string' ? p.strokeColor : defaults.strokeColor,
+    strokeWidth: p.strokeWidth ?? defaults.strokeWidth,
+    bgColor: typeof p.bgColor === 'string' ? p.bgColor : defaults.bgColor,
+    flatness: p.flatness ?? defaults.flatness,
+    relax: p.relax ?? defaults.relax,
     relaxSpeed: p.relaxSpeed ?? defaults.relaxSpeed,
-    period:     p.period     ?? defaults.period,
+    period: p.period ?? defaults.period,
+    cursorRadius:   p.cursorRadius   ?? defaults.cursorRadius,
+    cursorScale:    p.cursorScale    ?? defaults.cursorScale,
+    cursorRotation: p.cursorRotation ?? defaults.cursorRotation,
   };
 }
