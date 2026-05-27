@@ -4,12 +4,19 @@
 // Technique from:
 // https://pvigier.github.io/2020/12/12/procedural-death-animation-with-falling-sand-automata.html
 
+// Sentinel injected into the SVG for stroke-pixel detection.
+// Must be an unusual colour that won't appear in ordinary SVG fills.
+export const SVG_STROKE_SENTINEL = '#ff00fe'; // magenta
+const _SENTINEL_R = 255, _SENTINEL_G = 0, _SENTINEL_B = 254;
+
 export const defaults = {
-  speed: 8, // simulation steps per frame (higher = faster crumbling)
-  threshold: 240, // pixel brightness cutoff (0–255): higher includes more anti-aliased edge pixels
-  fillColor: '#000000',
+  speed: 4, // simulation steps per frame (higher = faster crumbling)
+  threshold: 0, // pixel brightness cutoff (0–255): higher includes more anti-aliased edge pixels
+  fillColor: '#542703',
   bgColor: '#ffffff',
   collapseDelay: 8, // animation frames between each character's release (0 = all at once)
+  strokeColor: "#0b92d0", // stroke color (null = no stroke)
+  strokeWidth: 34, // stroke width in pixels
 };
 
 // Version counter cancels stale animation loops on re-render.
@@ -37,6 +44,8 @@ export function render(
   const stepsPerFrame = Math.max(1, Math.round(params.speed ?? defaults.speed));
   const threshold = Math.max(1, Math.min(255, Math.round(params.threshold ?? defaults.threshold)));
   const collapseDelay = Math.max(0, Math.round(params.collapseDelay ?? defaults.collapseDelay));
+  const strokeColor = params.strokeColor ?? defaults.strokeColor;
+  const strokeWidth = params.strokeWidth ?? defaults.strokeWidth;
 
   // ── 1. Rasterize all text together → source for per-pixel colour blending ──
   const off = document.createElement('canvas');
@@ -54,6 +63,19 @@ export function render(
     _drawGlyphs(octx, font, lines, fontSize, startY, lineH, params, cssW, '#000');
   }
 
+  // Stroke-ring canvas (font path only; SVG stroke is handled upstream in main.js)
+  let soffData = null;
+  if (!maskCanvas && strokeColor && strokeWidth > 0) {
+    const soff = document.createElement('canvas');
+    soff.width = cssW;
+    soff.height = cssH;
+    const sctx = soff.getContext('2d');
+    sctx.fillStyle = '#fff';
+    sctx.fillRect(0, 0, cssW, cssH);
+    _drawGlyphsStrokeRing(sctx, font, lines, fontSize, startY, lineH, params, cssW);
+    soffData = sctx.getImageData(0, 0, cssW, cssH).data;
+  }
+
   // ── 2. Build colour grid ───────────────────────────────────────────────────
   const [fr, fg, fb] = _hexToRgb(fillColor);
   const [br, bg2, bb] = _hexToRgb(bgColor);
@@ -61,14 +83,93 @@ export function render(
 
   const pxData = octx.getImageData(0, 0, cssW, cssH).data;
   const grid = new Uint32Array(cssW * cssH);
-  for (let i = 0; i < cssW * cssH; i++) {
-    const t = pxData[i * 4];
-    if (t >= threshold) continue;
-    const s = t / threshold;
-    const r = Math.round(fr + (br - fr) * s);
-    const g = Math.round(fg + (bg2 - fg) * s);
-    const b = Math.round(fb + (bb - fb) * s);
-    grid[i] = r | (g << 8) | (b << 16) | (255 << 24);
+  if (maskCanvas) {
+    // SVG raster: remap dark pixels to fillColor, stroke pixels to strokeColor.
+    // For stroke pixels, normalize the threshold against the stroke-to-bg distance so
+    // that threshold=1 gives pure colours regardless of what hue the stroke is.
+    const hasStroke = strokeColor && strokeWidth > 0;
+    let str = 0, stg = 0, stb = 0, strokeDistToBg = 1;
+    if (hasStroke) {
+      [str, stg, stb] = _hexToRgb(strokeColor);
+      // Distance from sentinel to bg — normalises blend s values
+      strokeDistToBg = Math.max(1,
+        Math.abs(_SENTINEL_R - br) + Math.abs(_SENTINEL_G - bg2) + Math.abs(_SENTINEL_B - bb));
+    }
+    for (let i = 0; i < cssW * cssH; i++) {
+      const r = pxData[i * 4], g = pxData[i * 4 + 1], b = pxData[i * 4 + 2];
+      if (hasStroke) {
+        // Detect sentinel colour (injected by _injectSvgStroke) — works regardless of strokeColor hue
+        const dFromSentinel = Math.abs(r - _SENTINEL_R) + Math.abs(g - _SENTINEL_G) + Math.abs(b - _SENTINEL_B);
+        const dFromBlack = r + g + b;
+        if (dFromSentinel < dFromBlack) {
+          // Sentinel pixel → remap to strokeColor if pure enough; otherwise fall through
+          // to the fill path — inner fill/stroke boundary pixels (sentinel+black blend) have
+          // low luminance and will be caught there, closing the visible gap.
+          const ss = dFromSentinel / strokeDistToBg;
+          if (ss * 255 < threshold) {
+            const rr = Math.round(str + (br - str) * ss);
+            const gg = Math.round(stg + (bg2 - stg) * ss);
+            const bb_ = Math.round(stb + (bb - stb) * ss);
+            grid[i] = rr | (gg << 8) | (bb_ << 16) | (255 << 24);
+            continue;
+          }
+          // Too mixed → fall through to fill path
+        }
+      }
+      // Fill pixel: remap to fillColor blend using luminance
+      const lum = (r * 77 + g * 150 + b * 29) >> 8;
+      if (lum >= threshold) continue;
+      const s = lum / threshold;
+      const rr = Math.round(fr + (br - fr) * s);
+      const gg = Math.round(fg + (bg2 - fg) * s);
+      const bb_ = Math.round(fb + (bb - fb) * s);
+      grid[i] = rr | (gg << 8) | (bb_ << 16) | (255 << 24);
+    }
+  } else {
+    for (let i = 0; i < cssW * cssH; i++) {
+      const t = pxData[i * 4];
+      if (t >= threshold) continue;
+      const s = t / threshold;
+      const r = Math.round(fr + (br - fr) * s);
+      const g = Math.round(fg + (bg2 - fg) * s);
+      const b = Math.round(fb + (bb - fb) * s);
+      grid[i] = r | (g << 8) | (b << 16) | (255 << 24);
+    }
+  }
+
+  if (soffData) {
+    const [str, stg, stb] = _hexToRgb(strokeColor);
+    for (let i = 0; i < cssW * cssH; i++) {
+      if (grid[i] !== 0) continue; // fill takes priority
+      const t = soffData[i * 4];
+      if (t >= threshold) continue;
+      const s = t / threshold;
+      const r = Math.round(str + (br - str) * s);
+      const g = Math.round(stg + (bg2 - stg) * s);
+      const b = Math.round(stb + (bb - stb) * s);
+      grid[i] = r | (g << 8) | (b << 16) | (255 << 24);
+    }
+  }
+
+  // ── 2b. Gap dilation ──────────────────────────────────────────────────────
+  // Fill 1-px white gaps between fill and stroke: any empty cell that has
+  // two non-empty, differently-coloured opposite neighbours is a boundary gap.
+  // Letter counters (enclosed by same colour) are left untouched.
+  if (maskCanvas && strokeColor && strokeWidth > 0) {
+    for (let y = 1; y < cssH - 1; y++) {
+      for (let x = 1; x < cssW - 1; x++) {
+        const i = y * cssW + x;
+        if (grid[i] !== 0) continue;
+        const L = grid[y * cssW + (x - 1)], R = grid[y * cssW + (x + 1)];
+        const T = grid[(y - 1) * cssW + x], B = grid[(y + 1) * cssW + x];
+        const TL = grid[(y - 1) * cssW + (x - 1)], TR = grid[(y - 1) * cssW + (x + 1)];
+        const BL = grid[(y + 1) * cssW + (x - 1)], BR = grid[(y + 1) * cssW + (x + 1)];
+        if (L && R && L !== R) { grid[i] = L; continue; }
+        if (T && B && T !== B) { grid[i] = T; continue; }
+        if (TL && BR && TL !== BR) { grid[i] = TL; continue; }
+        if (TR && BL && TR !== BL) { grid[i] = TR; }
+      }
+    }
   }
 
   // ── 3. Per-character pixel ownership → staggered release ──────────────────
@@ -92,10 +193,11 @@ export function render(
         const glyph = font.charToGlyph(ch);
         if (glyph?.path?.commands?.length > 0) {
           const bb = glyph.getBoundingBox();
-          const bx1 = Math.max(0, Math.floor(cx + bb.x1 * scale) - 2);
-          const by1 = Math.max(0, Math.floor(cy - bb.y2 * scale) - 2);
-          const bx2 = Math.min(cssW, Math.ceil(cx + bb.x2 * scale) + 2);
-          const by2 = Math.min(cssH, Math.ceil(cy - bb.y1 * scale) + 2);
+          const _pad = 2 + (strokeColor && strokeWidth > 0 ? Math.ceil(strokeWidth) : 0);
+          const bx1 = Math.max(0, Math.floor(cx + bb.x1 * scale) - _pad);
+          const by1 = Math.max(0, Math.floor(cy - bb.y2 * scale) - _pad);
+          const bx2 = Math.min(cssW, Math.ceil(cx + bb.x2 * scale) + _pad);
+          const by2 = Math.min(cssH, Math.ceil(cy - bb.y1 * scale) + _pad);
           const bw = bx2 - bx1,
             bh = by2 - by1;
 
@@ -104,6 +206,13 @@ export function render(
             tmp.height = bh;
             tctx.fillStyle = '#fff';
             tctx.fillRect(0, 0, bw, bh);
+            if (strokeColor && strokeWidth > 0) {
+              const ps = font.getPath(ch, cx - bx1, cy - by1, fontSize);
+              ps.fill = '#000';
+              ps.stroke = '#000';
+              ps.strokeWidth = strokeWidth * 2;
+              ps.draw(tctx);
+            }
             const path = font.getPath(ch, cx - bx1, cy - by1, fontSize);
             path.fill = '#000';
             path.draw(tctx);
@@ -240,7 +349,34 @@ function _drawGlyphs(rctx, font, lines, fontSize, startY, lineH, params, cssW, c
     for (let j = 0; j < gs.length; j++) {
       const p = font.getPath(chars[j], cx, y, fontSize);
       p.fill = color;
+      p.stroke = color;
+      p.strokeWidth = 4; // 2 px outward expansion to close gap with stroke ring
       p.draw(rctx);
+      const kern = j < gs.length - 1 ? font.getKerningValue(gs[j], gs[j + 1]) * scale : 0;
+      cx += gs[j].advanceWidth * scale + (params.tracking || 0) + kern;
+    }
+  }
+}
+
+function _drawGlyphsStrokeRing(rctx, font, lines, fontSize, startY, lineH, params, cssW) {
+  const scale = fontSize / font.unitsPerEm;
+  const strokeWidth = params.strokeWidth ?? defaults.strokeWidth;
+  rctx.miterLimit = 2; // clip extreme miter spikes at sharp corners (V, W, etc.)
+  for (let i = 0; i < lines.length; i++) {
+    let cx = _lineStartX(lines[i], fontSize, params, font, cssW);
+    const y = startY + i * lineH;
+    const chars = [...lines[i]];
+    const gs = chars.map((ch) => font.charToGlyph(ch));
+    for (let j = 0; j < gs.length; j++) {
+      // Draw 2× stroke (covers inside + outside), then erase fill area → outside ring only
+      const ps = font.getPath(chars[j], cx, y, fontSize);
+      ps.fill = '#000';
+      ps.stroke = '#000';
+      ps.strokeWidth = strokeWidth * 2;
+      ps.draw(rctx);
+      const pf = font.getPath(chars[j], cx, y, fontSize);
+      pf.fill = '#fff';
+      pf.draw(rctx);
       const kern = j < gs.length - 1 ? font.getKerningValue(gs[j], gs[j + 1]) * scale : 0;
       cx += gs[j].advanceWidth * scale + (params.tracking || 0) + kern;
     }
@@ -295,6 +431,8 @@ export function getParamLines(fmtVal) {
     `  collapseDelay: ${fmtVal(defaults.collapseDelay)}, // animation frames between each character's release (0 = all at once)`,
     `  fillColor: ${fmtVal(defaults.fillColor)}, // particle color`,
     `  bgColor: ${fmtVal(defaults.bgColor)}, // background`,
+    `  strokeColor: ${fmtVal(defaults.strokeColor)}, // stroke color (null = no stroke)`,
+    `  strokeWidth: ${fmtVal(defaults.strokeWidth)}, // stroke width in pixels`,
   ];
 }
 
@@ -305,6 +443,8 @@ export function normalizeParams(p) {
     collapseDelay: p.collapseDelay ?? defaults.collapseDelay,
     fillColor: typeof p.fillColor === 'string' ? p.fillColor : defaults.fillColor,
     bgColor: typeof p.bgColor === 'string' ? p.bgColor : defaults.bgColor,
+    strokeColor: typeof p.strokeColor === 'string' ? p.strokeColor : defaults.strokeColor,
+    strokeWidth: p.strokeWidth ?? defaults.strokeWidth,
   };
 }
 

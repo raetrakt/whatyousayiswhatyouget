@@ -2,6 +2,7 @@ import { EditorView, minimalSetup } from 'codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { parse as parseFont } from 'opentype.js';
 import { colorPickerExt } from './color-picker-ext.js';
+import { SVG_STROKE_SENTINEL } from './sand/sand.js';
 
 // ── Tool selection ────────────────────────────────────────────────────────────
 const TOOLS = {
@@ -27,7 +28,7 @@ const INITIAL_CODE = [
   'const text = "What You Say Is What You Get?" // type \\n for new line',
   '',
   'const params = {',
-  '  fontSize: 160, // null = auto-fit',
+  '  fontSize: null, // null = auto-fit',
   '  leading: .6,',
   '  margin: 25, // mm whitespace on each side',
   '  tracking: -3, // px added between characters',
@@ -46,6 +47,11 @@ let renderTimer = null;
 let _titleSvgImage = null; // cached HTMLImageElement once loaded
 let _titleSvgRequested = false; // true while fetch is in-flight
 let _titleSvgImageSrc = null; // URL of currently cached title image
+let _titleSvgText = null; // raw SVG source text for stroke injection
+let _titleSvgTextRequested = false;
+let _titleSvgStrokedImage = null; // stroked version of title SVG
+let _titleSvgStrokedKey = null; // '<strokeColor>|<strokeWidth>|<svgW>' cache key
+let _titleSvgStrokedRequested = false;
 
 const editorView = new EditorView({
   doc: INITIAL_CODE,
@@ -274,6 +280,10 @@ function _renderWithValue(value, overrides) {
       _titleSvgImage = null;
       _titleSvgRequested = false;
       _titleSvgImageSrc = selectedTitleSvgUrl;
+      _titleSvgText = null;
+      _titleSvgTextRequested = false;
+      _titleSvgStrokedImage = null;
+      _titleSvgStrokedKey = null;
     }
 
     if (!_titleSvgImage) {
@@ -309,7 +319,58 @@ function _renderWithValue(value, overrides) {
     const mctx = maskCanvas.getContext('2d');
     mctx.fillStyle = '#fff';
     mctx.fillRect(0, 0, cssW, cssH);
-    mctx.drawImage(_titleSvgImage, m, svgY, svgW, svgH);
+
+    const _strokeColor = params.strokeColor ?? null;
+    const _strokeWidth = params.strokeWidth ?? 0;
+    if (_strokeColor && _strokeWidth > 0) {
+      const strokedKey = `${_strokeColor}|${_strokeWidth}|${svgW}`;
+      if (_titleSvgStrokedKey !== strokedKey) {
+        _titleSvgStrokedImage = null;
+        _titleSvgStrokedKey = null;
+      }
+      if (!_titleSvgStrokedImage) {
+        if (!_titleSvgText) {
+          if (!_titleSvgTextRequested) {
+            _titleSvgTextRequested = true;
+            fetch(selectedTitleSvgUrl)
+              .then((r) => r.text())
+              .then((text) => {
+                _titleSvgText = text;
+                _titleSvgTextRequested = false;
+                render();
+              })
+              .catch(() => {
+                _titleSvgTextRequested = false;
+              });
+          }
+        } else if (!_titleSvgStrokedRequested) {
+          _titleSvgStrokedRequested = true;
+          const nw = _titleSvgImage.naturalWidth || 300;
+          const strokedSvg = _injectSvgStroke(_titleSvgText, _strokeColor, _strokeWidth, nw, svgW);
+          const blob = new Blob([strokedSvg], { type: 'image/svg+xml' });
+          const url = URL.createObjectURL(blob);
+          const img = new Image();
+          img.onload = () => {
+            _titleSvgStrokedImage = img;
+            _titleSvgStrokedKey = strokedKey;
+            _titleSvgStrokedRequested = false;
+            URL.revokeObjectURL(url);
+            render();
+          };
+          img.onerror = () => {
+            _titleSvgStrokedRequested = false;
+            URL.revokeObjectURL(url);
+          };
+          img.src = url;
+        }
+        // Fall back to plain image while stroked version is loading
+        mctx.drawImage(_titleSvgImage, m, svgY, svgW, svgH);
+      } else {
+        mctx.drawImage(_titleSvgStrokedImage, m, svgY, svgW, svgH);
+      }
+    } else {
+      mctx.drawImage(_titleSvgImage, m, svgY, svgW, svgH);
+    }
     const result = tool.render(ctx, font, canvas, {
       maskCanvas,
       lines: [],
@@ -354,7 +415,60 @@ function _renderWithValue(value, overrides) {
   });
   if (tool.afterRender) window.__tools.getSVG = tool.afterRender(result, params, cssW, cssH);
 }
+function _injectSvgStroke(svgText, strokeColor, strokeWidth, naturalWidth, svgW) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(svgText, 'image/svg+xml');
+  const root = doc.documentElement;
 
+  // stroke-width in SVG user units (centred stroke, so outer half = strokeWidth)
+  const svgSW = 2 * strokeWidth * (naturalWidth / svgW);
+  const expansion = svgSW / 2;
+
+  // Expand viewBox so the outside stroke isn't clipped
+  const vb = root.getAttribute('viewBox');
+  if (vb) {
+    const [vx, vy, vw, vh] = vb.trim().split(/[\s,]+/).map(Number);
+    root.setAttribute(
+      'viewBox',
+      `${vx - expansion} ${vy - expansion} ${vw + expansion * 2} ${vh + expansion * 2}`,
+    );
+  }
+
+  // Collect all non-style child nodes to clone into two layers
+  const visibleChildren = [...root.childNodes].filter(
+    n => n.nodeType === 1 && n.nodeName.toLowerCase() !== 'style',
+  );
+
+  // ── Layer 1 (bottom): sentinel stroke only — no fill ─────────────────────
+  // Drawing all strokes first guarantees no stroke ever paints over another
+  // letter's fill in the final raster.
+  const strokeGroup = doc.createElementNS('http://www.w3.org/2000/svg', 'g');
+  strokeGroup.setAttribute('class', 'sand-s');
+  for (const child of visibleChildren) strokeGroup.appendChild(child.cloneNode(true));
+
+  // ── Layer 2 (top): fill only ──────────────────────────────────────────────
+  const fillGroup = doc.createElementNS('http://www.w3.org/2000/svg', 'g');
+  fillGroup.setAttribute('class', 'sand-f');
+  for (const child of visibleChildren) fillGroup.appendChild(child.cloneNode(true));
+
+  // Remove original elements, replace with the two groups
+  for (const child of visibleChildren) root.removeChild(child);
+  root.appendChild(strokeGroup);
+  root.appendChild(fillGroup);
+
+  // CSS for each layer (appended last so it wins over any SVG-internal styles)
+  const style = doc.createElementNS('http://www.w3.org/2000/svg', 'style');
+  style.textContent =
+    `.sand-s path,.sand-s rect,.sand-s circle,.sand-s ellipse,` +
+    `.sand-s polyline,.sand-s polygon,.sand-s line,.sand-s text {` +
+    ` fill: none; stroke: ${SVG_STROKE_SENTINEL}; stroke-width: ${svgSW}; }` +
+    `.sand-f path,.sand-f rect,.sand-f circle,.sand-f ellipse,` +
+    `.sand-f polyline,.sand-f polygon,.sand-f line,.sand-f text {` +
+    ` fill: #000; stroke: none; }`;
+  root.appendChild(style);
+
+  return new XMLSerializer().serializeToString(doc);
+}
 // ── Save ──────────────────────────────────────────────────────────────────────
 
 function _slugify(str) {
