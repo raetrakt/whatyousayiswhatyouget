@@ -138,6 +138,11 @@ export async function runOnboardingReveal({
       // alpha can decay below alphaMin during the hold and the freshly
       // appended foreignObjects stay pinned at their default x=0,y=0.
       simulation.alpha(Math.max(simulation.alpha(), 0.18)).restart();
+      // Wire up load listeners on any still-pending images in this batch so
+      // they reveal themselves as soon as they decode, without waiting for the
+      // next batch's renderGraph call. Use the same gentle collision settings
+      // as the onboarding loop to avoid disrupting the reveal simulation.
+      renderer.finalizePendingImages(onboardingCollision);
     }
     // Hold on the final batch so the last spawned nodes have a moment to settle
     // before the full graph reveal kicks in.

@@ -409,14 +409,31 @@ export function createRenderer({
     nodeDiv = node
       .selectAll('div')
       .data((d) => [d])
-      .join('xhtml:div')
-      .attr('class', (d) => `node ${d.type}`)
-      .classed('media-pending', (d) => d.type === 'work' && !isWorkMediaReady(d))
-      .classed('media-ready', (d) => isWorkMediaReady(d))
-      .html((d) =>
-        d.type === 'work'
-          ? `<img class="node-img" src="${d.media_path}" alt="${d.name}">`
-          : `<span class="node-text">${d.name.split(' ').join('<br>')}</span>`,
+      .join(
+        (enter) =>
+          enter
+            .append('xhtml:div')
+            // New nodes start hidden (media-pending) so they are never visible
+            // as a square placeholder. measureNodes promotes them to media-ready
+            // once the <img> has decoded and the real aspect ratio is known.
+            .attr('class', (d) => `node ${d.type}${d.type === 'work' ? ' media-pending' : ''}`)
+            .html((d) =>
+              d.type === 'work'
+                ? `<img class="node-img" src="${d.media_path}" alt="${d.name}">`
+                : `<span class="node-text">${d.name.split(' ').join('<br>')}</span>`,
+            ),
+        // Existing nodes: preserve the media-pending/media-ready class that
+        // measureNodes already set — only refresh non-media parts of the class.
+        // Do NOT re-set .html() here: that would destroy and recreate the <img>,
+        // losing its decoded state and forcing it back to media-pending.
+        (update) =>
+          update.attr('class', function (d) {
+            if (d.type !== 'work') return `node ${d.type}`;
+            const mediaClass = this.classList.contains('media-ready')
+              ? 'media-ready'
+              : 'media-pending';
+            return `node ${d.type} ${mediaClass}`;
+          }),
       );
 
     node.sort((a, b) => (b.type === 'work') - (a.type === 'work'));
@@ -478,6 +495,9 @@ export function createRenderer({
           img.style.height = `${size.imgH}px`;
           w = size.w;
           h = size.h;
+          // The image is decoded and correctly sized — safe to reveal.
+          div.classList.remove('media-pending');
+          div.classList.add('media-ready');
         } else {
           const side = Math.ceil(Math.sqrt(workStyle.targetArea));
           if (img) {
@@ -486,6 +506,9 @@ export function createRenderer({
           }
           w = Math.max(d.w || 0, side + workStyle.padTotal);
           h = Math.max(d.h || 0, side + workStyle.padTotal);
+          // Keep the square placeholder hidden until the real size is known.
+          div.classList.add('media-pending');
+          div.classList.remove('media-ready');
         }
       } else {
         const size = measureRenderedContent(div);
@@ -514,33 +537,43 @@ export function createRenderer({
     );
   }
 
+  // Attach load listeners on the given divs so each image promotes itself to
+  // media-ready (and triggers measureNodes) as soon as it decodes — without
+  // waiting for the next explicit renderGraph/measureNodes call.
+  function finalizeWorkDivs(divs, collisionOptions = {}) {
+    divs.forEach((div) => {
+      const img = div.querySelector('img');
+      if (!img) return;
+
+      let recovered = false;
+      const recover = () => {
+        if (recovered) return;
+        if (img.naturalWidth <= 0 || img.naturalHeight <= 0) return;
+
+        recovered = true;
+        div.classList.remove('media-pending');
+        div.classList.add('media-ready');
+        measureNodes({ enableCollision: true, ...collisionOptions });
+        simulation.alpha(0.12).restart();
+      };
+
+      img.addEventListener('load', recover, { once: true });
+      if (img.naturalWidth > 0 && img.naturalHeight > 0) recover();
+    });
+  }
+
+  // Expose for onboarding: wire up load listeners on all currently-pending
+  // work nodes so they reveal themselves as soon as their image decodes.
+  // Pass collisionOptions to avoid disrupting the gentle onboarding simulation.
+  function finalizePendingImages(collisionOptions = {}) {
+    if (!nodeDiv) return;
+    const pendingDivs = nodeDiv.filter((d) => d.type === 'work').nodes()
+      .filter((el) => el.classList.contains('media-pending'));
+    finalizeWorkDivs(pendingDivs, collisionOptions);
+  }
+
   async function waitForImages({ staggerMs = 0 } = {}) {
     const isSafari = document.body.classList.contains('is-safari');
-
-    const finalizeWorkDivs = (divs) => {
-      divs.forEach((div) => {
-        const img = div.querySelector('img');
-        if (!img) return;
-
-        let recovered = false;
-        const recover = () => {
-          if (recovered) return;
-          if (img.naturalWidth <= 0 || img.naturalHeight <= 0) return;
-
-          recovered = true;
-          div.classList.remove('media-pending');
-          div.classList.add('media-ready');
-          measureNodes({ enableCollision: true });
-          simulation.alpha(0.12).restart();
-        };
-
-        img.addEventListener('load', recover, { once: true });
-
-        if (img.naturalWidth > 0 && img.naturalHeight > 0) {
-          recover();
-        }
-      });
-    };
 
     // Keep collisions disabled while nodes are still being sized/revealed,
     // so link forces can untangle the graph first.
@@ -609,6 +642,7 @@ export function createRenderer({
     paintSelectedNode,
     paintSelectedLink,
     measureNodes,
+    finalizePendingImages,
     waitForImages,
     getSelections,
   };
