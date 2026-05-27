@@ -427,7 +427,10 @@ function _injectSvgStroke(svgText, strokeColor, strokeWidth, naturalWidth, svgW)
   // Expand viewBox so the outside stroke isn't clipped
   const vb = root.getAttribute('viewBox');
   if (vb) {
-    const [vx, vy, vw, vh] = vb.trim().split(/[\s,]+/).map(Number);
+    const [vx, vy, vw, vh] = vb
+      .trim()
+      .split(/[\s,]+/)
+      .map(Number);
     root.setAttribute(
       'viewBox',
       `${vx - expansion} ${vy - expansion} ${vw + expansion * 2} ${vh + expansion * 2}`,
@@ -436,7 +439,7 @@ function _injectSvgStroke(svgText, strokeColor, strokeWidth, naturalWidth, svgW)
 
   // Collect all non-style child nodes to clone into two layers
   const visibleChildren = [...root.childNodes].filter(
-    n => n.nodeType === 1 && n.nodeName.toLowerCase() !== 'style',
+    (n) => n.nodeType === 1 && n.nodeName.toLowerCase() !== 'style',
   );
 
   // ── Layer 1 (bottom): sentinel stroke only — no fill ─────────────────────

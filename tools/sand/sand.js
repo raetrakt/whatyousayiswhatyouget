@@ -7,7 +7,9 @@
 // Sentinel injected into the SVG for stroke-pixel detection.
 // Must be an unusual colour that won't appear in ordinary SVG fills.
 export const SVG_STROKE_SENTINEL = '#ff00fe'; // magenta
-const _SENTINEL_R = 255, _SENTINEL_G = 0, _SENTINEL_B = 254;
+const _SENTINEL_R = 255,
+  _SENTINEL_G = 0,
+  _SENTINEL_B = 254;
 
 export const defaults = {
   speed: 4, // simulation steps per frame (higher = faster crumbling)
@@ -15,7 +17,7 @@ export const defaults = {
   fillColor: '#542703',
   bgColor: '#ffffff',
   collapseDelay: 8, // animation frames between each character's release (0 = all at once)
-  strokeColor: "#0b92d0", // stroke color (null = no stroke)
+  strokeColor: '#0b92d0', // stroke color (null = no stroke)
   strokeWidth: 34, // stroke width in pixels
 };
 
@@ -88,18 +90,26 @@ export function render(
     // For stroke pixels, normalize the threshold against the stroke-to-bg distance so
     // that threshold=1 gives pure colours regardless of what hue the stroke is.
     const hasStroke = strokeColor && strokeWidth > 0;
-    let str = 0, stg = 0, stb = 0, strokeDistToBg = 1;
+    let str = 0,
+      stg = 0,
+      stb = 0,
+      strokeDistToBg = 1;
     if (hasStroke) {
       [str, stg, stb] = _hexToRgb(strokeColor);
       // Distance from sentinel to bg — normalises blend s values
-      strokeDistToBg = Math.max(1,
-        Math.abs(_SENTINEL_R - br) + Math.abs(_SENTINEL_G - bg2) + Math.abs(_SENTINEL_B - bb));
+      strokeDistToBg = Math.max(
+        1,
+        Math.abs(_SENTINEL_R - br) + Math.abs(_SENTINEL_G - bg2) + Math.abs(_SENTINEL_B - bb),
+      );
     }
     for (let i = 0; i < cssW * cssH; i++) {
-      const r = pxData[i * 4], g = pxData[i * 4 + 1], b = pxData[i * 4 + 2];
+      const r = pxData[i * 4],
+        g = pxData[i * 4 + 1],
+        b = pxData[i * 4 + 2];
       if (hasStroke) {
         // Detect sentinel colour (injected by _injectSvgStroke) — works regardless of strokeColor hue
-        const dFromSentinel = Math.abs(r - _SENTINEL_R) + Math.abs(g - _SENTINEL_G) + Math.abs(b - _SENTINEL_B);
+        const dFromSentinel =
+          Math.abs(r - _SENTINEL_R) + Math.abs(g - _SENTINEL_G) + Math.abs(b - _SENTINEL_B);
         const dFromBlack = r + g + b;
         if (dFromSentinel < dFromBlack) {
           // Sentinel pixel → remap to strokeColor if pure enough; otherwise fall through
@@ -160,14 +170,29 @@ export function render(
       for (let x = 1; x < cssW - 1; x++) {
         const i = y * cssW + x;
         if (grid[i] !== 0) continue;
-        const L = grid[y * cssW + (x - 1)], R = grid[y * cssW + (x + 1)];
-        const T = grid[(y - 1) * cssW + x], B = grid[(y + 1) * cssW + x];
-        const TL = grid[(y - 1) * cssW + (x - 1)], TR = grid[(y - 1) * cssW + (x + 1)];
-        const BL = grid[(y + 1) * cssW + (x - 1)], BR = grid[(y + 1) * cssW + (x + 1)];
-        if (L && R && L !== R) { grid[i] = L; continue; }
-        if (T && B && T !== B) { grid[i] = T; continue; }
-        if (TL && BR && TL !== BR) { grid[i] = TL; continue; }
-        if (TR && BL && TR !== BL) { grid[i] = TR; }
+        const L = grid[y * cssW + (x - 1)],
+          R = grid[y * cssW + (x + 1)];
+        const T = grid[(y - 1) * cssW + x],
+          B = grid[(y + 1) * cssW + x];
+        const TL = grid[(y - 1) * cssW + (x - 1)],
+          TR = grid[(y - 1) * cssW + (x + 1)];
+        const BL = grid[(y + 1) * cssW + (x - 1)],
+          BR = grid[(y + 1) * cssW + (x + 1)];
+        if (L && R && L !== R) {
+          grid[i] = L;
+          continue;
+        }
+        if (T && B && T !== B) {
+          grid[i] = T;
+          continue;
+        }
+        if (TL && BR && TL !== BR) {
+          grid[i] = TL;
+          continue;
+        }
+        if (TR && BL && TR !== BL) {
+          grid[i] = TR;
+        }
       }
     }
   }
