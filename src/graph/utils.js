@@ -1,3 +1,7 @@
+// Promise-based sleep helper
+export function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 // Returns a float in [0,1) based on input string or number (FNV-1a hash)
 export function hash01(input) {
   let h = 2166136261;
