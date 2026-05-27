@@ -10,6 +10,7 @@ const TOOLS = {
   quadtree: () => import('./quadtree/quadtree.js'),
   sand: () => import('./sand/sand.js'),
   rd: () => import('./rd/rd.js'),
+  resampling: () => import('./resampling/resampling.js'),
 };
 
 const toolName = new URLSearchParams(location.search).get('tool') ?? 'sdf';

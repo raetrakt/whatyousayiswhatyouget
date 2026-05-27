@@ -1,0 +1,389 @@
+// Path resampling tool.
+// Resamples opentype glyph outlines at uniform arc-length intervals,
+// places a marker at every point, then optionally runs a repulsion-based
+// relaxation so points travel from the outline to uniformly fill the interior.
+//
+// Two sampling modes:
+//   font path  — opentype path resampled at arc-length `spacing`
+//   mask mode  — pre-rendered maskCanvas (A4/16:9 SVG titles); edge pixels
+//                are grid-bucketed for uniform initial density
+//
+// Relaxation: spatial-grid repulsion (O(n) per step) clamped to the text
+// interior. Version counter cancels stale loops on re-render.
+
+export const defaults = {
+  spacing: 12,          // arc-length gap between initial markers (px)
+  marker: '✻',          // unicode character placed at each point
+  markerSize: 14,       // font-size of the marker glyph (px)
+  markerColor: '#000000',
+  bgColor: '#ffffff',
+  flatness: 0.5,        // bezier subdivision tolerance — font mode only (px)
+  relax: true,          // enable relaxation animation
+  relaxSpeed: 2,        // pixels moved per step per unit force
+  period: 6,            // seconds for one full spread-and-return cycle
+};
+
+// ─── Font-path helpers ────────────────────────────────────────────────────────
+
+/** Flatten an opentype.js Path into an array of {x,y} polyline vertices. */
+function _flattenPath(otPath, flatness) {
+  const pts = [];
+  let cx = 0, cy = 0;
+  let sx = 0, sy = 0;
+
+  function add(x, y) {
+    if (!pts.length || pts[pts.length - 1].x !== x || pts[pts.length - 1].y !== y)
+      pts.push({ x, y });
+  }
+
+  function cubic(x0, y0, x1, y1, x2, y2, x3, y3, d) {
+    if (d > 12) { add(x3, y3); return; }
+    const dx = x3 - x0, dy = y3 - y0, len = Math.sqrt(dx * dx + dy * dy) || 1;
+    if ((Math.abs((x1 - x3) * dy - (y1 - y3) * dx) +
+         Math.abs((x2 - x3) * dy - (y2 - y3) * dx)) / len <= flatness) {
+      add(x3, y3); return;
+    }
+    const ax = (x0 + x1) / 2, ay = (y0 + y1) / 2;
+    const bx = (x1 + x2) / 2, by = (y1 + y2) / 2;
+    const cx2 = (x2 + x3) / 2, cy2 = (y2 + y3) / 2;
+    const dx2 = (ax + bx) / 2, dy2 = (ay + by) / 2;
+    const ex = (bx + cx2) / 2, ey = (by + cy2) / 2;
+    const fx = (dx2 + ex) / 2, fy = (dy2 + ey) / 2;
+    cubic(x0, y0, ax, ay, dx2, dy2, fx, fy, d + 1);
+    cubic(fx, fy, ex, ey, cx2, cy2, x3, y3, d + 1);
+  }
+
+  function quad(x0, y0, x1, y1, x2, y2, d) {
+    if (d > 12) { add(x2, y2); return; }
+    const dx = x2 - x0, dy = y2 - y0, len = Math.sqrt(dx * dx + dy * dy) || 1;
+    if (Math.abs((x1 - x2) * dy - (y1 - y2) * dx) / len <= flatness) { add(x2, y2); return; }
+    const ax = (x0 + x1) / 2, ay = (y0 + y1) / 2;
+    const bx = (x1 + x2) / 2, by = (y1 + y2) / 2;
+    const mx = (ax + bx) / 2, my = (ay + by) / 2;
+    quad(x0, y0, ax, ay, mx, my, d + 1);
+    quad(mx, my, bx, by, x2, y2, d + 1);
+  }
+
+  for (const cmd of otPath.commands) {
+    switch (cmd.type) {
+      case 'M': add(cmd.x, cmd.y); cx = sx = cmd.x; cy = sy = cmd.y; break;
+      case 'L': add(cmd.x, cmd.y); cx = cmd.x; cy = cmd.y; break;
+      case 'C': cubic(cx, cy, cmd.x1, cmd.y1, cmd.x2, cmd.y2, cmd.x, cmd.y, 0);
+                cx = cmd.x; cy = cmd.y; break;
+      case 'Q': quad(cx, cy, cmd.x1, cmd.y1, cmd.x, cmd.y, 0);
+                cx = cmd.x; cy = cmd.y; break;
+      case 'Z': add(sx, sy); cx = sx; cy = sy; break;
+    }
+  }
+  return pts;
+}
+
+/** Walk a polyline emitting points at uniform arc-length `spacing`. */
+function _resamplePolyline(pts, spacing) {
+  if (pts.length < 2 || spacing <= 0) return pts.slice();
+  const out = [{ x: pts[0].x, y: pts[0].y }];
+  let rem = spacing; // distance until next emission
+  for (let i = 1; i < pts.length; i++) {
+    const dx = pts[i].x - pts[i - 1].x;
+    const dy = pts[i].y - pts[i - 1].y;
+    let seg = Math.sqrt(dx * dx + dy * dy);
+    if (seg === 0) continue;
+    while (rem <= seg) {
+      const t = rem / seg;
+      out.push({ x: pts[i - 1].x + dx * t, y: pts[i - 1].y + dy * t });
+      seg -= rem;
+      rem = spacing;
+    }
+    rem -= seg;
+  }
+  return out;
+}
+
+/** X-start of a centred line (mirrors quadtree's _lineStartX). */
+function _lineStartX(line, fontSize, tracking, font, cssW) {
+  const scale = fontSize / font.unitsPerEm;
+  const chars = [...line];
+  const gs = chars.map((ch) => font.charToGlyph(ch));
+  let w = 0;
+  for (let i = 0; i < gs.length; i++) {
+    w += gs[i].advanceWidth * scale + tracking;
+    if (i < gs.length - 1) w += font.getKerningValue(gs[i], gs[i + 1]) * scale;
+  }
+  return (cssW - (w - tracking)) / 2;
+}
+
+/** All resampled points for one line of text (font-path mode). */
+function _sampleLine(font, line, x, y, fontSize, tracking, spacing, flatness) {
+  const scale = fontSize / font.unitsPerEm;
+  const chars = [...line];
+  const gs = chars.map((ch) => font.charToGlyph(ch));
+  const out = [];
+  let cx = x;
+  for (let i = 0; i < gs.length; i++) {
+    if (chars[i].trim()) {
+      const path = gs[i].getPath(cx, y, fontSize);
+      const poly = _flattenPath(path, flatness);
+      for (const p of _resamplePolyline(poly, spacing)) out.push(p);
+    }
+    const kern = i < gs.length - 1 ? font.getKerningValue(gs[i], gs[i + 1]) * scale : 0;
+    cx += gs[i].advanceWidth * scale + tracking + kern;
+  }
+  return out;
+}
+
+// ─── Mask / raster helpers ────────────────────────────────────────────────────
+
+/**
+ * Rasterize text to an offscreen canvas and return a Uint8Array where
+ * 1 = inside text, 0 = outside.  Works for both font-path and mask-SVG modes.
+ */
+function _buildInsideMask(maskCanvas, font, lines, fontSize, startY, lineH, tracking, cssW, cssH) {
+  const off = document.createElement('canvas');
+  off.width = cssW;
+  off.height = cssH;
+  const octx = off.getContext('2d');
+  octx.fillStyle = '#fff';
+  octx.fillRect(0, 0, cssW, cssH);
+
+  if (maskCanvas) {
+    octx.drawImage(maskCanvas, 0, 0, cssW, cssH);
+  } else {
+    _drawGlyphs(octx, font, lines, fontSize, startY, lineH, tracking, cssW);
+  }
+
+  const data = octx.getImageData(0, 0, cssW, cssH).data;
+  const mask = new Uint8Array(cssW * cssH);
+  for (let i = 0; i < cssW * cssH; i++) mask[i] = data[i * 4] < 128 ? 1 : 0;
+  return mask;
+}
+
+/** Draw filled black glyphs onto `rctx` using the opentype font. */
+function _drawGlyphs(rctx, font, lines, fontSize, startY, lineH, tracking, cssW) {
+  const scale = fontSize / font.unitsPerEm;
+  for (let i = 0; i < lines.length; i++) {
+    let cx = _lineStartX(lines[i], fontSize, tracking, font, cssW);
+    const y = startY + i * lineH;
+    const chars = [...lines[i]];
+    const gs = chars.map((ch) => font.charToGlyph(ch));
+    for (let j = 0; j < gs.length; j++) {
+      const p = font.getPath(chars[j], cx, y, fontSize);
+      p.fill = '#000';
+      p.draw(rctx);
+      const kern = j < gs.length - 1 ? font.getKerningValue(gs[j], gs[j + 1]) * scale : 0;
+      cx += gs[j].advanceWidth * scale + tracking + kern;
+    }
+  }
+}
+
+/**
+ * Collect edge pixels from `mask`, bucket into `cellSize`-px grid cells,
+ * and return one centroid per occupied cell.
+ */
+function _sampleEdges(mask, cssW, cssH, cellSize) {
+  function isIn(x, y) {
+    if (x < 0 || y < 0 || x >= cssW || y >= cssH) return false;
+    return mask[y * cssW + x] === 1;
+  }
+  const cols = Math.ceil(cssW / cellSize);
+  const rows = Math.ceil(cssH / cellSize);
+  const pts = [];
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      const x0 = col * cellSize, y0 = row * cellSize;
+      const x1 = Math.min(x0 + cellSize, cssW);
+      const y1 = Math.min(y0 + cellSize, cssH);
+      let sx = 0, sy = 0, n = 0;
+      for (let y = y0; y < y1; y++) {
+        for (let x = x0; x < x1; x++) {
+          if (isIn(x, y) && (!isIn(x - 1, y) || !isIn(x + 1, y) ||
+                              !isIn(x, y - 1) || !isIn(x, y + 1))) {
+            sx += x; sy += y; n++;
+          }
+        }
+      }
+      if (n > 0) pts.push({ x: sx / n + 0.5, y: sy / n + 0.5 });
+    }
+  }
+  return pts;
+}
+
+// ─── Render ───────────────────────────────────────────────────────────────────
+
+let _version = 0;
+let _points  = []; // last computed positions – reserved for future drag / stroke
+
+export function render(
+  ctx,
+  font,
+  canvas,
+  { lines, fontSize, startY, lineH, params, cssW, cssH, maskCanvas },
+) {
+  const version      = ++_version;
+
+  const spacing      = Math.max(1,    params.spacing      ?? defaults.spacing);
+  const marker       =                params.marker        ?? defaults.marker;
+  const markerSize   = Math.max(2,    params.markerSize    ?? defaults.markerSize);
+  const markerColor  =                params.markerColor   ?? defaults.markerColor;
+  const bgColor      =                params.bgColor       ?? defaults.bgColor;
+  const flatness     = Math.max(0.05, params.flatness      ?? defaults.flatness);
+  const tracking     =                params.tracking      ?? 0;
+  const relax        =                params.relax         ?? defaults.relax;
+  const relaxSpeed   =                params.relaxSpeed    ?? defaults.relaxSpeed;
+  const period       = Math.max(0.5,  params.period        ?? defaults.period);
+
+  // ── 1. Build inside mask ──────────────────────────────────────────────────
+  const mask = _buildInsideMask(
+    maskCanvas, font, lines, fontSize, startY, lineH, tracking, cssW, cssH,
+  );
+
+  // ── 2. Initial points on the outline ─────────────────────────────────────
+  let pts;
+  if (maskCanvas) {
+    pts = _sampleEdges(mask, cssW, cssH, spacing);
+  } else {
+    pts = [];
+    for (let li = 0; li < lines.length; li++) {
+      const y = startY + li * lineH;
+      const x = _lineStartX(lines[li], fontSize, tracking, font, cssW);
+      for (const p of _sampleLine(font, lines[li], x, y, fontSize, tracking, spacing, flatness))
+        pts.push(p);
+    }
+  }
+
+  // ── 3. Draw helper ────────────────────────────────────────────────────────
+  function draw() {
+    ctx.fillStyle = bgColor;
+    ctx.fillRect(0, 0, cssW, cssH);
+    ctx.save();
+    ctx.fillStyle = markerColor;
+    ctx.font = `${markerSize}px serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for (const { x, y } of pts) ctx.fillText(marker, x, y);
+    ctx.restore();
+    _points = pts;
+  }
+
+  if (!relax) {
+    draw();
+    return;
+  }
+
+  // ── 4. Looping spread-and-return simulation ──────────────────────────────
+  // spreadFactor oscillates 0 → 1 → 0 over `period` seconds.
+  //   spreadFactor = 1 → pure repulsion (points spread out)
+  //   spreadFactor = 0 → pure attraction toward origin (points return)
+  // Both forces share the same magnitude scale so motion is balanced.
+
+  const repRadius  = spacing * 1.5;
+  const repRadius2 = repRadius * repRadius;
+
+  // Fixed origin positions — the outline points never change.
+  const originPts = pts.map((p) => ({ x: p.x, y: p.y }));
+
+  function step(spreadFactor) {
+    const returnFactor = 1 - spreadFactor;
+    const cellSize = repRadius;
+    const gridW = Math.ceil(cssW / cellSize) + 1;
+    const gridH = Math.ceil(cssH / cellSize) + 1;
+    const grid  = Array.from({ length: gridW * gridH }, () => []);
+
+    for (let i = 0; i < pts.length; i++) {
+      const gx = (pts[i].x / cellSize) | 0;
+      const gy = (pts[i].y / cellSize) | 0;
+      grid[gy * gridW + gx].push(i);
+    }
+
+    const next = new Array(pts.length);
+    for (let i = 0; i < pts.length; i++) {
+      const p = pts[i];
+      let fx = 0, fy = 0;
+
+      // Repulsion from neighbours (active while spreading)
+      if (spreadFactor > 0) {
+        const gx = (p.x / cellSize) | 0;
+        const gy = (p.y / cellSize) | 0;
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            const nx = gx + dx, ny = gy + dy;
+            if (nx < 0 || ny < 0 || nx >= gridW || ny >= gridH) continue;
+            for (const j of grid[ny * gridW + nx]) {
+              if (j === i) continue;
+              const ddx = p.x - pts[j].x;
+              const ddy = p.y - pts[j].y;
+              const d2  = ddx * ddx + ddy * ddy;
+              if (d2 < repRadius2 && d2 > 0) {
+                const d = Math.sqrt(d2);
+                const s = (repRadius - d) / repRadius;
+                fx += (ddx / d) * s * spreadFactor;
+                fy += (ddy / d) * s * spreadFactor;
+              }
+            }
+          }
+        }
+      }
+
+      // Attraction toward origin (active while returning)
+      // Normalised identically to repulsion so forces are balanced.
+      if (returnFactor > 0) {
+        const odx = originPts[i].x - p.x;
+        const ody = originPts[i].y - p.y;
+        const od  = Math.sqrt(odx * odx + ody * ody);
+        if (od > 0) {
+          const s = Math.min(od / repRadius, 1);
+          fx += (odx / od) * s * returnFactor;
+          fy += (ody / od) * s * returnFactor;
+        }
+      }
+
+      next[i] = {
+        x: Math.max(0, Math.min(cssW - 1, p.x + fx * relaxSpeed)),
+        y: Math.max(0, Math.min(cssH - 1, p.y + fy * relaxSpeed)),
+      };
+    }
+    pts = next;
+  }
+
+  const startTime = performance.now();
+  function loop(now) {
+    if (_version !== version) return;
+    const t = ((now - startTime) / 1000) / period;
+    const spreadFactor = (1 - Math.cos(2 * Math.PI * t)) / 2; // 0→1→0
+    step(spreadFactor);
+    draw();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+}
+
+// ─── Tool interface ───────────────────────────────────────────────────────────
+
+export function getParamLines(fmtVal) {
+  return [
+    '',
+    '  // Path resampling',
+    `  spacing: ${fmtVal(defaults.spacing)}, // arc-length gap between markers (px)`,
+    `  marker: ${fmtVal(defaults.marker)}, // unicode glyph placed at each point`,
+    `  markerSize: ${fmtVal(defaults.markerSize)}, // font-size of marker (px)`,
+    `  markerColor: ${fmtVal(defaults.markerColor)},`,
+    `  bgColor: ${fmtVal(defaults.bgColor)},`,
+    `  flatness: ${fmtVal(defaults.flatness)}, // curve subdivision tolerance (font mode only)`,
+    `  relax: ${fmtVal(defaults.relax)}, // animate spread-and-return loop`,
+    `  relaxSpeed: ${fmtVal(defaults.relaxSpeed)}, // px moved per step per unit force`,
+    `  period: ${fmtVal(defaults.period)}, // seconds for one full spread-and-return cycle`,
+  ];
+}
+
+export function normalizeParams(p) {
+  return {
+    spacing:       p.spacing       ?? defaults.spacing,
+    marker:        p.marker        ?? defaults.marker,
+    markerSize:    p.markerSize    ?? defaults.markerSize,
+    markerColor:   typeof p.markerColor === 'string' ? p.markerColor : defaults.markerColor,
+    bgColor:       typeof p.bgColor     === 'string' ? p.bgColor     : defaults.bgColor,
+    flatness:      p.flatness      ?? defaults.flatness,
+    relax:      p.relax      ?? defaults.relax,
+    relaxSpeed: p.relaxSpeed ?? defaults.relaxSpeed,
+    period:     p.period     ?? defaults.period,
+  };
+}
