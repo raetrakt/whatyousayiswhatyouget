@@ -72,8 +72,20 @@ if (!isSafari) {
   let isMiddlePanning = false;
   let lastPanPos = null;
   let panVelocity = { x: 0, y: 0 };
+  let targetPanVelocity = { x: 0, y: 0 };
+  // Raw mouse velocity accumulated between animation frames.
+  // Only consumed (and reset) inside animatePan so easing runs at rAF rate.
+  let mouseVelAccum = { x: 0, y: 0 };
+  let mouseVelFrames = 0;
   let panAnimationId = null;
   let lastFrameTime = null;
+  // How fast the target eases toward mouse input per frame (~60 fps).
+  // 0.08 ≈ 0.5 s time-constant — smooth enough for circular orbiting.
+  const PAN_TARGET_STEERING = 0.08;
+  // How fast actual velocity follows the target — slightly slower.
+  const PAN_STEERING = 0.055;
+  const PAN_RELEASE_FRICTION = 0.9;
+  const PAN_VELOCITY_SCALE = 60;
 
   // Get current transform
   function getCurrentTransform() {
@@ -94,16 +106,32 @@ if (!isSafari) {
     const now = performance.now();
     const dt = lastFrameTime ? (now - lastFrameTime) / 1000 : 0;
     lastFrameTime = now;
-    // Apply velocity
+
     if (dt > 0) {
-      const t = getCurrentTransform();
-      const next = t.translate(panVelocity.x * dt * 60, panVelocity.y * dt * 60);
-      setCurrentTransform(next);
-      // If not panning, decay velocity for smooth stop
-      if (!isMiddlePanning) {
-        panVelocity.x *= 0.92;
-        panVelocity.y *= 0.92;
+      if (isMiddlePanning) {
+        // If the mouse moved since the last frame, ease the target toward the
+        // averaged mouse velocity.  If the mouse was still, the target holds
+        // its value — so the graph keeps coasting in the last steered direction.
+        if (mouseVelFrames > 0) {
+          const avgX = (mouseVelAccum.x / mouseVelFrames) * PAN_VELOCITY_SCALE;
+          const avgY = (mouseVelAccum.y / mouseVelFrames) * PAN_VELOCITY_SCALE;
+          targetPanVelocity.x += (avgX - targetPanVelocity.x) * PAN_TARGET_STEERING;
+          targetPanVelocity.y += (avgY - targetPanVelocity.y) * PAN_TARGET_STEERING;
+          mouseVelAccum.x = 0;
+          mouseVelAccum.y = 0;
+          mouseVelFrames = 0;
+        }
+        // Velocity follows the target with a second layer of easing.
+        panVelocity.x += (targetPanVelocity.x - panVelocity.x) * PAN_STEERING;
+        panVelocity.y += (targetPanVelocity.y - panVelocity.y) * PAN_STEERING;
+      } else {
+        panVelocity.x *= PAN_RELEASE_FRICTION;
+        panVelocity.y *= PAN_RELEASE_FRICTION;
       }
+
+      const t = getCurrentTransform();
+      const next = t.translate(panVelocity.x * dt, panVelocity.y * dt);
+      setCurrentTransform(next);
     }
     panAnimationId = requestAnimationFrame(animatePan);
   }
@@ -114,6 +142,9 @@ if (!isSafari) {
     isMiddlePanning = true;
     lastPanPos = { x: event.clientX, y: event.clientY };
     panVelocity = { x: 0, y: 0 };
+    targetPanVelocity = { x: 0, y: 0 };
+    mouseVelAccum = { x: 0, y: 0 };
+    mouseVelFrames = 0;
     lastFrameTime = null;
     if (!panAnimationId) animatePan();
   });
@@ -124,13 +155,11 @@ if (!isSafari) {
     const dx = event.clientX - lastPanPos.x;
     const dy = event.clientY - lastPanPos.y;
     lastPanPos = { x: event.clientX, y: event.clientY };
-    // Update transform immediately for responsiveness
-    const t = getCurrentTransform();
-    setCurrentTransform(t.translate(dx, dy));
-    // Easing: interpolate velocity toward new direction
-    const ease = 0.18; // 0=no easing, 1=instant, lower=smoother
-    panVelocity.x += (dx - panVelocity.x) * ease;
-    panVelocity.y += (dy - panVelocity.y) * ease;
+    // Accumulate raw deltas; the animation loop reads and resets this each frame
+    // so easing always runs at a stable rAF rate, not at mousemove rate.
+    mouseVelAccum.x += dx;
+    mouseVelAccum.y += dy;
+    mouseVelFrames += 1;
     if (!panAnimationId) animatePan();
   });
 
