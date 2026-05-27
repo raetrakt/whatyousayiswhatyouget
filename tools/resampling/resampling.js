@@ -15,16 +15,16 @@ export const defaults = {
   spacing: 20, // arc-length gap between initial markers (px)
   marker: '✻', // unicode character placed at each point
   markerSize: 22, // font-size of the marker glyph (px)
-  markerColor: "#af4b4b",
-  strokeColor: "#b3ff75",        // stroke colour — null = no stroke
-  strokeWidth: 5,           // stroke width (px)
+  markerColor: '#af4b4b',
+  strokeColor: '#b3ff75', // stroke colour — null = no stroke
+  strokeWidth: 5, // stroke width (px)
   bgColor: '#ffffff',
   flatness: 0.5, // bezier subdivision tolerance — font mode only (px)
-  relax: true, // enable relaxation animation
-  relaxSpeed: 2, // pixels moved per step per unit force
+  relax: false, // enable relaxation animation
+  relaxSpeed: 4, // pixels moved per step per unit force
   period: 6, // seconds for one full spread-and-return cycle
-  cursorRadius: 150,  // px — influence radius around cursor (0 = off)
-  cursorScale: 2.5,   // scale multiplier at cursor centre
+  cursorRadius: 150, // px — influence radius around cursor (0 = off)
+  cursorScale: 2.5, // scale multiplier at cursor centre
   cursorRotation: 90, // degrees rotation at cursor centre
 };
 
@@ -45,8 +45,6 @@ function _setupCursorListener(canvas) {
     _cursor.y = -9999;
   });
 }
-
-
 
 /** Flatten an opentype.js Path into an array of {x,y} polyline vertices. */
 function _flattenPath(otPath, flatness) {
@@ -334,7 +332,7 @@ export function render(
     }
   }
 
-  const strokeColor   = params.strokeColor    ?? defaults.strokeColor;
+  const strokeColor    = params.strokeColor    ?? defaults.strokeColor;
   const strokeWidth    = params.strokeWidth    ?? defaults.strokeWidth;
   const cursorRadius   = params.cursorRadius   ?? defaults.cursorRadius;
   const cursorScale    = params.cursorScale    ?? defaults.cursorScale;
@@ -342,30 +340,39 @@ export function render(
 
   _setupCursorListener(canvas);
 
-  // ── 3. Draw helper ────────────────────────────────────────────────────────
+  // ── 3. Pre-rasterize marker to an offscreen bitmap ────────────────────────
+  // Rasterizing text is expensive; doing it once and blitting with drawImage
+  // is far cheaper than fillText/strokeText on every marker every frame.
+  const OVER     = 2;                          // oversample for crisp rendering
+  const offSize  = (markerSize + 6) * OVER;   // 6px padding so stroke isn't clipped
+  const markerBitmap = document.createElement('canvas');
+  markerBitmap.width = markerBitmap.height = offSize;
+  const mctx = markerBitmap.getContext('2d');
+  mctx.font         = `${markerSize * OVER}px serif`;
+  mctx.textAlign    = 'center';
+  mctx.textBaseline = 'middle';
+  if (strokeColor) {
+    mctx.strokeStyle = strokeColor;
+    mctx.lineWidth   = strokeWidth * OVER;
+    mctx.strokeText(marker, offSize / 2, offSize / 2);
+  }
+  mctx.fillStyle = markerColor;
+  mctx.fillText(marker, offSize / 2, offSize / 2);
+
+  // Displayed size of the bitmap at 1:1 scale (CSS px)
+  const normSize = offSize / OVER;
+  const halfNorm = normSize / 2;
+
+  // ── 4. Draw helper ────────────────────────────────────────────────────────
   function draw() {
     ctx.fillStyle = bgColor;
     ctx.fillRect(0, 0, cssW, cssH);
-    ctx.save();
-    ctx.font = `${markerSize}px serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
 
-    // Pre-set shared stroke state to avoid redundant assignments in the loop.
-    if (strokeColor) {
-      ctx.strokeStyle = strokeColor;
-      ctx.lineWidth = strokeWidth;
-    }
-    ctx.fillStyle = markerColor;
-
-    const maxRotRad   = (cursorRotation * Math.PI) / 180;
-    const cursorR2    = cursorRadius * cursorRadius;
-    // Capture the DPR base transform so we can reset cheaply with setTransform
-    // instead of the heavier save/restore per marker.
-    const baseTransform = ctx.getTransform();
+    const maxRotRad = (cursorRotation * Math.PI) / 180;
+    const cursorR2  = cursorRadius * cursorRadius;
+    const base      = ctx.getTransform();
 
     for (const { x, y } of pts) {
-      // Squared-distance check avoids sqrt for the common out-of-radius case.
       let influence = 0;
       if (cursorRadius > 0) {
         const dx = x - _cursor.x, dy = y - _cursor.y;
@@ -376,27 +383,16 @@ export function render(
       if (influence > 0) {
         const scale = 1 + (cursorScale - 1) * influence;
         const rot   = maxRotRad * influence;
-        // Combine translate(x,y) · rotate(rot) · scale(s) into one call:
-        // [s·cos(r)  -s·sin(r)  x]
-        // [s·sin(r)   s·cos(r)  y]
-        const cr = Math.cos(rot) * scale;
-        const sr = Math.sin(rot) * scale;
+        const cr    = Math.cos(rot) * scale;
+        const sr    = Math.sin(rot) * scale;
         ctx.transform(cr, sr, -sr, cr, x, y);
-        if (strokeColor) {
-          ctx.lineWidth = strokeWidth / scale; // keep stroke width visually stable
-          ctx.strokeText(marker, 0, 0);
-          ctx.lineWidth = strokeWidth;         // restore for next unaffected marker
-        }
-        ctx.fillText(marker, 0, 0);
-        // Reset to base transform — cheaper than restore() which pops full state.
-        ctx.setTransform(baseTransform);
+        ctx.drawImage(markerBitmap, -halfNorm, -halfNorm, normSize, normSize);
+        ctx.setTransform(base);
       } else {
-        if (strokeColor) ctx.strokeText(marker, x, y);
-        ctx.fillText(marker, x, y);
+        ctx.drawImage(markerBitmap, x - halfNorm, y - halfNorm, normSize, normSize);
       }
     }
 
-    ctx.restore();
     _points = pts;
   }
 
@@ -550,8 +546,8 @@ export function normalizeParams(p) {
     relax: p.relax ?? defaults.relax,
     relaxSpeed: p.relaxSpeed ?? defaults.relaxSpeed,
     period: p.period ?? defaults.period,
-    cursorRadius:   p.cursorRadius   ?? defaults.cursorRadius,
-    cursorScale:    p.cursorScale    ?? defaults.cursorScale,
+    cursorRadius: p.cursorRadius ?? defaults.cursorRadius,
+    cursorScale: p.cursorScale ?? defaults.cursorScale,
     cursorRotation: p.cursorRotation ?? defaults.cursorRotation,
   };
 }
