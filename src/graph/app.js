@@ -23,8 +23,6 @@ let lastSnapshot = '';
 let hasRunOnboarding = false;
 let preloadedMediaPaths = new Set();
 
-const ONBOARDING_BATCH_DELAY_MS = 1000;
-
 const svg = d3.select('svg');
 const width = window.innerWidth;
 const height = window.innerHeight;
@@ -273,7 +271,6 @@ async function refreshDataAndRender({ force = false } = {}) {
         width,
         height,
         preloadPromise,
-        ONBOARDING_BATCH_DELAY_MS,
       });
       hasRunOnboarding = true;
       return;

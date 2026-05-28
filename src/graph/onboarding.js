@@ -91,7 +91,7 @@ export async function runOnboardingReveal({
   width,
   height,
   preloadPromise = null,
-  ONBOARDING_BATCH_DELAY_MS = 1000,
+  ONBOARDING_BATCH_DELAY_MS = 300,
 } = {}) {
   const originalVelocityDecay = simulation.velocityDecay();
   simulation.velocityDecay(0.62);
