@@ -148,6 +148,7 @@ body.is-safari .node.work.media-ready {
   height: 100%;
   width: 50%;
   flex: 0 0 50%;
+  user-select: none;
 }
 
 .work-modal-image-wrapper {
