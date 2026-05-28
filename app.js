@@ -297,8 +297,15 @@ async function runOnboardingReveal({ preloadPromise = null } = {}) {
       renderer.measureNodes(onboardingCollision);
 
       pushBatchOutward(batch, rootId, i + 1);
+      // Keep the simulation warm so the tick handler flushes the new
+      // positions of the just-spawned batch onto the DOM. Without this,
+      // alpha can decay below alphaMin during the hold and the freshly
+      // appended foreignObjects stay pinned at their default x=0,y=0.
+      simulation.alpha(Math.max(simulation.alpha(), 0.3)).restart();
     }
-
+    // Hold on the final batch so the last spawned nodes have a moment to settle
+    // before the full graph reveal kicks in.
+    await sleep(ONBOARDING_BATCH_DELAY_MS);
     if (preloadPromise) {
       preloadedMediaPaths = await preloadPromise;
       renderer.setPreloadedMedia({ paths: preloadedMediaPaths });
