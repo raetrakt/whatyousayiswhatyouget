@@ -490,13 +490,14 @@ export function render(
   //   spreadFactor = 0 → pure attraction toward origin (points return)
   // Both forces share the same magnitude scale so motion is balanced.
 
-  const repRadius = spacing * 1.5;
+  const repRadius = spacing * 3;
   const repRadius2 = repRadius * repRadius;
+  const substeps = 4;
 
   // Fixed origin positions — the outline points never change.
   const originPts = pts.map((p) => ({ x: p.x, y: p.y }));
 
-  function step(spreadFactor) {
+  function step(spreadFactor, speed) {
     const returnFactor = 1 - spreadFactor;
     const cellSize = repRadius;
     const gridW = Math.ceil(cssW / cellSize) + 1;
@@ -540,6 +541,21 @@ export function render(
         }
       }
 
+      // Wall repulsion — keep points away from canvas edges
+      {
+        const wallR = repRadius;
+        for (const [dist, axis] of [
+          [p.x, 'x'], [cssW - p.x, 'x'],
+          [p.y, 'y'], [cssH - p.y, 'y'],
+        ]) {
+          if (dist < wallR && dist > 0) {
+            const s = (wallR - dist) / wallR;
+            if (axis === 'x') fx += (p.x < cssW / 2 ? 1 : -1) * s;
+            else              fy += (p.y < cssH / 2 ? 1 : -1) * s;
+          }
+        }
+      }
+
       // Attraction toward origin (active while returning)
       // Normalised identically to repulsion so forces are balanced.
       if (returnFactor > 0) {
@@ -554,8 +570,8 @@ export function render(
       }
 
       next[i] = {
-        x: Math.max(0, Math.min(cssW - 1, p.x + fx * relaxSpeed)),
-        y: Math.max(0, Math.min(cssH - 1, p.y + fy * relaxSpeed)),
+        x: p.x + fx * speed,
+        y: p.y + fy * speed,
       };
     }
     pts = next;
@@ -566,7 +582,8 @@ export function render(
     if (_version !== version) return;
     const t = (now - startTime) / 1000 / period;
     const spreadFactor = (1 - Math.cos(2 * Math.PI * t)) / 2; // 0→1→0
-    step(spreadFactor);
+    const subSpeed = relaxSpeed / substeps;
+    for (let s = 0; s < substeps; s++) step(spreadFactor, subSpeed);
     draw();
     requestAnimationFrame(loop);
   }
