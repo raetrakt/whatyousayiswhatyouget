@@ -177,8 +177,8 @@ body.is-safari .node.work.media-ready {
 
 .work-modal-row {
   display: grid;
-  grid-template-columns: 95px 1fr;
-  gap: 44px;
+  grid-template-columns: 114px 1fr;
+  gap: 32px;
 }
 
 .work-modal-line {
