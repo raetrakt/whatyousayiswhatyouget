@@ -13,6 +13,7 @@ import { buildRevealLevels, pushBatchOutward, runOnboardingReveal } from './onbo
 import { loadData } from './data.js';
 import { createRenderer } from './render.js';
 import { createGraphSimulation, bindSimulationTick, createDrag } from './simulation.js';
+import { initRecording } from './record.js';
 
 const SUPABASE_URL = 'https://rowvcuuqebamsxndzhxn.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_LBTefqV0J1vkvYXriS5gUA_AychNVUb';
@@ -421,3 +422,17 @@ window.addEventListener('keydown', async (event) => {
 
 await document.fonts.ready;
 await refreshDataAndRender({ force: true });
+
+function replayOnboarding() {
+  // Reset all node positions so they collapse back to center before re-revealing
+  state.nodes.forEach((n) => {
+    n.x = width / 2;
+    n.y = height / 2;
+    n.vx = 0;
+    n.vy = 0;
+  });
+  hasRunOnboarding = false;
+  refreshDataAndRender({ force: true });
+}
+
+initRecording({ replayOnboarding });
