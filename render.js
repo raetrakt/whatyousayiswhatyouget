@@ -197,7 +197,7 @@ export function createRenderer({
   }
 
   function getWorkStyleConfig() {
-    const targetArea = readCssPxVar('--work-img-target-area', 8000);
+    const targetArea = readCssPxVar('--work-img-target-area', 9000);
     const pad = readCssPxVar('--work-node-padding', 6);
     return { targetArea, padTotal: pad * 2 };
   }
