@@ -13,7 +13,7 @@ import { buildRevealLevels, pushBatchOutward, runOnboardingReveal } from './onbo
 import { loadData } from './data.js';
 import { createRenderer } from './render.js';
 import { createGraphSimulation, bindSimulationTick, createDrag } from './simulation.js';
-import { initRecording } from './record.js';
+// import { initRecording } from './record.js';
 
 const SUPABASE_URL = 'https://rowvcuuqebamsxndzhxn.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_LBTefqV0J1vkvYXriS5gUA_AychNVUb';
@@ -435,4 +435,4 @@ function replayOnboarding() {
   refreshDataAndRender({ force: true });
 }
 
-initRecording({ replayOnboarding });
+// initRecording({ replayOnboarding });
