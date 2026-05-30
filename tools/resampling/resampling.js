@@ -433,7 +433,7 @@ export function render(
 
     for (const { x, y } of pts) {
       let influence = 0;
-      if (cursorRadius > 0) {
+      if (cursorMode && cursorRadius > 0) {
         const dx = x - _cursor.x,
           dy = y - _cursor.y;
         const d = Math.sqrt(dx * dx + dy * dy);
@@ -465,6 +465,7 @@ export function render(
     draw();
     // Redraw on mouse move so the cursor effect stays live.
     // Throttled to one draw per animation frame to avoid flooding the renderer.
+    if (!cursorMode) return;
     let _rafPending = false;
     const onMove = () => {
       if (_version !== version) return cleanup();
@@ -545,13 +546,15 @@ export function render(
       {
         const wallR = repRadius;
         for (const [dist, axis] of [
-          [p.x, 'x'], [cssW - p.x, 'x'],
-          [p.y, 'y'], [cssH - p.y, 'y'],
+          [p.x, 'x'],
+          [cssW - p.x, 'x'],
+          [p.y, 'y'],
+          [cssH - p.y, 'y'],
         ]) {
           if (dist < wallR && dist > 0) {
             const s = (wallR - dist) / wallR;
             if (axis === 'x') fx += (p.x < cssW / 2 ? 1 : -1) * s;
-            else              fy += (p.y < cssH / 2 ? 1 : -1) * s;
+            else fy += (p.y < cssH / 2 ? 1 : -1) * s;
           }
         }
       }
