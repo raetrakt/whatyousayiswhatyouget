@@ -526,6 +526,13 @@ document.getElementById('btn-reset').addEventListener('click', render);
 document.getElementById('btn-save-png').addEventListener('click', savePNG);
 document.getElementById('btn-save-svg').addEventListener('click', saveSVG);
 
+document.addEventListener('keydown', (e) => {
+  if (e.altKey && e.key === 's') {
+    e.preventDefault();
+    savePNG();
+  }
+});
+
 // ── Record ────────────────────────────────────────────────────────────────────
 
 function _downloadBlob(blob, ext) {
