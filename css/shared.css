@@ -46,7 +46,7 @@ body::-webkit-scrollbar {
   height: 40px;
   background: #fff;
   border-bottom: 1px solid #000;
-  display: grid;
+  display: flex;
   grid-template-columns: repeat(var(--grid-cols), minmax(0, 1fr));
   column-gap: var(--grid-gap);
   padding-left: calc(var(--grid-gap) / 4);
@@ -77,9 +77,10 @@ body::-webkit-scrollbar {
 }
 
 .site-header-nav {
-  grid-column: -4 / -1;
   display: flex;
   gap: 24px;
+  margin-left: auto;
+
 }
 
 ol,
