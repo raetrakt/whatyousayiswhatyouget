@@ -1,3 +1,24 @@
+:root {
+  --body-size: 1.5rem;
+  --body-line-height: 1.3125;
+  --baseline: calc(var(--body-size) * var(--body-line-height));
+  --code-size: calc(var(--body-size) * 0.93);
+  --notes-size: 0.8rem;
+  --notes-line-height: calc(10/9);
+  --notes-baseline: calc(var(--notes-size) * var(--notes-line-height));
+  --grid-cols: 4;
+  --grid-gap: 20px;
+}
+
+@font-face {
+  font-family: 'True Sans Mono';
+  src:
+    url('../assets/fonts/TrueSansMono-RegularWeb.woff2') format('woff2'),
+    url('../assets/fonts/TrueSansMono-RegularWeb.woff') format('woff');
+  font-display: swap;
+}
+
+
 *,
 *::before,
 *::after {
@@ -16,10 +37,6 @@ body {
 html::-webkit-scrollbar,
 body::-webkit-scrollbar {
   display: none;
-}
-
-body {
-  line-height: 1;
 }
 
 .site-header {
@@ -50,9 +67,13 @@ body {
   text-decoration: none;
 }
 
+.site-header a:hover {
+  font-family: 'True Sans Mono';
+}
+
 .site-header-nav {
-  display: flex;
-  gap: 24px;
+  /* display: flex;
+  gap: 24px; */
 }
 
 ol,
@@ -65,22 +86,24 @@ table {
   border-spacing: 0;
 }
 
-:root {
-  --body-size: 1.5rem;
-  --body-line-height: 1.3125;
-  --baseline: calc(var(--body-size) * var(--body-line-height));
-  --code-size: calc(var(--body-size) * 0.93);
-  --notes-size: 0.8rem;
-  --notes-line-height: calc(10/9);
-  --notes-baseline: calc(var(--notes-size) * var(--notes-line-height));
-  --grid-cols: 4;
-  --grid-gap: 24px;
+.page-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-cols), minmax(0, 1fr));
+  column-gap: var(--grid-gap);
+  padding: var(--grid-gap);
+}
+
+.page-grid > * {
+  grid-column: 1 / -1;
 }
 
 @media (min-width: 700px) {
   :root {
     --grid-cols: 6;
     --grid-gap: 40px;
+  }
+  .page-grid > * {
+    grid-column: 2 / 6;
   }
 }
 
@@ -89,26 +112,6 @@ table {
     --grid-cols: 8;
     --grid-gap: 60px;
   }
-}
-
-/* Responsive page grid */
-.page-grid {
-  display: grid;
-  grid-template-columns: repeat(var(--grid-cols), minmax(0, 1fr));
-  column-gap: var(--grid-gap);
-}
-
-.page-grid > * {
-  grid-column: 1 / -1;
-}
-
-@media (min-width: 700px) {
-  .page-grid > * {
-    grid-column: 2 / 6;
-  }
-}
-
-@media (min-width: 1100px) {
   .page-grid > * {
     grid-column: 3 / 7;
   }
