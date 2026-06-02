@@ -15,6 +15,6 @@
   const headerHeight = parseFloat(getComputedStyle(header).height) || 0;
   const existingPaddingTop = parseFloat(getComputedStyle(document.body).paddingTop) || 0;
   if (!document.body.hasAttribute('data-no-header-padding')) {
-  document.body.style.paddingTop = (existingPaddingTop + headerHeight) + 'px';
-}
+    document.body.style.paddingTop = existingPaddingTop + headerHeight + 'px';
+  }
 })();

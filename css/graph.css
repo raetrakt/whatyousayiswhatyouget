@@ -1,6 +1,6 @@
 :root {
-  --work-img-target-area: 8000;
-  --work-node-padding: 6px;
+  --work-img-target-area: 10000;
+  --work-node-padding: 2px;
 }
 
 @font-face {
