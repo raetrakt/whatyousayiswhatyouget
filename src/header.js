@@ -1,6 +1,4 @@
 (function () {
-  const HEADER_HEIGHT = 40;
-
   const header = document.createElement('header');
   header.className = 'site-header';
   header.innerHTML = `
@@ -14,6 +12,9 @@
   `;
   document.body.insertBefore(header, document.body.firstChild);
 
+  const headerHeight = parseFloat(getComputedStyle(header).height) || 0;
   const existingPaddingTop = parseFloat(getComputedStyle(document.body).paddingTop) || 0;
-  document.body.style.paddingTop = existingPaddingTop + HEADER_HEIGHT + 'px';
+  if (!document.body.hasAttribute('data-no-header-padding')) {
+  document.body.style.paddingTop = (existingPaddingTop + headerHeight) + 'px';
+}
 })();
