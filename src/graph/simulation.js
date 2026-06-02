@@ -8,7 +8,7 @@ export function createGraphSimulation({ width, height }) {
       d3
         .forceLink([])
         .id((d) => d.id)
-        .distance(250)
+        .distance(300)
         .strength(1)
         .iterations(2),
     )
