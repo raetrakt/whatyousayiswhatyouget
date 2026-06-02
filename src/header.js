@@ -6,7 +6,7 @@
     <nav class="site-header-nav">
       <a href="/">Dictionary</a>
       <a href="/tools/">Tools</a>
-      <a href="/manifesto/">Killing the Vibe</a>
+      <a href="/manifesto/">Manifesto</a>
       <a href="/thesis/">Thesis</a>
     </nav>
   `;
