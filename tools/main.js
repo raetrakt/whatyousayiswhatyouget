@@ -13,7 +13,12 @@ const TOOLS = {
   resampling: () => import('./resampling/resampling.js'),
 };
 
-const toolName = new URLSearchParams(location.search).get('tool') ?? 'sdf';
+async function initEditor(toolName) {
+// Switch to editor immediately, before the async tool import
+document.getElementById('overview').hidden = true;
+document.getElementById('app').hidden = false;
+document.getElementById('bottom-bar').hidden = false;
+
 const tool = await (TOOLS[toolName] ?? TOOLS.sdf)();
 
 const FONT_URL = new URL('../assets/fonts/texgyretermes-regular.otf', import.meta.url).href;
@@ -81,7 +86,7 @@ let _recordRafId = null;
 let _recordFrameIndex = 0;
 
 // Highlight the active tool button
-document.querySelectorAll('.tool-btn[data-tool]').forEach((btn) => {
+document.querySelectorAll('.tool-switch-link[data-tool]').forEach((btn) => {
   if (btn.dataset.tool === toolName) btn.classList.add('active');
 });
 
@@ -792,3 +797,31 @@ async function init() {
 }
 
 init().catch((err) => console.error('Init failed:', err));
+
+} // end initEditor
+
+// ── SPA navigation ────────────────────────────────────────────────────────────
+const toolParam = new URLSearchParams(location.search).get('tool');
+
+if (toolParam) {
+  await initEditor(toolParam);
+} else {
+  document.querySelectorAll('.tool-card').forEach((card) => {
+    card.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const name = new URL(card.href, location.href).searchParams.get('tool');
+      history.pushState(null, '', card.href);
+      await initEditor(name);
+    });
+  });
+}
+
+window.addEventListener('popstate', () => {
+  const param = new URLSearchParams(location.search).get('tool');
+  if (!param) {
+    document.getElementById('overview').hidden = false;
+    document.getElementById('app').hidden = true;
+    document.getElementById('bottom-bar').hidden = true;
+  }
+});
+

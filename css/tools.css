@@ -1,0 +1,277 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+}
+
+/* ── Overview ──────────────────────────────────────────────────────────────── */
+
+#overview {
+  padding: 24px 0;
+}
+
+#overview-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 700px) {
+  #overview-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1100px) {
+  #overview-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.tool-card {
+  text-decoration: none;
+  color: black;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tool-card-preview {
+  aspect-ratio: 1 / 1.4142;
+  border: 1px solid black;
+  background: white;
+}
+
+.tool-card:hover .tool-card-preview {
+  background: black;
+}
+
+.tool-card-name {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 16px;
+  letter-spacing: 0.04em;
+}
+
+/* ── Editor app ────────────────────────────────────────────────────────────── */
+
+/* Mutual exclusivity: showing one hides the other */
+body:has(#app:not([hidden])) #overview {
+  display: none;
+}
+
+body:has(#overview:not([hidden])) #app,
+body:has(#overview:not([hidden])) #bottom-bar {
+  display: none;
+}
+
+html:has(#app:not([hidden])),
+body:has(#app:not([hidden])) {
+  height: 100%;
+  overflow: hidden;
+}
+
+#app {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-cols), minmax(0, 1fr));
+  column-gap: var(--grid-gap);
+  height: 100dvh;
+  padding: 0 24px;
+}
+
+#tool-switcher {
+  grid-column: 1 / 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  padding: 24px 0;
+}
+
+.tool-switch-link {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 16px;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  color: black;
+  white-space: nowrap;
+}
+
+.tool-switch-link:hover,
+.tool-switch-link.active {
+  text-decoration: underline;
+}
+
+#editor-panel {
+  grid-column: 2 / 5;
+  min-width: 0;
+  overflow: hidden;
+  padding: 24px 0;
+  display: flex;
+  flex-direction: column;
+}
+
+#canvas-panel {
+  grid-column: 5 / -1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 0;
+  overflow: hidden;
+}
+
+@media (min-width: 700px) and (max-width: 1099px) {
+  #editor-panel {
+    grid-column: 2 / 4;
+  }
+  #canvas-panel {
+    grid-column: 4 / -1;
+  }
+}
+
+@media (max-width: 699px) {
+  #app {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr 1fr;
+    padding: 16px;
+    overflow-y: auto;
+  }
+  #tool-switcher {
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 16px 0 8px;
+  }
+  #editor-panel,
+  #canvas-panel {
+    grid-column: 1 / -1;
+    padding: 8px 0;
+  }
+}
+
+@font-face {
+  font-family: 'TrueSansMono';
+  src: url('../assets/fonts/TrueSansMono-RegularWeb.woff') format('woff');
+}
+
+.cm-editor .cm-content {
+  font-family: 'TrueSansMono', monospace;
+  font-feature-settings: 'liga' 0;
+}
+
+.ͼb,
+.ͼl {
+  color: black;
+}
+
+.ͼm {
+  color: #858585;
+}
+
+.ͼd {
+  color: rgb(3, 128, 78);
+}
+
+#sketch {
+  border: 1px solid;
+}
+
+#error-display {
+  display: none;
+  font-family: 'TrueSansMono', monospace;
+  font-size: 13px;
+  color: #cc0000;
+}
+
+#bottom-bar {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+#save-bar {
+  display: flex;
+  gap: 6px;
+}
+
+#save-bar button {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 16px;
+  letter-spacing: 0.04em;
+  border: 1px solid black;
+  background: white;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+#save-bar button:hover,
+#save-bar button.recording {
+  background: black;
+  color: white;
+}
+
+#save-bar button:disabled {
+  opacity: 0.3;
+  cursor: default;
+  pointer-events: none;
+}
+
+#export-bar {
+  display: flex;
+  gap: 4px;
+  align-items: baseline;
+}
+
+#export-bar input[type='number'] {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 16px;
+  border: 1px solid black;
+  background: white;
+  padding: 4px 4px;
+  width: 6ch;
+  -moz-appearance: textfield;
+}
+
+#export-bar input[type='number']::-webkit-inner-spin-button,
+#export-bar input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
+
+#export-bar input[type='number']:focus {
+  outline: none;
+}
+
+#export-bar span {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 16px;
+}
+
+#export-bar button {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 16px;
+  letter-spacing: 0.04em;
+  border: 1px solid black;
+  background: white;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+#export-bar button:hover {
+  background: black;
+  color: white;
+}
+
+#export-bar button:disabled {
+  opacity: 0.3;
+  cursor: default;
+  pointer-events: none;
+}

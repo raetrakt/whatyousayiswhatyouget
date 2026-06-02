@@ -5,186 +5,46 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tools</title>
-  <style>
-    *,
-    *::before,
-    *::after {
-      box-sizing: border-box;
-    }
-
-    html,
-    body {
-      height: 100%;
-      margin: 0;
-    }
-
-    #app {
-      display: flex;
-      height: 100dvh;
-    }
-
-    #canvas-panel {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-    }
-
-    #editor-panel {
-      padding: 24px;
-    }
-
-    @font-face {
-      font-family: 'TrueSansMono';
-      src: url('../assets/fonts/TrueSansMono-RegularWeb.woff') format('woff');
-    }
-
-    .cm-editor .cm-content {
-      font-family: 'TrueSansMono', monospace;
-      font-feature-settings: 'liga' 0;
-    }
-
-    .ͼb,
-    .ͼl {
-      color: black;
-    }
-
-    .ͼm {
-      color: #858585;
-    }
-
-    .ͼd {
-      color: rgb(3, 128, 78);
-    }
-
-    #sketch {
-      border: 1px solid;
-    }
-
-    #error-display {
-      display: none;
-      font-family: 'TrueSansMono', monospace;
-      font-size: 13px;
-      color: #cc0000;
-    }
-
-    #bottom-bar {
-      position: fixed;
-      bottom: 24px;
-      left: 24px;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 8px;
-    }
-
-    #tool-nav {
-      display: flex;
-      gap: 6px;
-    }
-
-    .tool-btn {
-      font-family: 'Times New Roman', Times, serif;
-      font-size: 16px;
-      letter-spacing: 0.04em;
-      border: 1px solid black;
-      background: white;
-      padding: 4px 10px;
-      cursor: pointer;
-      text-decoration: none;
-      color: black;
-      display: inline-block;
-    }
-
-    .tool-btn:hover,
-    .tool-btn.active {
-      background: black;
-      color: white;
-    }
-
-    #save-bar {
-      display: flex;
-      gap: 6px;
-    }
-
-    #save-bar button {
-      font-family: 'Times New Roman', Times, serif;
-      font-size: 16px;
-      letter-spacing: 0.04em;
-      border: 1px solid black;
-      background: white;
-      padding: 4px 10px;
-      cursor: pointer;
-    }
-
-    #save-bar button:hover,
-    #save-bar button.recording {
-      background: black;
-      color: white;
-    }
-
-    #save-bar button:disabled {
-      opacity: 0.3;
-      cursor: default;
-      pointer-events: none;
-    }
-
-    #export-bar {
-      display: flex;
-      gap: 4px;
-      align-items: baseline;
-    }
-
-    #export-bar input[type=number] {
-      font-family: 'Times New Roman', Times, serif;
-      font-size: 16px;
-      border: 1px solid black;
-      background: white;
-      padding: 4px 4px;
-      width: 6ch;
-      -moz-appearance: textfield;
-    }
-
-    #export-bar input[type=number]::-webkit-inner-spin-button,
-    #export-bar input[type=number]::-webkit-outer-spin-button {
-      -webkit-appearance: none;
-    }
-
-    #export-bar input[type=number]:focus {
-      outline: none;
-    }
-
-    #export-bar span {
-      font-family: 'Times New Roman', Times, serif;
-      font-size: 16px;
-    }
-
-    #export-bar button {
-      font-family: 'Times New Roman', Times, serif;
-      font-size: 16px;
-      letter-spacing: 0.04em;
-      border: 1px solid black;
-      background: white;
-      padding: 4px 10px;
-      cursor: pointer;
-    }
-
-    #export-bar button:hover {
-      background: black;
-      color: white;
-    }
-
-    #export-bar button:disabled {
-      opacity: 0.3;
-      cursor: default;
-      pointer-events: none;
-    }
-  </style>
+  <link rel="stylesheet" href="../css/shared.css">
+  <link rel="stylesheet" href="../css/tools.css">
 </head>
 
 <body>
-  <div id="app">
+  <script src="/src/header.js"></script>
+  <div id="overview" class="page-grid">
+    <div id="overview-grid">
+      <a class="tool-card" href="?tool=sdf">
+        <div class="tool-card-preview"></div>
+        <span class="tool-card-name">sdf</span>
+      </a>
+      <a class="tool-card" href="?tool=quadtree">
+        <div class="tool-card-preview"></div>
+        <span class="tool-card-name">quadtree</span>
+      </a>
+      <a class="tool-card" href="?tool=sand">
+        <div class="tool-card-preview"></div>
+        <span class="tool-card-name">sand</span>
+      </a>
+      <a class="tool-card" href="?tool=rd">
+        <div class="tool-card-preview"></div>
+        <span class="tool-card-name">rd</span>
+      </a>
+      <a class="tool-card" href="?tool=resampling">
+        <div class="tool-card-preview"></div>
+        <span class="tool-card-name">resampling</span>
+      </a>
+    </div>
+  </div>
+
+  <div id="app" hidden>
+    <nav id="tool-switcher">
+      <a href="./" class="tool-switch-link">overview</a>
+      <a href="?tool=sdf" class="tool-switch-link" data-tool="sdf">sdf</a>
+      <a href="?tool=quadtree" class="tool-switch-link" data-tool="quadtree">quadtree</a>
+      <a href="?tool=sand" class="tool-switch-link" data-tool="sand">sand</a>
+      <a href="?tool=rd" class="tool-switch-link" data-tool="rd">rd</a>
+      <a href="?tool=resampling" class="tool-switch-link" data-tool="resampling">resampling</a>
+    </nav>
     <div id="editor-panel">
       <div id="editor"></div>
     </div>
@@ -193,14 +53,7 @@
       <div id="error-display"></div>
     </div>
   </div>
-  <div id="bottom-bar">
-    <div id="tool-nav">
-      <a href="./" class="tool-btn" data-tool="sdf">sdf</a>
-      <a href="./?tool=quadtree" class="tool-btn" data-tool="quadtree">quadtree</a>
-      <a href="./?tool=sand" class="tool-btn" data-tool="sand">sand</a>
-      <a href="./?tool=rd" class="tool-btn" data-tool="rd">rd</a>
-      <a href="./?tool=resampling" class="tool-btn" data-tool="resampling">resampling</a>
-    </div>
+  <div id="bottom-bar" hidden>
     <div id="save-bar">
       <button id="btn-reset">reset</button>
       <button id="btn-save-png">png</button>
@@ -219,7 +72,6 @@
       <button id="btn-export">export</button>
     </div>
   </div>
-  <script src="/src/header.js"></script>
   <script type="module" src="./main.js"></script>
 </body>
 
