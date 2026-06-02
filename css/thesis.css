@@ -139,6 +139,10 @@ figcaption,
     grid-column: 1 / -1;
   }
 
+  .hide-on-web {
+    display: none;
+  }
+
   .web-index {
     position: fixed;
     width: calc(100% / 7 * 2);
