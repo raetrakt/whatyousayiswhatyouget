@@ -10,10 +10,49 @@
 html,
 body {
   height: 100%;
+  scrollbar-width: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
 }
 
 body {
   line-height: 1;
+}
+
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background: #fff;
+  border-bottom: 1px solid #000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  z-index: 9999;
+  box-sizing: border-box;
+}
+
+.site-header,
+.site-header * {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.site-header a {
+  color: #000;
+  text-decoration: none;
+}
+
+.site-header-nav {
+  display: flex;
+  gap: 24px;
 }
 
 ol,
@@ -26,8 +65,6 @@ table {
   border-spacing: 0;
 }
 
-@view-transition { navigation: auto; }
-
 :root {
   --body-size: 1.5rem;
   --body-line-height: 1.3125;
@@ -36,4 +73,43 @@ table {
   --notes-size: 0.8rem;
   --notes-line-height: calc(10/9);
   --notes-baseline: calc(var(--notes-size) * var(--notes-line-height));
+  --grid-cols: 4;
+  --grid-gap: 24px;
+}
+
+@media (min-width: 700px) {
+  :root {
+    --grid-cols: 6;
+    --grid-gap: 40px;
+  }
+}
+
+@media (min-width: 1100px) {
+  :root {
+    --grid-cols: 8;
+    --grid-gap: 60px;
+  }
+}
+
+/* Responsive page grid */
+.page-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-cols), minmax(0, 1fr));
+  column-gap: var(--grid-gap);
+}
+
+.page-grid > * {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 700px) {
+  .page-grid > * {
+    grid-column: 2 / 6;
+  }
+}
+
+@media (min-width: 1100px) {
+  .page-grid > * {
+    grid-column: 3 / 7;
+  }
 }
