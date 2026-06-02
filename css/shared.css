@@ -25,3 +25,15 @@ table {
   border-collapse: collapse;
   border-spacing: 0;
 }
+
+@view-transition { navigation: auto; }
+
+:root {
+  --body-size: 1.5rem;
+  --body-line-height: 1.3125;
+  --baseline: calc(var(--body-size) * var(--body-line-height));
+  --code-size: calc(var(--body-size) * 0.93);
+  --notes-size: 0.8rem;
+  --notes-line-height: calc(10/9);
+  --notes-baseline: calc(var(--notes-size) * var(--notes-line-height));
+}
