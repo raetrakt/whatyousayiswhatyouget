@@ -22,7 +22,7 @@ li.li-bullet-0:before {
   margin-left: calc(var(--baseline) * 1.5);
 }
 
-p, ol, li {
+p, li {
   margin-bottom: var(--baseline);
 }
 
