@@ -2,12 +2,12 @@
   const header = document.createElement('header');
   header.className = 'site-header';
   header.innerHTML = `
-    <a href="/">What You Say Is What You Get?</a>
+    <a href="/" data-label="What You Say Is What You Get?"><span>What You Say Is What You Get?</span></a>
     <nav class="site-header-nav">
-      <a href="/">Dictionary</a>
-      <a href="/tools/">Tools</a>
-      <a href="/manifesto/">Manifesto</a>
-      <a href="/thesis/">Thesis</a>
+      <a href="/" data-label="Dictionary"><span>Dictionary</span></a>
+      <a href="/tools/" data-label="Tools"><span>Tools</span></a>
+      <a href="/manifesto/" data-label="Manifesto"><span>Manifesto</span></a>
+      <a href="/thesis/" data-label="Thesis"><span>Thesis</span></a>
     </nav>
   `;
   document.body.insertBefore(header, document.body.firstChild);

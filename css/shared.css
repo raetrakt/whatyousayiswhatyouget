@@ -8,7 +8,7 @@
   --notes-baseline: calc(var(--notes-size) * var(--notes-line-height));
   --site-header-height: 40px;
   --grid-cols: 4;
-  --grid-gap: 20px;
+  --grid-gap: var(--baseline);
   --content-col-start: 1;
   --content-col-end: -1;
   --ext-col-start: 1;
@@ -65,29 +65,50 @@ body::-webkit-scrollbar {
   box-sizing: border-box;
 }
 
-.site-header > a {
-  grid-column: 1 / -4;
-}
-
 .site-header,
 .site-header * {
   font-family: 'Times New Roman', Times, serif;
-  font-size: 24px;
+  font-size: var(--body-size);
   line-height: 1;
 }
 
 .site-header a {
   color: #000;
   text-decoration: none;
+  position: relative;
+  display: inline-block;
+  align-items: center;
+  white-space: nowrap;
+  line-height: 1;
+  overflow: visible;
 }
 
-.site-header a:hover {
-  /* font-family: 'True Sans Mono'; */
+.site-header a::after {
+  content: attr(data-label);
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  color: inherit;
+  font-family: 'True Sans Mono', monospace;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.site-header a:hover::after {
+  opacity: 1;
+}
+
+.site-header a:hover > span {
+  opacity: 0;
 }
 
 .site-header-nav {
   display: flex;
-  gap: 24px;
+  gap: calc(var(--baseline) * 2);
   margin-left: auto;
 }
 
@@ -115,11 +136,24 @@ table {
 @media (min-width: 900px) {
   :root {
     --grid-cols: 6;
-    --grid-gap: 40px;
     --content-col-start: 2;
     --content-col-end: 6;
     --ext-col-start: 6;
     --ext-col-end: 7;
+  }
+  .site-header {
+    display: grid;
+    grid-template-columns: repeat(var(--grid-cols), minmax(0, 1fr));
+    column-gap: var(--grid-gap);
+  }
+  .site-header > a:first-of-type {
+    grid-column: 1 / var(--content-col-end);
+    justify-self: start;
+  }
+  .site-header-nav {
+    grid-column: var(--content-col-end) / -1;
+    justify-self: start;
+    margin-left: 0;
   }
   .page-grid > * {
     grid-column: 2 / 6;
@@ -129,7 +163,6 @@ table {
 @media (min-width: 1400px) {
   :root {
     --grid-cols: 8;
-    --grid-gap: 60px;
     --content-col-start: 3;
     --content-col-end: 7;
     --ext-col-start: 7;
@@ -143,7 +176,6 @@ table {
 @media (min-width: 1900px) {
   :root {
     --grid-cols: 9;
-    --grid-gap: 60px;
     --content-col-start: 4;
     --content-col-end: 7;
     --ext-col-start: 7;
