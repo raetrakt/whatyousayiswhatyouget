@@ -14,10 +14,9 @@
   --column-gap: 8mm;
 }
 
-*  {
+* {
   overflow: visible !important;
 }
-
 
 @page {
   size: A4;
@@ -27,11 +26,11 @@
   margin-bottom: 70mm;
 }
 
-  @page :left {
-    .pagedjs_margin-bottom::after {
-      display: none;
-    }
+@page :left {
+  .pagedjs_margin-bottom::after {
+    display: none;
   }
+}
 
 @page title {
   margin-bottom: 8mm;
@@ -61,7 +60,8 @@
     line-height: 0;
   }
 
-  :root .title-text p,   :root .title-text a {
+  :root .title-text p,
+  :root .title-text a {
     font-family: 'True Sans Mono', monospace;
     font-size: var(--notes-size);
     line-height: var(--notes-line-height);
