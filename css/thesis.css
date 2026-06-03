@@ -54,11 +54,12 @@ figcaption i {
 
 figcaption,
 figcaption *,
-.footnotes p * {
+.footnotes p,
+.footnotes p *,
+.notes {
   font-family: 'True Sans Mono', monospace;
   font-size: var(--notes-size);
   line-height: var(--notes-line-height);
-  /* margin-bottom: var(--baseline); */
 }
 
 .url {
@@ -78,12 +79,6 @@ figcaption,
   width: 100%;
   height: auto;
   object-fit: contain;
-}
-
-.footnotes p {
-  font-family: 'True Sans Mono', monospace;
-  font-size: var(--notes-size);
-  line-height: var(--notes-line-height);
 }
 
 .thesis-layout .footnotes {
