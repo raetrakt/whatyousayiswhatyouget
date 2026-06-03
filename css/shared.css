@@ -1,5 +1,5 @@
 :root {
-  --body-size: 2rem;
+  --body-size: 1.5rem;
   --body-line-height: 1.3125;
   --baseline: calc(var(--body-size) * var(--body-line-height));
   --code-size: calc(var(--body-size) * 0.93);
@@ -8,6 +8,10 @@
   --notes-baseline: calc(var(--notes-size) * var(--notes-line-height));
   --grid-cols: 4;
   --grid-gap: 20px;
+  --content-col-start: 1;
+  --content-col-end: -1;
+  --ext-col-start: 1;
+  --ext-col-end: -1;
 }
 
 @font-face {
@@ -80,7 +84,6 @@ body::-webkit-scrollbar {
   display: flex;
   gap: 24px;
   margin-left: auto;
-
 }
 
 ol,
@@ -108,6 +111,10 @@ table {
   :root {
     --grid-cols: 6;
     --grid-gap: 40px;
+    --content-col-start: 2;
+    --content-col-end: 6;
+    --ext-col-start: 6;
+    --ext-col-end: 7;
   }
   .page-grid > * {
     grid-column: 2 / 6;
@@ -118,8 +125,26 @@ table {
   :root {
     --grid-cols: 8;
     --grid-gap: 60px;
+    --content-col-start: 3;
+    --content-col-end: 7;
+    --ext-col-start: 7;
+    --ext-col-end: 9;
   }
   .page-grid > * {
     grid-column: 3 / 7;
+  }
+}
+
+@media (min-width: 1900px) {
+  :root {
+    --grid-cols: 9;
+    --grid-gap: 60px;
+    --content-col-start: 4;
+    --content-col-end: 7;
+    --ext-col-start: 7;
+    --ext-col-end: 10;
+  }
+  .page-grid > * {
+    grid-column: 4 / 7;
   }
 }

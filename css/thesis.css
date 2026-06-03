@@ -1,4 +1,8 @@
-h1, h2, h3, h4, p {
+h1,
+h2,
+h3,
+h4,
+p {
   font-family: 'Times New Roman', Times, serif;
   font-weight: normal;
   line-height: var(--body-line-height);
@@ -154,20 +158,10 @@ figcaption,
     align-self: flex-start;
   }
 
-  figure {
-    grid-column: 1 / -1;
-  }
-
-  figure.ext {
-    grid-column: 1 / -1;
-  }
-
   figure.ext figcaption {
     margin-bottom: 0;
   }
-}
 
-@media screen and (min-width: 700px) {
   h1,
   h2,
   h3,
@@ -176,35 +170,20 @@ figcaption,
   h6,
   p,
   div {
-    grid-column: 2 / 6;
+    grid-column: var(--content-col-start) / var(--content-col-end);
   }
 
   figure {
-    grid-column: 2 / 6;
+    grid-column: var(--content-col-start) / var(--content-col-end);
   }
 
   figure.ext {
-    grid-column: 6 / 7;
-  }
-}
-
-@media screen and (min-width: 1100px) {
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6,
-  p,
-  div {
-    grid-column: 3 / 7;
+    grid-column: var(--ext-col-start) / var(--ext-col-end);
   }
 
-  figure {
-    grid-column: 3 / 7;
-  }
-
-  figure.ext {
-    grid-column: 7 / 9;
+  @media (min-width: 1900px) {
+    figure.ext {
+      grid-column: var(--ext-col-start) / calc(var(--ext-col-end) - 1);
+    }
   }
 }
