@@ -14,14 +14,35 @@
 
   const DELAY = 30; // ms per character
 
-  for (const link of header.querySelectorAll('a')) {
+  function activateChars(link) {
+    const chars = link.querySelectorAll('.hc');
+    chars.forEach((ch, i) => {
+      setTimeout(() => ch.classList.add('hc-on'), i * DELAY);
+    });
+  }
+
+  function deactivateChars(link) {
+    const chars = link.querySelectorAll('.hc');
+    chars.forEach((ch, i) => {
+      setTimeout(() => ch.classList.remove('hc-on'), i * DELAY);
+    });
+  }
+
+  for (const link of header.querySelectorAll('.site-header-nav a')) {
     const text = link.textContent;
-    // Lock width to normal-font size before splitting chars
     link.style.width = link.getBoundingClientRect().width + 'px';
     link.innerHTML = text
       .split('')
       .map((ch) => `<span class="hc">${ch === ' ' ? '\u00a0' : ch}</span>`)
       .join('');
+
+    // Mark nav links as active if href matches current page
+    if (link.closest('.site-header-nav')) {
+      const linkPath = new URL(link.href, location.href).pathname;
+      if (linkPath === location.pathname) {
+        link.classList.add('active');
+      }
+    }
 
     let timers = [];
 
@@ -37,11 +58,20 @@
     link.addEventListener('mouseleave', () => {
       timers.forEach(clearTimeout);
       timers = [];
+      // If active, remove active and revert
+      if (link.classList.contains('active')) {
+        link.classList.remove('active');
+      }
       const chars = link.querySelectorAll('.hc');
       chars.forEach((ch, i) => {
         timers.push(setTimeout(() => ch.classList.remove('hc-on'), i * DELAY));
       });
     });
+  }
+
+  // Instantly set active links to mono (animation already happened before the click)
+  for (const link of header.querySelectorAll('a.active')) {
+    link.querySelectorAll('.hc').forEach((ch) => ch.classList.add('hc-on'));
   }
 
   const headerHeight = parseFloat(getComputedStyle(header).height) || 0;
