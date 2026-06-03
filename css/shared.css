@@ -1,5 +1,5 @@
 :root {
-  --body-size: 1.5rem;
+  --body-size: 1.6rem;
   --body-line-height: 1.3125;
   --baseline: calc(var(--body-size) * var(--body-line-height));
   --code-size: calc(var(--body-size) * 0.93);

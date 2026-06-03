@@ -31,7 +31,7 @@
     <div class="title-layout">
       <div class="img-wrap title-typography">
         <!-- <img class="" src="../assets/svg/title_layout.svg" alt="What You Say Is What You Get?" srcset=""> -->
-         <p>What You Say Is What You Get?</p>
+        <p>What You Say Is What You Get?</p>
       </div>
       <div class="title-text">
         <div class="title-text-inner">
@@ -189,7 +189,7 @@
 
     <p>In an essay, design critic Michael Rock reminisces about his studies in the &ldquo;pre-Macintosh era&rdquo;: &ldquo;I would type characters on a luminous green monitor, using an entirely abstract string of coordinates similar to HTML markup, and a cup-of-coffee later the beige box would spit out a roll of paper that may, or may not, resemble the design I had envisioned. Once again the technology distanced the creative process, made it architectural. But at the time we saw this as a vast improvement over the system wherein we would literally mark-up manuscript, coding sentences and paragraphs with red pencil notations, and send them off to a professional typesetter charged with rendering our ideas in type. We were re-claiming the means of production.&rdquo;<sup><a href="#ftnt16" id="ftnt_ref">16</a></sup> With WYSIWYG, technology distanced the design process from its hands-on origins, but it also brought autonomy to designers. I speculate a similar revolution might happen through designers being able to build their own tools using large language models.</p>
     <h3 id="h.4ub23aqholw0">Creative Coding Cambrian Explosion</h3>
-    <p class="subtle-heading">Creative Coding</p>
+    <p class="subtle-heading hide-on-web">Creative Coding</p>
     <p>Creative coding as a discipline is only loosely defined. Wikipedia contributors have put it as &ldquo;a type of computer programming in which the goal is to create something expressive instead of something functional,&rdquo;<sup><a href="#ftnt17" id="ftnt_ref">17</a></sup> followed by a long list of disciplines and technologies it can be applied to, including design. I would argue that graphic design is functional, with the goal of communication. Another definition is to be found on the website of creative coding educator Tim Rodenbr&ouml;ker: &ldquo;(Creative Coding) is a process, based on exploration, iteration, reflection and discovery, where code is used as the primary medium to create a wide range of media artifacts.&rdquo;<sup><a href="#ftnt18" id="ftnt_ref">18</a></sup> His definition was borrowed from the dissertation of creative coder Stig M&oslash;ller Hansen, who in turn took it from a paper on the Processing coding tool published in 2013. The original definition by C. Mitchell and Brown goes as follows: &ldquo;[Creative coding is] a discovery-based process consisting of exploration, iteration, and reflection, using code as a primary medium, towards a media artefact designed for an artistic context.&rdquo;<sup><a href="#ftnt19" id="ftnt_ref">19</a></sup> The later omitted focus on the artistic context is an important distinction, which alludes to the experimental rather than functional nature of the discipline. </p>
     <p class="subtle-heading">1996: Flash</p>
     <p>Adobe Flash, originally released as Macromedia Flash, democratized sharing interactive creative experiments on the internet. It combined a drawing, animation and scripting interface. This enables artists to experiment with code while getting real time visual feedback. Unifying artistic and technical needs with easy to share outcomes allowed for a rapid expansion of playful creative content on the web.</p>
@@ -228,7 +228,8 @@
 
     <h2 id="h.otzyuqwujc20">A Controversial Technology</h2>
     <p>The developments surrounding artificial intelligence are subject to great debate, especially within creative disciplines. Generative models can replicate styles of living artists and have inherent issues with bias around race and gender. They generate images and videos that have a low-effort, &ldquo;slop&rdquo; aesthetic, which are being used to spread fake news and propaganda. The list goes on. </p>
-    <figure class="img-wrap ext"><img alt="" src="../assets/images/image13.png" title="" fetchpriority="low" loading="lazy">
+    <figure class="img-wrap ext"><img alt="" src="../assets/images/image13.png" title="" fetchpriority="low"
+        loading="lazy">
       <figcaption><i>Euler diagram illustrating the specific use case of AI for creating custom design tools.</i>
         Diagram
         created by the author.</figcaption>
@@ -765,6 +766,11 @@
   </div>
   <script src="../src/thesis/toc.js"></script>
   <script src="../src/thesis/page-footnotes.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.applyMechanicalRagging) window.applyMechanicalRagging();
+    });
+  </script>
 </body>
 
 </html>
