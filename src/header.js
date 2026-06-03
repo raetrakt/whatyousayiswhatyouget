@@ -1,6 +1,6 @@
 (function () {
   const header = document.createElement('header');
-  header.className = 'site-header';
+  header.className = 'site-header hide-in-print';
   header.innerHTML = `
     <a href="/">What You Say Is What You Get?</a>
     <nav class="site-header-nav">

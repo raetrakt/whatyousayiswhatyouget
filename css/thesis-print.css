@@ -1,3 +1,24 @@
+:root {
+  --body-size: 12pt;
+  --notes-size: 9px;
+
+  /* Print layout dimensions — mirrored from @page rules so JS can read them
+     via getComputedStyle before Paged.js removes the original stylesheets. */
+  --page-width: 210mm;
+  --page-height: 297mm;
+  --page-margin-top: 8mm;
+  --page-margin-right: 8mm;
+  --page-margin-left: 8mm;
+  --page-margin-bottom: 70mm;
+  --column-count: 2;
+  --column-gap: 8mm;
+}
+
+*  {
+  overflow: visible !important;
+}
+
+
 @page {
   size: A4;
   margin-top: 8mm;
@@ -6,11 +27,11 @@
   margin-bottom: 70mm;
 }
 
-@page :left {
-  .pagedjs_margin-bottom::after {
-    display: none;
+  @page :left {
+    .pagedjs_margin-bottom::after {
+      display: none;
+    }
   }
-}
 
 @page title {
   margin-bottom: 8mm;
@@ -27,19 +48,6 @@
 }
 
 @media print {
-  :root {
-    --body-size: 12pt;
-    --notes-size: 9px;
-    --page-width: 210mm;
-    --page-height: 297mm;
-    --page-margin-top: 8mm;
-    --page-margin-right: 8mm;
-    --page-margin-left: 8mm;
-    --page-margin-bottom: 70mm;
-    --column-count: 2;
-    --column-gap: 8mm;
-  }
-
   .title-layout {
     page: title;
     /* counter-reset: footnote; */
@@ -53,8 +61,7 @@
     line-height: 0;
   }
 
-  :root .title-text p,
-  :root .title-text a {
+  :root .title-text p,   :root .title-text a {
     font-family: 'True Sans Mono', monospace;
     font-size: var(--notes-size);
     line-height: var(--notes-line-height);

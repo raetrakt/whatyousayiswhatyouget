@@ -55,8 +55,7 @@ figcaption i {
 figcaption,
 figcaption *,
 .footnotes p,
-.footnotes p *,
-.notes {
+.footnotes p * {
   font-family: 'True Sans Mono', monospace;
   font-size: var(--notes-size);
   line-height: var(--notes-line-height);
@@ -123,7 +122,7 @@ figcaption,
     padding: 10px;
     display: grid;
     grid-template-columns: repeat(var(--grid-cols), minmax(0, 1fr));
-    overflow: hidden;
+    /* overflow: hidden; */
     column-gap: var(--grid-gap);
   }
 
