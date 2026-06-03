@@ -17,14 +17,12 @@ h1 {
   margin-bottom: var(--baseline);
 }
 
-h1,
-h1:not(h1:first-of-type) {
+h1 {
   margin-top: calc(var(--baseline) * 3);
 }
 
-h2,
-h2:not(h2:first-of-type) {
-  margin-top: calc(var(--baseline) * 2);
+h2:nth-of-type(n + 2) {
+  margin-top: calc(var(--baseline));
 }
 
 :root .research-questions {
@@ -199,7 +197,6 @@ figure {
 }
 
 .img-wrap.title-typography {
-  margin-top: var(--baseline);
   margin-bottom: var(--baseline);
 }
 
@@ -217,7 +214,7 @@ figure {
     overflow: visible;
     align-self: start;
   }
-  
+
   figure.ext:nth-child(odd of .ext) {
     grid-column: 6 / 8;
   }
