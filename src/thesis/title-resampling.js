@@ -18,7 +18,7 @@ let markerFrameIndex = 0;
 const PARAMS = {
   fontSize: null,
   leading: 0.6,
-  margin: 25,
+  margin: 12,
   tracking: -3,
   width: 300,
   height: 300,
@@ -26,7 +26,7 @@ const PARAMS = {
   spacing: 10,
   marker: MARKER_CYCLE,
   markerSize: 15,
-  markerColor: '#ff3d3d',
+  markerColor: '#ff4c4c',
   strokeColor: '#4d79fe',
   strokeWidth: 5,
   bgColor: '#ffffff',
