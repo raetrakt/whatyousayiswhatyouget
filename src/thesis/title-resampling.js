@@ -11,8 +11,8 @@ let cssH = 0;
 let font = null;
 let svgImage = null;
 
-// const MARKER_CYCLE = ['W', 'Y', 'S', 'I', 'W', 'Y', 'G', '?'];
 const MARKER_CYCLE = ['W', 'Y', 'S', 'I', 'W', 'Y', 'G', '?'];
+
 let markerFrameIndex = 0;
 
 const PARAMS = {
@@ -34,7 +34,7 @@ const PARAMS = {
   relaxSpeed: 8,
   period: 6,
   cursorRadius: 650,
-  cursorScale: 3,
+  cursorScale: 2.5,
   cursorRotation: 360,
   cursorAmplitude: 1,
   cursorRepeat: false,
