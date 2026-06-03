@@ -11,7 +11,7 @@ let cssH = 0;
 let font = null;
 let svgImage = null;
 
-const MARKER_CYCLE = ['W', 'Y', 'S', 'I', 'W', 'Y', 'G', '?'];
+const MARKER_CYCLE = ['W', 'Y', 'S', 'I', 'W', 'Y', 'G'];
 
 let markerFrameIndex = 0;
 
