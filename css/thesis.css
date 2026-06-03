@@ -11,7 +11,7 @@ p {
   overflow: visible !important;
 }
 
-p:not(.table-of-contents p, p.code, .subtle-heading, .page-footnotes p),
+p:not(.title-text-inner p, .table-of-contents p, p.code, .subtle-heading, .page-footnotes p),
 h1,
 h2,
 h3 {
@@ -132,15 +132,14 @@ figcaption,
     column-gap: var(--grid-gap);
   }
 
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6,
-  p,
-  div {
-    grid-column: 1 / -1;
+  .title-text-inner {
+    display: flex;
+  }
+
+  .title-text p {
+    font-family: 'True Sans Mono', monospace;
+    font-size: var(--notes-size);
+    line-height: var(--notes-line-height);
   }
 
   .hide-on-web {
@@ -179,6 +178,23 @@ figcaption,
 
   figure.ext {
     grid-column: var(--ext-col-start) / var(--ext-col-end);
+  }
+
+  .title-mono.left {
+    margin-right: auto;
+  }
+
+  .title-mono.right:last-child {
+    margin-left: 20px;
+  }
+
+  .img-wrap.title-typography {
+    margin-top: var(--baseline);
+    margin-bottom: var(--baseline);
+  }
+
+  .title-text {
+    margin-bottom: var(--baseline);
   }
 
   @media (min-width: 1900px) {
