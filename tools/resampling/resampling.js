@@ -458,7 +458,7 @@ export function render(
       if (influence > 0) {
         // scale is relative to maxMarkerSize (the bitmap's full size)
         const scale = baseScale + (1 - baseScale) * influence;
-        const rot = maxRotRad * influence;
+        const rot = maxRotRad * influence / (0.5 + cursorAmplitude);
         const cr = Math.cos(rot) * scale;
         const sr = Math.sin(rot) * scale;
         ctx.transform(cr, sr, -sr, cr, x, y);
