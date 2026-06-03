@@ -7,12 +7,10 @@
   --notes-line-height: calc(10/9);
   --notes-baseline: calc(var(--notes-size) * var(--notes-line-height));
   --site-header-height: 40px;
-  --grid-cols: 4;
+  --grid-cols: 1;
   --grid-gap: var(--baseline);
   --content-col-start: 1;
   --content-col-end: -1;
-  --ext-col-start: 1;
-  --ext-col-end: -1;
 }
 
 @font-face {
@@ -129,11 +127,9 @@ table {
 
 @media (min-width: 900px) {
   :root {
-    --grid-cols: 6;
+    --grid-cols: 5;
     --content-col-start: 2;
-    --content-col-end: 6;
-    --ext-col-start: 6;
-    --ext-col-end: 7;
+    --content-col-end: 5;
   }
   .site-header {
     display: grid;
@@ -156,11 +152,9 @@ table {
 
 @media (min-width: 1400px) {
   :root {
-    --grid-cols: 8;
+    --grid-cols: 7;
     --content-col-start: 3;
-    --content-col-end: 7;
-    --ext-col-start: 7;
-    --ext-col-end: 9;
+    --content-col-end: 6;
   }
   .page-grid > * {
     grid-column: 3 / 7;
@@ -172,8 +166,6 @@ table {
     --grid-cols: 9;
     --content-col-start: 4;
     --content-col-end: 7;
-    --ext-col-start: 7;
-    --ext-col-end: 10;
   }
   .page-grid > * {
     grid-column: 4 / 7;

@@ -190,23 +190,6 @@ figure {
   grid-column: var(--content-col-start) / var(--content-col-end);
 }
 
-figure.ext:nth-child(odd of .ext) {
-  grid-column: 7 / 9;
-}
-
-figure.ext:nth-child(even of .ext) {
-  grid-column: 2 / 4;
-}
-
-@media screen and (min-width: 900px) {
-  figure.ext {
-    height: 0;
-    margin-bottom: 0;
-    overflow: visible;
-    align-self: start;
-  }
-}
-
 .title-mono.left {
   margin-right: auto;
 }
@@ -224,9 +207,33 @@ figure.ext:nth-child(even of .ext) {
   margin-bottom: var(--baseline);
 }
 
-@media (min-width: 1900px) {
+@media screen and (min-width: 900px) {
+}
+
+@media screen and (min-width: 1400px) {
   figure.ext {
-    grid-column: var(--ext-col-start) / calc(var(--ext-col-end) - 1);
+    height: 0;
+    margin-bottom: 0;
+    overflow: visible;
+    align-self: start;
+  }
+  
+  figure.ext:nth-child(odd of .ext) {
+    grid-column: 6 / 8;
+  }
+
+  figure.ext:nth-child(even of .ext) {
+    grid-column: 1 / 3;
+  }
+}
+
+@media screen and (min-width: 1900px) {
+  figure.ext:nth-child(odd of .ext) {
+    grid-column: 7 / 9;
+  }
+
+  figure.ext:nth-child(even of .ext) {
+    grid-column: 2 / 4;
   }
 }
 
