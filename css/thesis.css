@@ -17,12 +17,14 @@ h1 {
   margin-bottom: var(--baseline);
 }
 
-h1, h1:not(h1:first-of-type) {
-  margin-top: calc(var(--baseline) * 3)
+h1,
+h1:not(h1:first-of-type) {
+  margin-top: calc(var(--baseline) * 3);
 }
 
-h2, h2:not(h2:first-of-type) {
-  margin-top: calc(var(--baseline) * 2)
+h2,
+h2:not(h2:first-of-type) {
+  margin-top: calc(var(--baseline) * 2);
 }
 
 :root .research-questions {
@@ -188,6 +190,15 @@ figure.ext {
   grid-column: var(--ext-col-start) / var(--ext-col-end);
 }
 
+@media screen and (min-width: 900px) {
+  figure.ext {
+    height: 0;
+    margin-bottom: 0;
+    overflow: visible;
+    align-self: start;
+  }
+}
+
 .title-mono.left {
   margin-right: auto;
 }
@@ -211,7 +222,6 @@ figure.ext {
   }
 }
 
-
 .code-block {
-    margin-bottom: var(--baseline);
+  margin-bottom: var(--baseline);
 }
