@@ -75,35 +75,22 @@ body::-webkit-scrollbar {
 .site-header a {
   color: #000;
   text-decoration: none;
-  position: relative;
+  white-space: nowrap;
+  line-height: 1;
   display: inline-block;
-  align-items: center;
-  white-space: nowrap;
-  line-height: 1;
-  overflow: visible;
 }
 
-.site-header a::after {
-  content: attr(data-label);
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  opacity: 0;
-  pointer-events: none;
-  white-space: nowrap;
-  color: inherit;
+.hc {
+  display: inline;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: var(--body-size);
+  line-height: 1;
+}
+
+.hc.hc-on {
   font-family: 'True Sans Mono', monospace;
-  font-size: 24px;
-  line-height: 1;
-}
-
-.site-header a:hover::after {
-  opacity: 1;
-}
-
-.site-header a:hover > span {
-  opacity: 0;
+  font-size: var(--code-size);
+  line-height: .9;
 }
 
 .site-header-nav {
