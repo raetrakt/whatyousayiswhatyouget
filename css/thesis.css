@@ -17,6 +17,18 @@ h1 {
   margin-bottom: var(--baseline);
 }
 
+h1, h1:not(h1:first-of-type) {
+  margin-top: calc(var(--baseline) * 3)
+}
+
+h2, h2:not(h2:first-of-type) {
+  margin-top: calc(var(--baseline) * 2)
+}
+
+:root .research-questions {
+  margin-top: unset;
+}
+
 .table-of-contents {
   grid-column: 1 / 2;
   position: fixed;
