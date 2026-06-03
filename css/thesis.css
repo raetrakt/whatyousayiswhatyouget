@@ -198,3 +198,8 @@ figure.ext {
     grid-column: var(--ext-col-start) / calc(var(--ext-col-end) - 1);
   }
 }
+
+
+.code-block {
+    margin-bottom: var(--baseline);
+}
