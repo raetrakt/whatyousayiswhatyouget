@@ -40,6 +40,10 @@ h2:not(h2:first-of-type) {
   content: '→ ';
 }
 
+.table-of-contents a.active {
+  color: #f52121;
+}
+
 a {
   color: black;
   text-decoration: none;

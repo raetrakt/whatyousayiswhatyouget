@@ -22,12 +22,14 @@ const buildToc = () => {
     const p = document.createElement('p');
     const level = parseInt(heading.tagName.substring(1), 10);
     if (level == 3 || level === 4 || level === 5) p.classList.add('low-level-heading');
-    const indent = '\u00A0'.repeat(indentLevel*2);
+    const indent = '\u00A0'.repeat(indentLevel * 2);
     p.textContent = indent;
 
     const a = document.createElement('a');
     a.href = heading.id ? `#${heading.id}` : '#';
-    a.textContent = number ? `${number} ${heading.textContent.trim()}` : `${heading.textContent.trim()}`;
+    a.textContent = number
+      ? `${number} ${heading.textContent.trim()}`
+      : `${heading.textContent.trim()}`;
     p.appendChild(a);
     contents.appendChild(p);
   };
@@ -64,8 +66,47 @@ const buildToc = () => {
   contents.dataset.tocBuilt = 'true';
 };
 
+const setupTocHighlight = () => {
+  const contents = document.querySelector('.table-of-contents');
+  if (!contents) return;
+
+  const headings = Array.from(
+    document.querySelectorAll(
+      '.thesis-layout h1:not(.hide-in-toc, .hide-on-web), .thesis-layout h2, .thesis-layout h3, .thesis-layout h4, .thesis-layout h5, .thesis-layout h6',
+    ),
+  );
+
+  const getActiveHeading = () => {
+    let active = headings[0];
+    for (const heading of headings) {
+      if (heading.getBoundingClientRect().top <= 150) {
+        active = heading;
+      } else {
+        break;
+      }
+    }
+    return active;
+  };
+
+  const updateActive = () => {
+    const active = getActiveHeading();
+    contents.querySelectorAll('a').forEach((a) => a.classList.remove('active'));
+    if (active) {
+      const link = contents.querySelector(`a[href="#${active.id}"]`);
+      if (link) link.classList.add('active');
+    }
+  };
+
+  window.addEventListener('scroll', updateActive, { passive: true });
+  updateActive();
+};
+
 buildToc();
-document.addEventListener('DOMContentLoaded', buildToc);
+setupTocHighlight();
+document.addEventListener('DOMContentLoaded', () => {
+  buildToc();
+  setupTocHighlight();
+});
 document.addEventListener('afterprint', buildToc);
 if (window.Paged) {
   document.addEventListener('pagedjs:rendered', buildToc);

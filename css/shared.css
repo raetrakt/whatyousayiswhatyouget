@@ -36,6 +36,8 @@ html,
 body {
   height: 100%;
   scrollbar-width: none;
+  /* scrollbar-gutter: stable; */
+  /* overflow-y: overlay; */
 }
 
 html {
@@ -80,15 +82,23 @@ body::-webkit-scrollbar {
   display: inline-block;
 }
 
-.site-header a:hover,
+/* .site-header a:hover,
 .site-header a:focus {
   font-family: 'True Sans Mono', monospace;
   outline: none;
+} */
+
+.hc {
+  display: inline;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: var(--body-size);
+  line-height: 1;
 }
-
-.hc { display: inline; font-family: 'Times New Roman', Times, serif; font-size: var(--body-size); line-height: 1; }
-.hc.hc-on { font-family: 'True Sans Mono', monospace; font-size: var(--code-size); line-height: .9; }
-
+.hc.hc-on {
+  font-family: 'True Sans Mono', monospace;
+  font-size: var(--code-size);
+  line-height: 0.9;
+}
 
 .site-header-nav {
   display: flex;
