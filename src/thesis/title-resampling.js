@@ -27,7 +27,7 @@ const PARAMS = {
   marker: MARKER_CYCLE,
   markerSize: 15,
   markerColor: '#ff4c4c',
-  strokeColor: '#3366ff',
+  strokeColor: '#f52121',
   strokeWidth: 5,
   bgColor: '#ffffff',
   relax: false,

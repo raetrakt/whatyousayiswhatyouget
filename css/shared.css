@@ -6,6 +6,7 @@
   --notes-size: 0.8rem;
   --notes-line-height: calc(10/9);
   --notes-baseline: calc(var(--notes-size) * var(--notes-line-height));
+  --site-header-height: 40px;
   --grid-cols: 4;
   --grid-gap: 20px;
   --content-col-start: 1;
@@ -37,6 +38,10 @@ body {
   scrollbar-width: none;
 }
 
+html {
+  scroll-padding-top: calc(var(--site-header-height) + 8px);
+}
+
 html::-webkit-scrollbar,
 body::-webkit-scrollbar {
   display: none;
@@ -47,7 +52,7 @@ body::-webkit-scrollbar {
   top: 0;
   left: 0;
   right: 0;
-  height: 40px;
+  height: var(--site-header-height);
   background: #fff;
   border-bottom: 1px solid #000;
   display: flex;

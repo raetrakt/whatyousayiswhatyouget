@@ -19,6 +19,15 @@ h3 {
   margin-bottom: var(--baseline);
 }
 
+.table-of-contents {
+  grid-column: 1 / 2;
+  position: fixed;
+}
+
+.table-of-contents a:hover::before {
+content: "→ ";
+}
+
 a {
   color: black;
   text-decoration: none;
@@ -38,11 +47,6 @@ sub {
   top: -0.4em;
 }
 
-sup a {
-  font-family: 'True Sans Mono', monospace;
-  font-size: var(--notes-size);
-}
-
 figure {
   width: 100%;
   max-width: 100%;
@@ -56,7 +60,9 @@ figcaption,
 figcaption *,
 .footnotes p,
 .footnotes p *,
-.notes {
+sup a,
+.table-of-contents p,
+.table-of-contents p a {
   font-family: 'True Sans Mono', monospace;
   font-size: var(--notes-size);
   line-height: var(--notes-line-height);
@@ -118,83 +124,81 @@ figcaption,
   margin-bottom: 0;
 }
 
-@media screen {
-  .thesis-layout {
-    padding: 10px;
-    display: grid;
-    grid-template-columns: repeat(var(--grid-cols), minmax(0, 1fr));
-    overflow: hidden;
-    column-gap: var(--grid-gap);
-  }
+.thesis-layout {
+  padding: 10px;
+  display: grid;
+  grid-template-columns: repeat(var(--grid-cols), minmax(0, 1fr));
+  overflow: hidden;
+  column-gap: var(--grid-gap);
+}
 
-  .title-text-inner {
-    display: flex;
-  }
+.title-text-inner {
+  display: flex;
+}
 
-  .title-text p {
-    font-family: 'True Sans Mono', monospace;
-    font-size: var(--notes-size);
-    line-height: var(--notes-line-height);
-  }
+.title-text p {
+  font-family: 'True Sans Mono', monospace;
+  font-size: var(--notes-size);
+  line-height: var(--notes-line-height);
+}
 
-  .hide-on-web {
-    display: none;
-  }
+.hide-on-web {
+  display: none;
+}
 
-  .web-index {
-    position: fixed;
-    width: calc(100% / 7 * 2);
-    z-index: 20;
-    display: none;
-  }
+.web-index {
+  position: fixed;
+  width: calc(100% / 7 * 2);
+  z-index: 20;
+  display: none;
+}
 
-  .page-footnotes-active .pagedjs_margin-bottom .page-footnotes-host {
-    align-self: flex-start;
-  }
+.page-footnotes-active .pagedjs_margin-bottom .page-footnotes-host {
+  align-self: flex-start;
+}
 
-  figure.ext figcaption {
-    margin-bottom: 0;
-  }
+figure.ext figcaption {
+  margin-bottom: 0;
+}
 
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6,
-  p,
-  div {
-    grid-column: var(--content-col-start) / var(--content-col-end);
-  }
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+div {
+  grid-column: var(--content-col-start) / var(--content-col-end);
+}
 
-  figure {
-    grid-column: var(--content-col-start) / var(--content-col-end);
-  }
+figure {
+  grid-column: var(--content-col-start) / var(--content-col-end);
+}
 
+figure.ext {
+  grid-column: var(--ext-col-start) / var(--ext-col-end);
+}
+
+.title-mono.left {
+  margin-right: auto;
+}
+
+.title-mono.right {
+  margin-left: var(--baseline);
+}
+
+.img-wrap.title-typography {
+  margin-top: var(--baseline);
+  margin-bottom: var(--baseline);
+}
+
+.title-text {
+  margin-bottom: var(--baseline);
+}
+
+@media (min-width: 1900px) {
   figure.ext {
-    grid-column: var(--ext-col-start) / var(--ext-col-end);
-  }
-
-  .title-mono.left {
-    margin-right: auto;
-  }
-
-  .title-mono.right:last-child {
-    margin-left: 20px;
-  }
-
-  .img-wrap.title-typography {
-    margin-top: var(--baseline);
-    margin-bottom: var(--baseline);
-  }
-
-  .title-text {
-    margin-bottom: var(--baseline);
-  }
-
-  @media (min-width: 1900px) {
-    figure.ext {
-      grid-column: var(--ext-col-start) / calc(var(--ext-col-end) - 1);
-    }
+    grid-column: var(--ext-col-start) / calc(var(--ext-col-end) - 1);
   }
 }
