@@ -12,9 +12,7 @@ p {
 }
 
 p:not(.title-text-inner p, .table-of-contents p, p.code, .subtle-heading, .page-footnotes p),
-h1,
-h2,
-h3 {
+h1 {
   line-height: var(--body-line-height);
   margin-bottom: var(--baseline);
 }
@@ -25,7 +23,7 @@ h3 {
 }
 
 .table-of-contents a:hover::before {
-content: "→ ";
+  content: '→ ';
 }
 
 a {
@@ -45,11 +43,6 @@ sub {
   vertical-align: baseline;
   position: relative;
   top: -0.4em;
-}
-
-figure {
-  width: 100%;
-  max-width: 100%;
 }
 
 figcaption i {
@@ -173,6 +166,9 @@ div {
 }
 
 figure {
+  width: 100%;
+  max-width: 100%;
+  margin-bottom: var(--baseline);
   grid-column: var(--content-col-start) / var(--content-col-end);
 }
 
