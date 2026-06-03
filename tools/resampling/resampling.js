@@ -29,11 +29,13 @@ export const defaults = {
   cursorRepeat: false, // true = cosine repeats (ring at midpoint), false = smooth fade to 0
   cursorAmplitude: 0.5, // cosine amplitude (0 = flat 0.5 influence, 0.5 = full 0–1 swing)
   cursorMode: true, // enable cursor interaction (false = static everywhere)
+  cursorDelay: 0.08, // lerp factor per frame (0 = frozen, 1 = instant)
 };
 
 // ─── Cursor tracking ─────────────────────────────────────────────────────────
 
 let _cursor = { x: -9999, y: -9999 };
+let _smoothCursor = { x: -9999, y: -9999 };
 
 export function setCursor(x, y) {
   _cursor.x = x;
@@ -390,6 +392,7 @@ export function render(
   const cursorRepeat = params.cursorRepeat ?? defaults.cursorRepeat;
   const cursorAmplitude = params.cursorAmplitude ?? defaults.cursorAmplitude;
   const cursorMode = params.cursorMode ?? defaults.cursorMode;
+  const cursorDelay = params.cursorDelay ?? defaults.cursorDelay;
 
   _setupCursorListener(canvas);
 
@@ -437,6 +440,15 @@ export function render(
     ctx.fillStyle = bgColor;
     ctx.fillRect(0, 0, cssW, cssH);
 
+    // Smooth the cursor position toward the real cursor
+    if (_cursor.x < -999) {
+      _smoothCursor.x = _cursor.x;
+      _smoothCursor.y = _cursor.y;
+    } else {
+      _smoothCursor.x += (_cursor.x - _smoothCursor.x) * cursorDelay;
+      _smoothCursor.y += (_cursor.y - _smoothCursor.y) * cursorDelay;
+    }
+
     const maxRotRad = (cursorRotation * Math.PI) / 180;
     const base = ctx.getTransform();
 
@@ -446,8 +458,8 @@ export function render(
       const markerBitmap = markerBitmapData.bitmap;
       let influence = 0;
       if (cursorMode && cursorRadius > 0) {
-        const dx = x - _cursor.x,
-          dy = y - _cursor.y;
+        const dx = x - _smoothCursor.x,
+          dy = y - _smoothCursor.y;
         const d = Math.sqrt(dx * dx + dy * dy);
         if (cursorRepeat || d < cursorRadius) {
           const norm = d / cursorRadius;
@@ -458,7 +470,7 @@ export function render(
       if (influence > 0) {
         // scale is relative to maxMarkerSize (the bitmap's full size)
         const scale = baseScale + (1 - baseScale) * influence;
-        const rot = maxRotRad * influence / (0.5 + cursorAmplitude);
+        const rot = (maxRotRad * influence) / (0.5 + cursorAmplitude);
         const cr = Math.cos(rot) * scale;
         const sr = Math.sin(rot) * scale;
         ctx.transform(cr, sr, -sr, cr, x, y);
@@ -618,6 +630,7 @@ export function getParamLines(fmtVal) {
     `  cursorAmplitude: ${fmtVal(defaults.cursorAmplitude)}, // cosine amplitude (0 = flat, 0.5 = full 0–1 swing)`,
     `  cursorRepeat: ${fmtVal(defaults.cursorRepeat)}, // true = ring at midpoint, false = smooth fade`,
     `  cursorMode: ${fmtVal(defaults.cursorMode)}, // enable cursor interaction (false = static everywhere)`,
+  `  cursorDelay: ${fmtVal(defaults.cursorDelay)}, // lerp factor per frame (0 = frozen, 1 = instant)`,
   ];
 }
 
@@ -640,5 +653,6 @@ export function normalizeParams(p) {
     cursorRepeat: p.cursorRepeat ?? defaults.cursorRepeat,
     cursorAmplitude: p.cursorAmplitude ?? defaults.cursorAmplitude,
     cursorMode: p.cursorMode ?? defaults.cursorMode,
+    cursorDelay: p.cursorDelay ?? defaults.cursorDelay,
   };
 }

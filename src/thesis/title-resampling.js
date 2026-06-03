@@ -27,7 +27,7 @@ const PARAMS = {
   marker: MARKER_CYCLE,
   markerSize: 15,
   markerColor: '#ff4c4c',
-  strokeColor: '#4d79fe',
+  strokeColor: '#3366ff',
   strokeWidth: 5,
   bgColor: '#ffffff',
   relax: false,
@@ -35,10 +35,11 @@ const PARAMS = {
   period: 6,
   cursorRadius: 650,
   cursorScale: 2.5,
-  cursorRotation: 360,
+  cursorRotation: 720,
   cursorAmplitude: 1,
   cursorRepeat: false,
   cursorMode: true,
+  cursorDelay: 0.08,
 };
 
 function buildMaskCanvas() {
