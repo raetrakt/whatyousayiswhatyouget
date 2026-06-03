@@ -4,7 +4,7 @@
   header.innerHTML = `
     <a href="/">What You Say Is What You Get?</a>
     <nav class="site-header-nav">
-      <a href="/">Dictionary</a>
+      <a href="/dictionary/">Dictionary</a>
       <a href="/tools/">Tools</a>
       <a href="/manifesto/">Manifesto</a>
       <a href="/thesis/">Thesis</a>
@@ -28,7 +28,7 @@
     });
   }
 
-  for (const link of header.querySelectorAll('.site-header-nav a')) {
+  for (const link of header.querySelectorAll('.site-header a')) {
     const text = link.textContent;
     link.style.width = link.getBoundingClientRect().width + 'px';
     link.innerHTML = text
