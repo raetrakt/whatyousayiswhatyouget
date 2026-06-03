@@ -24,8 +24,11 @@
   <script src="/src/header.js"></script>
   <div class="thesis-layout mechanical-ragger-target">
     <div class="title-layout">
+
       <div class="img-wrap title-typography">
-        <img src="../assets/svg/title_layout.svg" alt="What You Say Is What You Get?" srcset="">
+        <img class="hide-on-web" src="../assets/svg/title_layout.svg" alt="What You Say Is What You Get?" srcset="">
+        <canvas class="hide-in-print" id="title-resampling-canvas"
+          style="width:100%;aspect-ratio:1/1;display:block;"></canvas>
       </div>
       <div class="title-text">
         <div class="title-text-inner">
@@ -41,8 +44,8 @@
         </div>
       </div>
     </div>
-    <h1 id="h.chs2jpo49hwp" class="chapter">What You Say Is What You Get?</h1>
-    <p>Towards a deliberate use of large language models for custom graphic design tools</p>
+    <h1 id="h.chs2jpo49hwp" class="chapter hide-on-web">What You Say Is What You Get?</h1>
+    <p class="hide-on-web">Towards a deliberate use of large language models for custom graphic design tools</p>
     <p>Fabian Pitzer<br>
     Master of Arts in Design<br>
     Visual Communication<br><br>
@@ -757,6 +760,7 @@
   </div>
   <script src="../src/thesis/toc.js"></script>
   <script src="../src/thesis/page-footnotes.js"></script>
+  <script type="module" src="../src/thesis/title-resampling.js"></script>
 </body>
 
 </html>
