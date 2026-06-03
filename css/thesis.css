@@ -186,8 +186,12 @@ figure {
   grid-column: var(--content-col-start) / var(--content-col-end);
 }
 
-figure.ext {
-  grid-column: var(--ext-col-start) / var(--ext-col-end);
+figure.ext:nth-child(odd of .ext) {
+  grid-column: 7 / 9;
+}
+
+figure.ext:nth-child(even of .ext) {
+  grid-column: 2 / 4;
 }
 
 @media screen and (min-width: 900px) {
