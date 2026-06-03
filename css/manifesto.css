@@ -31,5 +31,5 @@ body p:first-of-type {
 }
 
 body p:last-of-type {
-  padding-bottom: var(--baseline);
+  padding-bottom: calc(var(--baseline)*2);
 }
