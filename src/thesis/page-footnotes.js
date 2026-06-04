@@ -106,12 +106,45 @@
     pageElement.classList.add('page-footnotes-active');
   }
 
-  function applyPageFootnotes() {
-    const pages = document.querySelectorAll('.pagedjs_page');
-    if (!pages.length) return;
+  function insertInlineFootnotes(footnoteIndex) {
+    document.querySelectorAll('sup a[href^="#ftnt"]').forEach((anchor) => {
+      if (anchor.dataset.footnoteInserted) return;
+      anchor.dataset.footnoteInserted = '1';
 
+      const key = normalizeFootnoteKey(anchor.getAttribute('href'));
+      const footnote = footnoteIndex.get(key);
+      if (!footnote) return;
+
+      const parentP = anchor.closest('p');
+      if (!parentP) return;
+
+      const clone = footnote.cloneNode(true);
+      stripDuplicateIds(clone);
+
+      const inlineNote = document.createElement('div');
+      inlineNote.className = 'page-footnotes footnote-inline';
+      inlineNote.dataset.footnoteInline = key;
+      inlineNote.appendChild(clone);
+
+      // Insert after any already-inserted footnotes following this paragraph
+      let insertAfter = parentP;
+      while (
+        insertAfter.nextElementSibling &&
+        insertAfter.nextElementSibling.classList.contains('footnote-inline')
+      ) {
+        insertAfter = insertAfter.nextElementSibling;
+      }
+      insertAfter.after(inlineNote);
+    });
+  }
+
+  function applyPageFootnotes() {
     const footnoteIndex = getSourceFootnoteIndex();
-    pages.forEach((pageElement) => renderPageFootnotes(pageElement, footnoteIndex));
+    const pages = document.querySelectorAll('.pagedjs_page');
+    if (pages.length) {
+      pages.forEach((pageElement) => renderPageFootnotes(pageElement, footnoteIndex));
+    }
+    insertInlineFootnotes(footnoteIndex);
   }
 
   function scheduleApplyPageFootnotes() {
