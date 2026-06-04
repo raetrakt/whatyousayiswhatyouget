@@ -5,6 +5,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: './index.html',
+        dictionary: './dictionary/index.html',
         tools: './tools/index.html',
       },
     },

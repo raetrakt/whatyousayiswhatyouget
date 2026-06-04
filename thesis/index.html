@@ -9,6 +9,11 @@
   <link rel="stylesheet" href="../css/thesis.css">
   <link rel="stylesheet" href="../css/thesis-print.css">
 
+  <!-- Preload assets for the interactive title sketch -->
+  <link rel="preload" href="../assets/fonts/texgyretermes-regular.otf" as="fetch" crossorigin fetchpriority="high">
+  <link rel="preload" href="../assets/svg/title_layout.svg" as="fetch" crossorigin fetchpriority="high">
+  <script type="module" src="../src/thesis/title-resampling.js"></script>
+
   <!-- Register PagedConfig.before hooks before the polyfill starts -->
   <script src="../src/thesis/paged-baseline.js"></script>
   <script src="../src/thesis/nbsp-sentences.js"></script>
@@ -25,7 +30,8 @@
   <div class="thesis-layout mechanical-ragger-target">
     <div class="title-layout">
       <div class="img-wrap title-typography">
-        <img src="../assets/svg/title_layout.svg" alt="What You Say Is What You Get?" srcset="">
+        <!-- <img class="" src="../assets/svg/title_layout.svg" alt="What You Say Is What You Get?" srcset=""> -->
+        <p>What You Say Is What You Get?</p>
       </div>
       <div class="title-text">
         <div class="title-text-inner">
@@ -36,30 +42,27 @@
             <p>Master's Thesis<br>Fabian Pitzer</p>
           </div>
           <div class="title-mono right">
+            <p>Mentor<br>Urs Hofer</p>
+          </div>
+          <div class="title-mono right">
             <p>ZHdK<br>2026</p>
           </div>
         </div>
       </div>
     </div>
-    <h1 id="h.chs2jpo49hwp" class="chapter">What You Say Is What You Get?</h1>
-    <p>Towards a deliberate use of large language models for custom graphic design tools</p>
-    <p>Fabian Pitzer<br>
-    Master of Arts in Design<br>
-    Visual Communication<br><br>
-    Mentor<br>
-    Urs Hofer<br><br>
-    Zurich University of the Arts<br>
-    June 2026</p>
     <h2 id="h.71pedcp1tqjo">Abstract</h2>
     <p>Large language models generate code from natural language. The ability to describe visual processes with specificity becomes essential for creating graphics that are difficult to realize and even conceive within the constraints of conventional tools. At the same time, relying on a technology with uncertain and far-reaching implications calls for critical evaluation of its contribution to design. The thesis examines the role of computation in communicating ideas visually and offers a tool for graphic designers to use language-driven interfaces more deliberately.</p>
+    <h1 id="h.chs2jpo49hwp" class="chapter hide-on-web hide-in-toc">What You Say Is What You Get?</h1>
+    <p class="hide-on-web">Towards a deliberate use of large language models for custom graphic design tools</p>
     <div class="table-of-contents" aria-label="Table of contents">
       <!-- Table of contents will be generated dynamically by ../js/toc.js -->
     </div>
+    <h1 id="h.648klkm4ary" class="hide-in-print">Introduction</h1>
     <div class="title-layout chapter-separator">
       <div class="img-wrap title-typography">
-        <img src="../assets/images/intro_image.png" alt="What You Say Is What You Get?" srcset="">
+        <img src="../assets/images/intro_image.png" alt="What You Say Is What You Get?" srcset="" fetchpriority="low">
       </div>
-      <div class="title-text">
+      <div class="title-text hide-on-web">
         <div class="title-text-inner">
           <div class="title-mono left">
             <p>Introduction</p>
@@ -70,14 +73,11 @@
         </div>
       </div>
     </div>
-    <h1 id="h.648klkm4ary" class="hide-in-print">Introduction</h1>
     <h2 id="h.w2a5or1griu2" class="research-questions">Research Questions</h2>
-    <p class="research-questions">Primary research question:<br>
-    How can graphic designers engage with LLM-based tool building deliberately?</p>
+    <p class="hide-on-web">Primary research question:</p>
+    <p>How can graphic designers engage with LLM-based tool building deliberately?</p>
     <p>Supporting research questions:<br>
-    What constitutes sustainable use of LLMs in tool building?</p>
-    <p>What role does language play in building tools with LLMs?</p>
-    <p>What benefits do custom tools offer to graphic design processes and outcomes?</p>
+    What constitutes sustainable use of LLMs in tool building?<br>What role does language play in building tools with LLMs?<br>What benefits do custom tools offer to graphic design processes and outcomes?</p>
     <h2 id="h.wikglkl45i4l">Methodology</h2>
     <p>This thesis combines practice-based research with critical analysis. As part of the research process, I built a website connecting curated graphic design work to the technical vocabulary of its underlying systems and wrote a manifesto articulating a position on the deliberate use of large language models. The written argument informed the making of these artifacts and vice versa. I also participated in and observed a workshop on LLM-assisted tool building in a graphic design education context, which provided first-hand empirical data on how designers currently encounter this technology. </p>
 
@@ -89,9 +89,7 @@
 
     <p>This thesis is motivated by the belief that custom tool building should become more deliberate. I argue for a more intentional, critical, and conscious use of technology. To use LLMs in this way, designers need to become familiar with the technical language and mode of thinking associated with tool building. This includes being able to describe visuals with precision and understanding computational processes beyond the conventions of existing design software. A deliberate use further implies an awareness of the environmental and psychological impact of LLMs, along with an understanding of why custom tools should exist and what they communicate. </p>
     <h2 id="h.toc3bxbks77t">Acknowledgements</h2>
-    <p>I would like to sincerely thank my mentor, Urs Hofer, for his constructive feedback and for helping me untangle the turmoil around large language models.</p>
-    <p>I am also grateful to the maintainers of <span class="code">paged.js</span>, which I used to create this layout, and to Mads Wildgaard for kindly providing True Sans Mono.</p>
-    <p>My thanks also go to Zeo L&ouml;wenhielm for his valued suggestions, and finally to my mother, for raising me with care and love.</p>
+    <p>I would like to sincerely thank my mentor, Urs Hofer, for his constructive feedback and for helping me untangle the turmoil around large language models. I am also grateful to the maintainers of the open source libraries this website depends on and to Mads Wildgaard for kindly providing True Sans Mono. My thanks also go to Zeo L&ouml;wenhielm for his valued suggestions, and finally to my mother, for raising me with care and love.</p>
     <h2 id="h.hyqle229oy5">The Tool Building Trend</h2>
     <p>Design critic Alice Twemlow writes in 60 Innovators Shaping Our Creative Future: &ldquo;At the sharp edge of contemporary graphic design, where tools and approaches are being tested, media absorbed and territory assimilated, a new type of practice is being forged. [&hellip;] [I]ts progenitors initiate their own projects and often products; they create their own tools.&rdquo;<sup><a href="#ftnt1" id="ftnt_ref">1</a></sup> The emergence of new tools has long been a defining factor for the development of arts and design. Graphic design transitioning to digital work environments has made it possible for designers to build and modify their own toolkit, regardless of material constraints, using code. </p>
 
@@ -102,8 +100,9 @@
     <p>As such, it is still rare to find people who are deeply proficient in both disciplines. LLMs considerably lower the entry barrier for designers to express their ideas in code. There are still numerous hurdles, such as dealing with coding environments and debugging, but the fact alone that LLMs are able to interpret an instruction like &ldquo;code a brush that draws with emojis&rdquo; to get an equivalent of these lines of code is a huge change:</p>
     <div class="code-block">
       <p class="code">let emojis = &shy;[&quot;&#128514;&quot;,&quot;&#128293;&quot;,&quot;&#127752;&quot;,&quot;&#10024;&quot;,&quot;&#128056;&quot;,&quot;&#127881;&quot;,&quot;&#128128;&quot;];</p>
+      <p class="code">&nbsp;</p>
       <p class="code">function draw() {</p>
-      <p class="code">    text(random(emojis), mouseX, mouseY);</p>
+      <p class="code">&nbsp;&nbsp;text(random(emojis), mouseX, mouseY);</p>
       <p class="code">}</p>
     </div>
     <p>The natural language prompt could be in any language, phrased in multiple ways, and full of spelling mistakes. Removing almost any character in the code above will break it completely. Aside from its capabilities to get the syntax right, it is interesting to note that the AI seems to have some degree of understanding of the logic needed to structure computer programs. This becomes evident through the generation of much more complex code, where a single larger goal is broken down into individual functions that accomplish it. Moreover, since the model is not only trained on code but large amounts of text related to all sorts of topics, it is able to interpret vague or metaphoric language to some degree.</p>
@@ -124,7 +123,7 @@
     <p class="subtle-heading">Identity Generators</p>
     <p>I label the first category identity generators, referring to mostly web-based tools that generate variations within a design system defined in code. This type of tool was popularized by DIA Studio for an event called Secret 7&Prime; in 2018, which they developed in collaboration with Zach Lieberman.<sup><a href="#ftnt8" id="ftnt_ref">8</a></sup> The connection between flexible identity systems and code was later taken up by Martin Lorenz and Tim Rodenbr&ouml;ker under the &ldquo;Coding Systems&rdquo; moniker in 2024. They outline a process in which studios deliver a tool instead of static files.</p>
     <figure class="img-wrap ext"><img alt="https://codingsystems.info/wp-content/uploads/2024/08/CS_Process.png"
-        src="../assets/images/image12.png" title="">
+        src="../assets/images/image12.png" title="" fetchpriority="low" loading="lazy">
       <figcaption><i>How we work.</i> Diagram by Coding Systems, March 23, 2024. <span
           class="url">https://codingsystems.info/how-we-work/</span>
       </figcaption>
@@ -151,7 +150,7 @@
 
     <p>As part of this thesis, I have built a website to explore tool building in an age of large language models. It connects curated graphic design work to the technical language associated with its systems. Unlike a flat list of references, the tree structure shows how fields relate to each other and demonstrates the breadth of directions designers can investigate. Randomness is only a small part of the resulting diagram, next to other fields like simulation, computer vision, or recursion. The overview should help designers structure and expand their understanding of computational processes, allowing them to venture beyond beaten paths and create more unconventional work. </p>
 
-    <figure class="img-wrap"><img alt="" src="../assets/images/image9.png" title="">
+    <figure class="img-wrap"><img alt="" src="../assets/images/image9.png" title="" fetchpriority="low" loading="lazy">
       <figcaption><i>A force directed graph connecting graphic design with technical language.</i> Diagram created
         by
         the
@@ -178,7 +177,7 @@
 
     <figure class="img-wrap ext"><img
         alt="https://images.squarespace-cdn.com/content/6026d8eb9eefee535832378f/1620758351377-I2DUUJHU4SCPIQ2NHXFH/SignCurveManCsuri.jpg?format=1500w&amp;content-type=image%2Fjpeg"
-        src="../assets/images/image8.jpg" title="">
+        src="../assets/images/image8.jpg" title="" fetchpriority="low" loading="lazy">
       <figcaption><i>Sine Curve Man.</i> Plotter art by Charles Csuri, 1967.
         <span class="url">https://www.charlescsuri.com/historic/sine-curve-man</span>
       </figcaption>
@@ -190,7 +189,7 @@
 
     <p>In an essay, design critic Michael Rock reminisces about his studies in the &ldquo;pre-Macintosh era&rdquo;: &ldquo;I would type characters on a luminous green monitor, using an entirely abstract string of coordinates similar to HTML markup, and a cup-of-coffee later the beige box would spit out a roll of paper that may, or may not, resemble the design I had envisioned. Once again the technology distanced the creative process, made it architectural. But at the time we saw this as a vast improvement over the system wherein we would literally mark-up manuscript, coding sentences and paragraphs with red pencil notations, and send them off to a professional typesetter charged with rendering our ideas in type. We were re-claiming the means of production.&rdquo;<sup><a href="#ftnt16" id="ftnt_ref">16</a></sup> With WYSIWYG, technology distanced the design process from its hands-on origins, but it also brought autonomy to designers. I speculate a similar revolution might happen through designers being able to build their own tools using large language models.</p>
     <h3 id="h.4ub23aqholw0">Creative Coding Cambrian Explosion</h3>
-    <p class="subtle-heading">Creative Coding</p>
+    <p class="subtle-heading hide-on-web">Creative Coding</p>
     <p>Creative coding as a discipline is only loosely defined. Wikipedia contributors have put it as &ldquo;a type of computer programming in which the goal is to create something expressive instead of something functional,&rdquo;<sup><a href="#ftnt17" id="ftnt_ref">17</a></sup> followed by a long list of disciplines and technologies it can be applied to, including design. I would argue that graphic design is functional, with the goal of communication. Another definition is to be found on the website of creative coding educator Tim Rodenbr&ouml;ker: &ldquo;(Creative Coding) is a process, based on exploration, iteration, reflection and discovery, where code is used as the primary medium to create a wide range of media artifacts.&rdquo;<sup><a href="#ftnt18" id="ftnt_ref">18</a></sup> His definition was borrowed from the dissertation of creative coder Stig M&oslash;ller Hansen, who in turn took it from a paper on the Processing coding tool published in 2013. The original definition by C. Mitchell and Brown goes as follows: &ldquo;[Creative coding is] a discovery-based process consisting of exploration, iteration, and reflection, using code as a primary medium, towards a media artefact designed for an artistic context.&rdquo;<sup><a href="#ftnt19" id="ftnt_ref">19</a></sup> The later omitted focus on the artistic context is an important distinction, which alludes to the experimental rather than functional nature of the discipline. </p>
     <p class="subtle-heading">1996: Flash</p>
     <p>Adobe Flash, originally released as Macromedia Flash, democratized sharing interactive creative experiments on the internet. It combined a drawing, animation and scripting interface. This enables artists to experiment with code while getting real time visual feedback. Unifying artistic and technical needs with easy to share outcomes allowed for a rapid expansion of playful creative content on the web.</p>
@@ -207,11 +206,13 @@
     <p>Graphic design is a practice revolutionized through technologies like movable type and desktop publishing. Perhaps a next revolution is inbound, with coding becoming accessible to the mainstream. In an Eye on Design article on &ldquo;How Computer Code Became a Modern Design Medium&mdash;an Oral History&rdquo; from 2019 Zach Lieberman concludes: &ldquo;At one point this stuff was new. It&rsquo;s not new anymore. And I think that&rsquo;s also really exciting. When the technology is new, a lot of what you&rsquo;re doing is very formal; it&rsquo;s about figuring it out. But as the medium establishes itself, then it&rsquo;s really more like artistic expression&mdash;What does code mean and how can we use it to tell really meaningful stories?&rdquo;<sup><a href="#ftnt23" id="ftnt_ref">23</a></sup></p>
 
     <p>Already in 1989, Muriel Cooper discusses the larger implications of designers engaging with computation and specifically predicts assistants that &ldquo;learn and think&rdquo; as a major challenge to our society. She concludes by cautioning that computers will change every aspect of our lives and insists it is &ldquo;imperative that we all spend less time ignoring or challenging the threat of computers, and educate ourselves and participate in the direction of this polymorphous medium.&rdquo;<sup><a href="#ftnt24" id="ftnt_ref">24</a></sup></p>
+    <h1 id="h.6jf9ygfubtjb" class="hide-in-print">LLMs for Custom Tools in Graphic Design</h1>
     <div class="title-layout chapter-separator quadtree">
       <div class="img-wrap title-typography">
-        <img src="../assets/svg/main_image.svg" alt="What You Say Is What You Get?" srcset="">
+        <img src="../assets/svg/main_image.svg" alt="What You Say Is What You Get?" srcset="" fetchpriority="low"
+          loading="lazy">
       </div>
-      <div class="title-text">
+      <div class="title-text hide-on-web">
         <div class="title-text-inner">
           <div class="title-mono left">
             <p>LLMs for Custom Tools in Graphic Design</p>
@@ -222,17 +223,17 @@
         </div>
       </div>
     </div>
-    <h1 id="h.6jf9ygfubtjb" class="hide-in-print">LLMs for Custom Tools in Graphic Design</h1>
-    <h2 id="h.otzyuqwujc20">A Controversial Technology</h2>
 
-    <figure class="img-wrap"><img alt="" src="../assets/images/image13.png" title="">
+
+
+    <h2 id="h.otzyuqwujc20">A Controversial Technology</h2>
+    <p>The developments surrounding artificial intelligence are subject to great debate, especially within creative disciplines. Generative models can replicate styles of living artists and have inherent issues with bias around race and gender. They generate images and videos that have a low-effort, &ldquo;slop&rdquo; aesthetic, which are being used to spread fake news and propaganda. The list goes on. </p>
+    <figure class="img-wrap ext"><img alt="" src="../assets/images/image13.png" title="" fetchpriority="low"
+        loading="lazy">
       <figcaption><i>Euler diagram illustrating the specific use case of AI for creating custom design tools.</i>
         Diagram
         created by the author.</figcaption>
     </figure>
-
-
-    <p>The developments surrounding artificial intelligence are subject to great debate, especially within creative disciplines. Generative models can replicate styles of living artists and have inherent issues with bias around race and gender. They generate images and videos that have a low-effort, &ldquo;slop&rdquo; aesthetic, which are being used to spread fake news and propaganda. The list goes on. </p>
 
     <p>While these concerns are legitimate, it is important to separate the issues around artificial intelligence in general from the ones that are specific to LLMs and, even more precisely, the use of LLMs to generate code for graphic design tools. This will allow for a more focused discussion. I begin with my observation of concerns in a tool building workshop and continue by covering the most far-reaching implications around LLM-fuelled code generation. Beyond that, I will give my explanation for why I find the use of AI to build custom design tools a bright spot in the otherwise highly debated application of AI in art and design.</p>
     <h3 id="h.sdqec6pyfi12">Concerns of Students</h3>
@@ -260,7 +261,8 @@
 
     <p>One way of responding to the tendency to let machines accelerate our lives, is to slow down intentionally. That creates time to plan, research, and actually learn something by reading the model&rsquo;s responses. One can also include instructions asking to be critical or to let the AI ask questions, which force the user to think more, rather than less.<sup><a href="#ftnt31" id="ftnt_ref">31</a></sup> These questions can help clarify intentions and identify what is actually needed. In many cases, it might be better to consult a human, as they are not instructed to comply and their emotional intelligence will allow them to decide whether to offer encouragement or thought-provoking critique. </p>
 
-    <figure class="img-wrap ext"><img alt="" src="../assets/images/image19.jpg" title="">
+    <figure class="img-wrap ext"><img alt="" src="../assets/images/image19.jpg" title="" fetchpriority="low"
+        loading="lazy">
       <figcaption><i>One can also use LLMs to engage one&rsquo;s own thinking, but talking to a human might be a
           better
           idea.</i> Meme created by the author.</figcaption>
@@ -287,7 +289,7 @@
     <h4 id="h.gd8cfojbvzc6">Homogenization of Graphic Design</h4>
     <p>As an introduction to the book CodeCrafted, generative designer Patrik H&uuml;bner writes that in a culture of remixes and mashups, wherein AI is the ultimate pattern recognition machine, one runs the risk of &ldquo;turning design into an exercise of polished predictability.&rdquo;<sup><a href="#ftnt43" id="ftnt_ref">43</a></sup> Neural Networks, the technology powering recent advances in Artificial Intelligence, are trained to reproduce patterns from the large dataset it has been fed. As such they are inherently prone to producing familiar outputs. It is therefore important to choose wisely where and in which part of the design process to use AI. Using it to steer the creative parts of a project, will quickly veer it into a direction that makes it replaceable. </p>
 
-    <figure class="img-wrap"><img alt="" src="../assets/images/image2.png" title="">
+    <figure class="img-wrap"><img alt="" src="../assets/images/image2.png" title="" fetchpriority="low" loading="lazy">
       <figcaption><i>One can largely keep AI out of the design parts around using custom tools by constraining it to
           code
           writing.</i> Diagram created by the author.</figcaption>
@@ -298,7 +300,7 @@
 
     <p>When tasked to &ldquo;create an out of the ordinary brush tool&rdquo; ChatGPT spits out a bit of code with many of the hallmarks of a beginner creative coding exercise. A black canvas is sprinkled with straight lines in random positions with randomized colors around the position of the cursor. To avoid generic outcomes, designers need to be familiar with precise terminology around design and computation. As an example, one could ask for a brush and specify a bevel join between strokes in front of a gradient based on Floyd-Steinberg dithering. Since the text-based model cannot see images the way humans do, these precise visual descriptions are essential.</p>
 
-    <figure class="img-wrap ext"><img alt="" src="../assets/images/image5.png" title="">
+    <figure class="img-wrap"><img alt="" src="../assets/images/image5.png" title="" fetchpriority="low" loading="lazy">
       <figcaption><i>Bevel Join and Dithering Brush.</i> Digital artwork created by the author. </figcaption>
     </figure>
 
@@ -306,13 +308,14 @@
     <p>The chatbots will keep trying to involve themselves in the design process, choosing colors and line weights, rounding corners and picking easing functions. This only happens if those variables are not explicitly specified in prompting. They will also make suggestions for how to develop the tool further, suggesting additional features. It is in the designer&rsquo;s hands to decline and consider every part of the design themselves. If a tool is built with intention, designers can easily avoid the pitfall of generated sameness.</p>
     <h3 id="h.ilvvatdupjp9">Why This Use of AI Is Different</h3>
     <h4 id="h.j5110bbskze">LLMs Are Great at Generating Code</h4>
+    <figure class="img-wrap ext"><img alt="" src="../assets/images/image11.png" title="" fetchpriority="low"
+        loading="lazy">
+      <figcaption><i>One of these is different.</i> Image created by the author. </figcaption>
+    </figure>
     <p>Having discussed some of the serious concerns that arise from the use of LLMs, I want to explain why they are a great fit for the specific use case of building custom graphic design tools. A substantial reason for why LLMs work well for tool building is specifically because their output is generic. In contrast to AI generated poems that can have a dry, forced feel, or AI generated imagery that is described as having an airbrushed, stock image look, generic code is actually desirable. If code output is generic, it is easier to read than unconventionally written code and it usually solves the problem at hand, because it has been solved in the same way before. </p>
 
     <p>Despite the fact that coding can also be creative in the sense that multiple approaches can be taken and architectures can be more or less elegant, the solution space of a coding problem is often smaller than that of a design problem. Judging a design is a complex task and in many regards also subjective. One can more objectively evaluate whether a coded solution fulfills its intended function, using measurable criteria such as execution time, correctness or maintainability.</p>
 
-    <figure class="img-wrap ext"><img alt="" src="../assets/images/image11.png" title="">
-      <figcaption><i>One of these is different.</i> Image created by the author. </figcaption>
-    </figure>
 
 
     <p>Further, code for graphic design tools has entirely different requirements to that for enterprise software. The scale is smaller and the consequences lighter. While a mistake in a Processing sketch might result in a happy little accident, a flaw in the logic of a traffic light will not. Additionally, Clive Thompson notes that LLMs are particularly good in the area of &ldquo;greenfield&rdquo; coding.<sup><a href="#ftnt44" id="ftnt_ref">44</a></sup> In contrast to the &ldquo;brownfield,&rdquo; of large tech corporations, where one works on a huge codebase with complex interdependencies and millions of lines of code, greenfield coding describes a fresh start, where the model merely has to oversee its own output. </p>
@@ -323,22 +326,23 @@
     <h4 id="h.h521izreq850">Generating Code for Graphic Design</h4>
     <p>Through the sheer speed in which LLMs can produce code, they make coded tools feasible for designers. Sketching out ideas, trying out directions, all that becomes realistic in the often tightly measured time spans of production in the industry. Before, creating a working prototype of a tool could take weeks. Features that would be visually compelling or would improve the tool&rsquo;s usability for quick experimentation often had to be excluded because they were too complex to implement. </p>
 
-    <figure class="img-wrap ext"><img alt="" src="../assets/images/image14.png" title="">
+
+
+    <p>Designers mostly used to rely on tutorials and code snippets shared online as a starting point for their explorations. Variables within a script allow replacing text, changing the colors, or the number of objects drawn. Making major adjustments to the logic of a program or creating one from scratch was often out of reach for designers, depending on technical skills and timeframes. Now, creating more original tools is far easier to achieve. In the words of Thompson: Graphic design and programming, &ldquo;separated for decades by an ocean of arcane know-how, are drifting closer together.&rdquo;<sup><a href="#ftnt49" id="ftnt_ref">49</a></sup></p>
+    <figure class="img-wrap ext"><img alt="" src="../assets/images/image14.png" title="" fetchpriority="low"
+        loading="lazy">
       <figcaption><i>Designers building tools previously relied heavily on tutorials shared by the
           community.</i> Comments
         on a post by Noah Schwadron, November 3, 2025. <span class="url">https://www.instagram.com/p/DQmECyFjW58/</span>
       </figcaption>
     </figure>
 
-
-    <p>Designers mostly used to rely on tutorials and code snippets shared online as a starting point for their explorations. Variables within a script allow replacing text, changing the colors, or the number of objects drawn. Making major adjustments to the logic of a program or creating one from scratch was often out of reach for designers, depending on technical skills and timeframes. Now, creating more original tools is far easier to achieve. In the words of Thompson: Graphic design and programming, &ldquo;separated for decades by an ocean of arcane know-how, are drifting closer together.&rdquo;<sup><a href="#ftnt49" id="ftnt_ref">49</a></sup></p>
-
     <p>Large language models act as a shortcut from idea to implementation. In many cases, it is enough to know the name of an algorithm to start experimenting with it. In his conversation with Oliver Reichenstein on the topic of &ldquo;Design as Thought&rdquo; Orlando Budelacci remarks that at his university, they &ldquo;have students who are very strong visual thinkers, less so with language.&rdquo;<sup><a href="#ftnt50" id="ftnt_ref">50</a></sup> There is great potential in letting graphic designers quickly get back to the familiar terrain of the visual when building tools. Regardless, language remains a necessary intermediate step in tool building with LLMs, even if it is less abstruse in syntax than programming languages. </p>
     <h2 id="h.eh2gbbhsk6pq">Language as Design Interface</h2>
     <p>Written language, especially in the form of computer code, is far removed from the physical world that humanity was occupied with for millions of years. In &ldquo;Ways of Being&rdquo; author James Bridle depicts computer languages as the most extreme form of estrangement from the natural world.<sup><a href="#ftnt51" id="ftnt_ref">51</a></sup> He starts with the very origins of written language, where an ox, depicted as a head with horns, represented &ldquo;aleph,&rdquo; which later became the letter A. Similarly, waves on water became the letter M and an icon of an eye became what is now the letter O. This shift from a pictorial to a phonetic language removes the immediate relation to our surroundings from language. It allows us to express abstract concepts. Later, the Latin alphabet became widely used in digital systems through standards such as ASCII, which enabled early text encoding on computers and the internet. Most programming languages also rely on Latin characters, alongside special characters that can make code appear opaque to non-specialists, similar in some respects to scientific notation. </p>
 
     <figure class="img-wrap ext"><img alt="Dinamo Update Erik Carter Takeover Future of Type"
-        src="../assets/images/image18.gif" title="">
+        src="../assets/images/image18.gif" title="" fetchpriority="low" loading="lazy">
       <figcaption><i>The evolution of type.</i> Animation taken from &ldquo;Eric Carter on the Future of
         Type&rdquo;
         published by Dinamo Typefaces, April 3 2024. <span
@@ -356,9 +360,12 @@
 
     <p>Even with knowing about this system, its simplicity is deceptive, with multiple users piecing together a solution for generating it in code over years. While it should be rather easy for a designer to draw similar shapes by hand, instructing a machine to draw them requires a detailed breakdown that takes into consideration all the tiny details that, when drawing, are handled by human intuition. To start, selecting a random subset of the circles from the grid is simple. Now, how to describe the exact point of the circle&rsquo;s circumference to attach the straight part of the outline to? What direction does the outline move around the circle after hitting it? Such cases need to be solved in a way that they are generalized, for every circle in every shape.</p>
 
-    <figure class="img-wrap"><img
+
+
+    <p>Determining the correct order in which to connect circles, so that the outline does not intersect itself, is not trivial at all. Thankfully, as user &ldquo;solub&rdquo; points out, this question can be reduced to a known problem in graph theory: By imagining the circles in the grid as nodes of an interconnected graph, the problem is redefined as finding a path that visits every node exactly once, without causing an intersection. The technical term for describing this problem is finding a non-intersecting Hamiltonian cycle. Solub also gives examples for algorithms that solve this problem, along with a visual explanation of the chosen approach&rsquo;s implications on the final shape. &ldquo;Horizontal sorting with 2-opt&rdquo; creates more of a grass like pattern, &ldquo;angular sorting&rdquo; makes them more star-shaped, while a way of attacking the &ldquo;Traveling Salesman Problem&rdquo; is solub&rsquo;s preferred solution, &ldquo;likely aligning with Armin Hofmann&rsquo;s intentions.&rdquo;<sup><a href="#ftnt52" id="ftnt_ref">52</a></sup></p>
+    <figure class="img-wrap ext"><img
         alt="https://canada1.discourse-cdn.com/flex036/uploads/processingfoundation1/original/3X/2/0/20448bdcca6770d899b83307b926ad0d8fe4f281.jpeg"
-        src="../assets/images/image1.jpg" title="">
+        src="../assets/images/image1.jpg" title="" fetchpriority="low" loading="lazy">
       <figcaption><i>Every possible non-intersecting Hamiltonian cycle around eleven fixed nodes in a four by four
           grid.</i>
         Demonstration of a &ldquo;Hofmann-shape&rdquo; generator by user &ldquo;solub&rdquo; on the Processing
@@ -368,9 +375,6 @@
           class="url">https://discourse.processing.org/t/shape-generator-help-armin-hofmanns-rubber-band-shape-generator/33190</span>
       </figcaption>
     </figure>
-
-
-    <p>Determining the correct order in which to connect circles, so that the outline does not intersect itself, is not trivial at all. Thankfully, as user &ldquo;solub&rdquo; points out, this question can be reduced to a known problem in graph theory: By imagining the circles in the grid as nodes of an interconnected graph, the problem is redefined as finding a path that visits every node exactly once, without causing an intersection. The technical term for describing this problem is finding a non-intersecting Hamiltonian cycle. Solub also gives examples for algorithms that solve this problem, along with a visual explanation of the chosen approach&rsquo;s implications on the final shape. &ldquo;Horizontal sorting with 2-opt&rdquo; creates more of a grass like pattern, &ldquo;angular sorting&rdquo; makes them more star-shaped, while a way of attacking the &ldquo;Traveling Salesman Problem&rdquo; is solub&rsquo;s preferred solution, &ldquo;likely aligning with Armin Hofmann&rsquo;s intentions.&rdquo;<sup><a href="#ftnt52" id="ftnt_ref">52</a></sup></p>
 
     <p>I hope this brief excursion makes it clear why Clive Thompson tempers claims about everyone being able to code now: &ldquo;If describing and talking are now much of the work of a software developer, the talk nonetheless remains pretty complexand highly technical. An amateur can&rsquo;t do it.&rdquo;<sup><a href="#ftnt53" id="ftnt_ref">53</a></sup> It is therefore important for designers to become familiar with this technical language, less so with previously essential details like the syntax of programming languages. </p>
     <h3 id="h.jjrexvqj0guy">Learning to Think in Computation</h3>
@@ -390,14 +394,14 @@
 
     <p>Automating the process of drawing these shapes offers the potential of further computational use. If no step has to be done by hand anymore, the tool can be extended in a number of ways: it can become a brush that draws patterns around typographic layouts, generate animations in which a different shape is drawn in every frame, or transform input images so that they are rendered exclusively through these shapes. </p>
 
-    <p>Daniel Wenzel combined the latter two ideas in a generative system for the identity of Brand.AI. At its core, the logo consists of twelve circles in orbital arrangement with metaball-style connections. A custom tool adapts the logo to the shape of video frames. This way, any animation can assume the form of the company&rsquo;s visual identity, demonstrating how flexible and extensible custom tools can be. Turning a single shape into a programmed system can result in an identity that adapts to content, medium and format, while retaining the visual metaphor of interconnected nodes. </p>
-
     <figure class="img-wrap ext"><img alt="" src="../assets/images/image15.gif" title="" loading="lazy">
       <figcaption><i><i>A rotating structure displayed through a branded video filter.</i></i> Animation by Daniel
         Wenzel with
         Mouthwash Studio, December 4, 2024. <span class="url">https://www.instagram.com/p/DDK31foSZpY/</span>
       </figcaption>
     </figure>
+    <p>Daniel Wenzel combined the latter two ideas in a generative system for the identity of Brand.AI. At its core, the logo consists of twelve circles in orbital arrangement with metaball-style connections. A custom tool adapts the logo to the shape of video frames. This way, any animation can assume the form of the company&rsquo;s visual identity, demonstrating how flexible and extensible custom tools can be. Turning a single shape into a programmed system can result in an identity that adapts to content, medium and format, while retaining the visual metaphor of interconnected nodes. </p>
+
 
     <h2 id="h.r2w9zet2xjz1">Analyzing the Benefits of Custom Tools</h2>
     <p>A poster made in a letterpress workshop can still deliver its message as it did 50 years ago. Traditional typography remains a valid means of communication. What can coded tools offer, other than making designers more efficient in terms of production speed?</p>
@@ -406,7 +410,7 @@
 
     <p>This is what happens in the second stage, where tools are applied to communicate visually. This requires experimentation with using the tool rather than with building it. Type designer Peter Bi&#318;ak notices &ldquo;designers getting too deeply into the abstract questions of formulations of technology, so they have no time left to actually use the technology in a creative way.&rdquo;<sup><a href="#ftnt59" id="ftnt_ref">59</a></sup> I see potential in finding meaningful applications of custom tools by getting graphic designers involved not only in building tools, but also in working with them extensively. Their understanding of the tools’ implications in terms of aesthetics, visual associations and readability can help bring code as a design tool beyond the stage of the experiment. </p>
 
-    <figure class="img-wrap"><img alt="" src="../assets/images/image3.png" title="">
+    <figure class="img-wrap"><img alt="" src="../assets/images/image3.png" title="" fetchpriority="low" loading="lazy">
       <figcaption><i><i>Two phases of custom tools in graphic design.</i></i> Diagram created by the author.
       </figcaption>
     </figure>
@@ -416,7 +420,7 @@
     <h3 id="h.jcddspkhiude">Benefits for the Process</h3>
     <p>I identify two main benefits of custom tools for the design process. The first is breaking defaults. This means the possibility of bypassing limitations in ideation by building tools and breaking habits by using them. The second is about how custom tools enable a playful design process. They do this in the sense that building new tools can come with surprises and using them can be playful, rather than streamlined. </p>
 
-    <figure class="img-wrap"><img alt="" src="../assets/images/image6.png" title="">
+    <figure class="img-wrap"><img alt="" src="../assets/images/image6.png" title="" fetchpriority="low" loading="lazy">
       <figcaption><i>Positive impacts of custom tools on the process of graphic design.</i> Table created by the
         author.
       </figcaption>
@@ -440,7 +444,7 @@
 
     <p>Starting a project in these programs makes it tempting to think within their boundaries. In today’s multimedia landscape, it can be valuable for designers to work with an open system like code. Generally speaking, working with code allows a tool to be configured for the needed outputs, such as 3D, vector, animation, or print. In principle a custom tool can be modified at the source level to support any functionality that code can express.</p>
 
-    <figure class="img-wrap"><img alt="" src="../assets/images/image7.png" title="">
+    <figure class="img-wrap"><img alt="" src="../assets/images/image7.png" title="" fetchpriority="low" loading="lazy">
       <figcaption><i>Designs need not be limited by available design software.</i> Diagram created by the author.
       </figcaption>
     </figure>
@@ -451,7 +455,8 @@
     <p class="subtle-heading">Challenging Habits</p>
     <p>Industry standard design software is largely aimed at being functional. It offers the most direct path to producing something commercially viable. It also tends to come with bloated interfaces, with menus one rarely visits and features layered on top of each other. Custom tools, in contrast, tend to be minimal and may be clunky or lacking functionality. Precisely because of that, they break habits. Working with a tool that does not have an undo function already changes the process significantly. It encourages committing to decisions or at least being more accepting of imperfect results. Such defaults make John M. Culkin&rsquo;s words palpable: &quot;We shape our tools and thereafter they shape us.&quot;<sup><a href="#ftnt64" id="ftnt_ref">64</a></sup></p>
 
-    <figure class="img-wrap ext"><img alt="" src="../assets/images/image4.jpg" title="">
+    <figure class="img-wrap ext"><img alt="" src="../assets/images/image4.jpg" title="" fetchpriority="low"
+        loading="lazy">
       <figcaption><i>People have become critical of the quasi-monopoly Adobe established over the graphic design
           tool
           market in the past decades.</i> Image by Erik Carter, June 7, 2018.
@@ -491,7 +496,7 @@
 
     <p>What Cotton points to in the second part of her explanation is crucial. The repeated execution of tasks via loops is possibly the defining visual characteristic of graphic design work created with code. This means going beyond the pragmatic use of saving time by automating a process that would be tedious, but feasible in existing software. A tool that makes full use of code&rsquo;s capabilities enables an expressive use of algorithms, shaping a design in form and motion. In most cases, this becomes possible through loops. Loops can execute tasks repeatedly across different dimensions. Looping through space allows the placement or manipulation of many objects within two or three dimensions. Looping through time opens up expressive motion systems that are based on many calculations. Finally, one can also loop through all possible variations of a coded design system. This can create an overview of the system and its possible states in regard to position, movement, and its other parameters.</p>
 
-    <figure class="img-wrap"><img alt="" src="../assets/images/image17.png" title="">
+    <figure class="img-wrap"><img alt="" src="../assets/images/image17.png" title="" fetchpriority="low" loading="lazy">
       <figcaption><i>Loops are a powerful tool that allows computational execution within different dimensions.</i>
         Diagram
         created by the author.</figcaption>
@@ -522,7 +527,8 @@
 
     <p>The way design systems can make design adaptable has been explored in detail by Martin Lorenz in his book Flexible Visual Systems.<sup><a href="#ftnt68" id="ftnt_ref">68</a></sup> He formulates his ideas with human executed systems and identity design in mind, but they extend seamlessly to coded tools. Building systems on flexible parameters instead of fixed values, they become responsive, adapting to a variety of sizes and aspect ratios. This is a powerful mechanism for a digital media landscape.</p>
 
-    <figure class="img-wrap ext"><img alt="" src="../assets/images/image10.png" title="">
+    <figure class="img-wrap ext"><img alt="" src="../assets/images/image10.png" title="" fetchpriority="low"
+        loading="lazy">
       <figcaption><i>An overview of transformations that can be applied to an input to create a flexible
           identity.</i> Diagram from Martin Lorenz, Flexible Visual Systems: The Design Manual for Contemporary
         Visual Identities (Karlsruhe: Slanted, 2021), 232.</figcaption>
@@ -541,7 +547,8 @@
     <h4 id="h.npnu6qs8vshe">Casting Ideas Into Form</h4>
     <p>In this chapter, I want to give a brief analysis of some projects that represent an inspiring use of custom tools in my eyes. These unconventional works are the result of highly technical workflows, but don’t rely on that fact to convince. They demonstrate a strong sensibility for visual form and communicative qualities. What particularly fascinates me is the conceptual strength of the custom tool use.</p>
 
-    <figure class="img-wrap ext"><img alt="" src="../assets/images/image20.jpg" title="">
+    <figure class="img-wrap ext"><img alt="" src="../assets/images/image20.jpg" title="" fetchpriority="low"
+        loading="lazy">
       <figcaption><i>Chaumont Biennale Identity.</i> Poster by DIA Studio, 2021. <span
           class="url">https://dia.tv/project/chaumont-biennale/</span></figcaption>
     </figure>
@@ -551,7 +558,8 @@
 
     <p>The third piece of graphic design which makes great use of a custom tool is the identity that Bureau Borsche developed for the sound residency program Tune of the Haus der Kunst in Munich. For this project, the studio built a tool which allowed them to embed type within a spectrogram. The spectrogram is a method to visualize the distribution of frequencies within an audio file. Experimental electronic musicians like Aphex Twin are known to have used this technique to hide images within their songs. The resulting imagery is reminiscent of the technoid color schemes of infrared cameras and fits well with dimly-lit sound art performances.</p>
 
-    <figure class="img-wrap ext"><img alt="" src="../assets/images/image21.jpg" title="">
+    <figure class="img-wrap ext"><img alt="" src="../assets/images/image21.jpg" title="" fetchpriority="low"
+        loading="lazy">
       <figcaption><i>Milen en Joes gaan trouwen.</i> Wedding invitation by Luna Maurer, 2009. <span
           class="url">https://lunamaurer.com/poly-luna/2/milen-en-joes-gaan-trouwen.html</span></figcaption>
     </figure>
@@ -561,11 +569,13 @@
     <p>What do these projects have in common? They make use of custom tools to gain access to novel forms of visual expression. While typography is still the main means of communication, the forms around it are not just added on, but spring from a concept. The works succeed, because they communicate information as text and convey the concept in a more intuitive way through motion and form. Tools and ideas are matched in a meaningful way.</p>
 
     <p>Furthermore, they are the result of collaboration between people with hybrid skills. Knowing the tool, technique, or algorithm made them able to consider it for use in design. More importantly, they had the graphic design skills to shape these technical experiments into coherent visual communication. </p>
+    <h1 id="h.hfi3k4g2qgft" class="hide-in-print">Conclusion</h1>
     <div class="title-layout chapter-separator quadtree">
       <div class="img-wrap title-typography">
-        <img src="../assets/images/conclusion_image.png" alt="What You Say Is What You Get?" srcset="">
+        <img src="../assets/images/conclusion_image.png" alt="What You Say Is What You Get?" srcset=""
+          fetchpriority="low" loading="lazy">
       </div>
-      <div class="title-text">
+      <div class="title-text hide-on-web">
         <div class="title-text-inner">
           <div class="title-mono left">
             <p>Conclusion</p>
@@ -576,7 +586,6 @@
         </div>
       </div>
     </div>
-    <h1 id="h.hfi3k4g2qgft" class="hide-in-print">Conclusion</h1>
     <p>Large language models make tool building accessible and bring an immediacy to tool building that is reminiscent of the WYSIWYG revolution. They suit code generation, specifically because of the output&rsquo;s generic nature and are fit for application in graphic design, since design decisions remain with the human. While this presents a promising opportunity, the unclear long-term effects of the technology call for critical evaluation and deliberate application. As the question mark in the title of this thesis suggests, using large language models is not as straightforward as What You Say Is What You Get.</p>
     <h2 id="h.12bn4tdb5du">Sustainability</h2>
     <p>By substantially lowering the effort required for software creation, LLMs enable building tools at high speed. Rather than using this to increase the scope of their projects, designers should redirect the gained capacity into reconsidering what is worth producing in the first place. Sustainable tool building calls for reflection over acceleration. Such a position can help avoid generic tools and, more broadly, homogenization of graphic design culture.</p>
@@ -615,7 +624,7 @@
 
     <p>I claim autonomy should not be the goal. The most successful projects have come and will continue to come from collaboration. Not only because of complementary knowledge, but also because of what is human about working together. Challenging and being challenged, empathy and emotion are not byproducts of the process. In conversation between humans, different worldviews collide and their consequences are negotiated. Abstracting computer code to a level that everyone can talk about should be the true benefit of large language models.</p>
     <h1 id="h.ixqajpx69tbw">Outlook </h1>
-    <p>There are several ways in which the tool building resource I contribute could be extended. It may be sensible to integrate more code examples to help understand how algorithms look and how they work. Transferring the site&rsquo;s data to Github would make it possible to create a community around contributing. Thinking bigger than the technical terms on the website, collecting and sharing more complex tools would be beneficial to encourage code use over regeneration. Leandra Tiemann recently started an effort to create a collection of open source design tools at <a class="code" href="https://mod-lab.org">mod-lab.org</a>. </p>
+    <p>There are several ways in which the tool building resource I contribute could be extended. It may be sensible to integrate more code examples to help understand how algorithms look and how they work. Transferring the site&rsquo;s data to Github would make it possible to create a community around contributing. Thinking bigger than the technical terms on the website, collecting and sharing more complex tools would be beneficial to encourage code use over regeneration. Leandra Tiemann recently started an effort to create a collection of open source design tools at <a class="code" href="https://mod-lab.org" target="_blank">mod-lab.org</a>. </p>
 
     <p>Next to introducing designers to algorithms, the visual side of the tool could be expanded. Analyzing and labelling the communicative potential of the resulting visuals may be helpful to designers. This implies visual associations in relation to social, cultural or natural phenomena. Thinking about Lorenz&rsquo;s classification of visual transformations,<sup><a href="#ftnt72" id="ftnt_ref">72</a></sup> the taxonomy could also be extended by terms more common in graphic design like quadratic ease out or line halftone screen. These transformations can be explored more freely in custom tools and the words might not be known to designers who use them intuitively.</p>
 
@@ -757,6 +766,11 @@
   </div>
   <script src="../src/thesis/toc.js"></script>
   <script src="../src/thesis/page-footnotes.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.applyMechanicalRagging) window.applyMechanicalRagging();
+    });
+  </script>
 </body>
 
 </html>

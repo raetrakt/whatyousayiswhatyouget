@@ -123,14 +123,23 @@ body.is-safari .node.work.media-ready {
 }
 
 .work-modal {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: var(--body-size);
   position: fixed;
   inset: 0;
   display: none;
-  align-items: center;
   justify-content: center;
   z-index: 1000;
   padding: 24px;
-  font-size: 32px;
+}
+
+.work-modal-meta span {
+  padding: 0 4px;
+}
+
+#work-modal-classification {
+  font-family: 'True Sans Mono', monospace;
+  font-size: var(--code-size);
 }
 
 .work-modal.is-open {
@@ -138,10 +147,10 @@ body.is-safari .node.work.media-ready {
 }
 
 .work-modal-panel {
-  width: min(1060px, 70vw);
-  height: 80dvh;
+  height: 60dvh;
   display: flex;
   gap: 24px;
+  margin-top: calc(var(--baseline) * 3);
 }
 
 .work-modal-image-container {
@@ -160,12 +169,13 @@ body.is-safari .node.work.media-ready {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  object-position: top;
+  object-position: top right;
 }
 
 .work-modal-meta {
   color: #000;
   word-break: break-word;
+  width: calc(var(--baseline) * 14);
 }
 
 .work-modal-meta span,

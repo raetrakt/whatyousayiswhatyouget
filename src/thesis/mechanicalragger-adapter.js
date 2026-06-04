@@ -88,7 +88,19 @@
       columnCount,
     });
 
-    if (!pageWidth) return 0;
+    if (!pageWidth) {
+      // Fallback for screen view: measure an actual paragraph's rendered width,
+      // not the grid container (which spans all columns and is much wider).
+      const sampleP = document.querySelector(
+        '.mechanical-ragger-target > p:not(.code):not(.hide-on-web)',
+      );
+      if (sampleP) {
+        const w = sampleP.getBoundingClientRect().width;
+        console.info('[ragger] fallback column width from sample <p>', w);
+        return w;
+      }
+      return 0;
+    }
     return (pageWidth - marginLeft - marginRight - columnGap * (columnCount - 1)) / columnCount;
   }
 
@@ -141,7 +153,7 @@
   // container so floats are computed at the correct print width before Paged
   // paginates. This avoids post-render height changes that cause overset.
   async function applyMechanicalRaggingPrePaged(
-    selector = '.mechanical-ragger-target p:not(.code)',
+    selector = '.mechanical-ragger-target > p:not(.code)',
   ) {
     const columnWidth = resolveColumnWidthPx();
     console.info('[ragger] columnWidth', columnWidth);
@@ -183,20 +195,42 @@
     // getBoundingClientRect() forces synchronous layout and injects bounds
     // directly so update() has a non-zero blockSize without waiting for ResizeObserver.
     let applied = 0;
-    targets.forEach((el) => {
+    targets.forEach((el, i) => {
       // ensureTextRoot may not have run yet; call applyToElementWithBounds first
       // with null so it wraps content, then re-measure the textRoot.
       applyToElementWithBounds(el, null);
       const textRoot = el.querySelector(`.${textRootClass}`) || el;
       const bounds = textRoot.getBoundingClientRect();
+      const debugPrefix = `[ragger #${i}]`;
+      console.debug(debugPrefix, 'textRoot bounds', { w: bounds.width, h: bounds.height });
       if (bounds.width > 0 && bounds.height > 0) {
         const ragger = instances.get(el);
         if (ragger) {
+          const cs = getComputedStyle(textRoot);
+          const lineHeight = parseFloat(cs.lineHeight);
+          const expectedLines = Math.floor(bounds.height / lineHeight);
+          console.debug(
+            debugPrefix,
+            'lineHeight',
+            lineHeight,
+            'blockSize (height)',
+            bounds.height,
+            '→ lines',
+            expectedLines,
+          );
+          console.debug(debugPrefix, 'exclusionPolygon (before update)', ragger.exclusionPolygon);
           ragger.containerBounds = bounds;
           ragger.lastCssSignature = ''; // force re-emit
           ragger.update();
+          console.debug(debugPrefix, 'cssProperties after update', ragger.cssProperties);
           applied += 1;
         }
+      } else {
+        console.warn(
+          `[ragger #${i}] skipped — zero bounds`,
+          { w: bounds.width, h: bounds.height },
+          el,
+        );
       }
     });
 
@@ -209,6 +243,40 @@
     });
 
     offscreen.remove();
+
+    // Second pass: after elements are back in the real DOM, the float may have
+    // caused some lines to wrap, making the paragraph taller than what was
+    // measured offscreen. Re-measure each element's actual in-DOM height and
+    // rebuild the polygon with the corrected blockSize.
+    // We wait one animation frame so the browser has settled the float layout.
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+
+    let reapplied = 0;
+    targets.forEach((el, i) => {
+      const textRoot = el.querySelector(`.${textRootClass}`) || el;
+      const inDomBounds = textRoot.getBoundingClientRect();
+      const ragger = instances.get(el);
+      if (!ragger) return;
+
+      const prevHeight = ragger.containerBounds.height;
+      const newHeight = inDomBounds.height;
+
+      console.debug(
+        `[ragger #${i}] height check — offscreen: ${prevHeight}px, in-DOM: ${newHeight}px`,
+      );
+
+      if (Math.abs(newHeight - prevHeight) > 1) {
+        // Force the core to accept the new (taller) bounds and rebuild the polygon.
+        ragger.containerBounds = inDomBounds;
+        ragger.lastObservedBounds = inDomBounds;
+        ragger.lastCssSignature = '';
+        ragger.update();
+        reapplied += 1;
+        console.debug(`[ragger #${i}] reapplied with corrected height ${newHeight}px`);
+      }
+    });
+
+    console.info('[ragger] second-pass reapplied', reapplied, 'of', targets.length);
   }
 
   window.applyMechanicalRagging = applyMechanicalRaggingPrePaged;

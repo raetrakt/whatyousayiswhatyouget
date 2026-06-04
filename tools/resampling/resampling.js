@@ -29,11 +29,18 @@ export const defaults = {
   cursorRepeat: false, // true = cosine repeats (ring at midpoint), false = smooth fade to 0
   cursorAmplitude: 0.5, // cosine amplitude (0 = flat 0.5 influence, 0.5 = full 0–1 swing)
   cursorMode: true, // enable cursor interaction (false = static everywhere)
+  cursorDelay: 0.08, // lerp factor per frame (0 = frozen, 1 = instant)
 };
 
 // ─── Cursor tracking ─────────────────────────────────────────────────────────
 
 let _cursor = { x: -9999, y: -9999 };
+let _smoothCursor = { x: -9999, y: -9999 };
+
+export function setCursor(x, y) {
+  _cursor.x = x;
+  _cursor.y = y;
+}
 
 function _setupCursorListener(canvas) {
   if (canvas.__resamplingCursorAttached) return;
@@ -385,57 +392,74 @@ export function render(
   const cursorRepeat = params.cursorRepeat ?? defaults.cursorRepeat;
   const cursorAmplitude = params.cursorAmplitude ?? defaults.cursorAmplitude;
   const cursorMode = params.cursorMode ?? defaults.cursorMode;
+  const cursorDelay = params.cursorDelay ?? defaults.cursorDelay;
 
   _setupCursorListener(canvas);
 
-  // ── 3. Pre-rasterize marker to an offscreen bitmap ────────────────────────
-  // Rasterizing text is expensive; doing it once and blitting with drawImage
-  // is far cheaper than fillText/strokeText on every marker every frame.
-  // Rasterize at the maximum possible display size (markerSize * cursorScale)
-  // so markers are sharp even at peak cursor influence.
-  const maxMarkerSize = markerSize * Math.max(1, cursorScale);
-  const OVER = 2;
-  // strokeWidth is authored in CSS px but scales with maxMarkerSize in the bitmap,
-  // so the rendered half-stroke bleed is strokeWidth/2 * (maxMarkerSize/markerSize).
-  const scaledStrokeHalf = strokeColor ? (strokeWidth / 2) * (maxMarkerSize / markerSize) : 0;
-  const pad = scaledStrokeHalf + 2;
-  const offSize = (maxMarkerSize + pad * 2) * OVER;
-  const markerBitmap = document.createElement('canvas');
-  markerBitmap.width = markerBitmap.height = offSize;
-  const mctx = markerBitmap.getContext('2d');
-  mctx.font = `${maxMarkerSize * OVER}px serif`;
-  mctx.textAlign = 'center';
-  mctx.textBaseline = 'middle';
-  if (strokeColor) {
-    mctx.strokeStyle = strokeColor;
-    // strokeWidth is authored in CSS px. The bitmap is rasterized at maxMarkerSize
-    // (which scales with cursorScale), so lineWidth must scale the same way to keep
-    // the rendered stroke width constant regardless of cursorScale.
-    mctx.lineWidth = strokeWidth * OVER * (maxMarkerSize / markerSize);
-    mctx.strokeText(marker, offSize / 2, offSize / 2);
-  }
-  mctx.fillStyle = markerColor;
-  mctx.fillText(marker, offSize / 2, offSize / 2);
+  // ── 3. Pre-rasterize marker(s) to offscreen bitmap(s) ─────────────────────
+  // Support both single marker (string) and cycling markers (array of strings).
+  const isMarkerArray = Array.isArray(marker);
+  const markerList = isMarkerArray ? marker : [marker];
+  const markerBitmaps = [];
 
-  // Displayed size of the bitmap at 1:1 scale (CSS px)
-  const normSize = offSize / OVER;
+  for (const singleMarker of markerList) {
+    const maxMarkerSize = markerSize * Math.max(1, cursorScale);
+    const OVER = 2;
+    const scaledStrokeHalf = strokeColor ? (strokeWidth / 2) * (maxMarkerSize / markerSize) : 0;
+    const pad = scaledStrokeHalf + 2;
+    const offSize = (maxMarkerSize + pad * 2) * OVER;
+    const markerBitmap = document.createElement('canvas');
+    markerBitmap.width = markerBitmap.height = offSize;
+    const mctx = markerBitmap.getContext('2d');
+    mctx.font = `${maxMarkerSize * OVER}px serif`;
+    mctx.textAlign = 'center';
+    mctx.textBaseline = 'middle';
+    if (strokeColor) {
+      mctx.strokeStyle = strokeColor;
+      mctx.lineWidth = strokeWidth * OVER * (maxMarkerSize / markerSize);
+      mctx.strokeText(singleMarker, offSize / 2, offSize / 2);
+    }
+    mctx.fillStyle = markerColor;
+    mctx.fillText(singleMarker, offSize / 2, offSize / 2);
+    markerBitmaps.push({ bitmap: markerBitmap, offSize, maxMarkerSize, OVER });
+  }
+
+  // Displayed size of the bitmap at 1:1 scale (CSS px) — use first marker's size
+  const {
+    offSize: firstOffSize,
+    OVER: firstOVER,
+    maxMarkerSize: firstMaxMarkerSize,
+  } = markerBitmaps[0];
+  const normSize = firstOffSize / firstOVER;
   const halfNorm = normSize / 2;
   // Scale factor to draw unaffected markers at their original size
-  const baseScale = markerSize / maxMarkerSize;
+  const baseScale = markerSize / firstMaxMarkerSize;
 
   // ── 4. Draw helper ────────────────────────────────────────────────────────
   function draw() {
     ctx.fillStyle = bgColor;
     ctx.fillRect(0, 0, cssW, cssH);
 
+    // Smooth the cursor position toward the real cursor
+    if (_cursor.x < -999) {
+      _smoothCursor.x = _cursor.x;
+      _smoothCursor.y = _cursor.y;
+    } else {
+      _smoothCursor.x += (_cursor.x - _smoothCursor.x) * cursorDelay;
+      _smoothCursor.y += (_cursor.y - _smoothCursor.y) * cursorDelay;
+    }
+
     const maxRotRad = (cursorRotation * Math.PI) / 180;
     const base = ctx.getTransform();
 
-    for (const { x, y } of pts) {
+    for (let i = 0; i < pts.length; i++) {
+      const { x, y } = pts[i];
+      const markerBitmapData = markerBitmaps[i % markerBitmaps.length];
+      const markerBitmap = markerBitmapData.bitmap;
       let influence = 0;
       if (cursorMode && cursorRadius > 0) {
-        const dx = x - _cursor.x,
-          dy = y - _cursor.y;
+        const dx = x - _smoothCursor.x,
+          dy = y - _smoothCursor.y;
         const d = Math.sqrt(dx * dx + dy * dy);
         if (cursorRepeat || d < cursorRadius) {
           const norm = d / cursorRadius;
@@ -446,7 +470,7 @@ export function render(
       if (influence > 0) {
         // scale is relative to maxMarkerSize (the bitmap's full size)
         const scale = baseScale + (1 - baseScale) * influence;
-        const rot = maxRotRad * influence;
+        const rot = (maxRotRad * influence) / (0.5 + cursorAmplitude);
         const cr = Math.cos(rot) * scale;
         const sr = Math.sin(rot) * scale;
         ctx.transform(cr, sr, -sr, cr, x, y);
@@ -463,25 +487,14 @@ export function render(
 
   if (!relax) {
     draw();
-    // Redraw on mouse move so the cursor effect stays live.
-    // Throttled to one draw per animation frame to avoid flooding the renderer.
     if (!cursorMode) return;
-    let _rafPending = false;
-    const onMove = () => {
-      if (_version !== version) return cleanup();
-      if (_rafPending) return;
-      _rafPending = true;
-      requestAnimationFrame(() => {
-        _rafPending = false;
-        if (_version === version) draw();
-      });
-    };
-    const cleanup = () => {
-      canvas.removeEventListener('mousemove', onMove);
-      canvas.removeEventListener('mouseleave', onMove);
-    };
-    canvas.addEventListener('mousemove', onMove);
-    canvas.addEventListener('mouseleave', onMove);
+    // Continuous RAF loop so the cursor effect updates even outside the canvas.
+    function loop() {
+      if (_version !== version) return;
+      draw();
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
     return;
   }
 
@@ -617,6 +630,7 @@ export function getParamLines(fmtVal) {
     `  cursorAmplitude: ${fmtVal(defaults.cursorAmplitude)}, // cosine amplitude (0 = flat, 0.5 = full 0–1 swing)`,
     `  cursorRepeat: ${fmtVal(defaults.cursorRepeat)}, // true = ring at midpoint, false = smooth fade`,
     `  cursorMode: ${fmtVal(defaults.cursorMode)}, // enable cursor interaction (false = static everywhere)`,
+  `  cursorDelay: ${fmtVal(defaults.cursorDelay)}, // lerp factor per frame (0 = frozen, 1 = instant)`,
   ];
 }
 
@@ -639,5 +653,6 @@ export function normalizeParams(p) {
     cursorRepeat: p.cursorRepeat ?? defaults.cursorRepeat,
     cursorAmplitude: p.cursorAmplitude ?? defaults.cursorAmplitude,
     cursorMode: p.cursorMode ?? defaults.cursorMode,
+    cursorDelay: p.cursorDelay ?? defaults.cursorDelay,
   };
 }
