@@ -64,7 +64,7 @@ if (!isSafari) {
     zoom.transform,
     d3.zoomIdentity
       .translate(width / 2, height / 2)
-      .scale(0.7) // your desired scale < 1
+      .scale(.5) // your desired scale < 1
       .translate(-width / 2, -height / 2),
   );
   // --- Smooth middle-mouse panning ---
