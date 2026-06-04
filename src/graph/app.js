@@ -59,14 +59,14 @@ const zoom = d3
   });
 
 svg.call(zoom);
+svg.call(
+  zoom.transform,
+  d3.zoomIdentity
+    .translate(width / 2, height / 2)
+    .scale(.6) // your desired scale < 1
+    .translate(-width / 2, -height / 2),
+);
 if (!isSafari) {
-  svg.call(
-    zoom.transform,
-    d3.zoomIdentity
-      .translate(width / 2, height / 2)
-      .scale(.5) // your desired scale < 1
-      .translate(-width / 2, -height / 2),
-  );
   // --- Smooth middle-mouse panning ---
   let isMiddlePanning = false;
   let lastPanPos = null;
