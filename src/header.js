@@ -12,7 +12,7 @@
   `;
   document.body.insertBefore(header, document.body.firstChild);
 
-  const DELAY = 30; // ms per character
+  const DELAY = 0; // ms per character
 
   function activateChars(link) {
     const chars = link.querySelectorAll('.hc');
@@ -77,6 +77,6 @@
   const headerHeight = parseFloat(getComputedStyle(header).height) || 0;
   const existingPaddingTop = parseFloat(getComputedStyle(document.body).paddingTop) || 0;
   if (!document.body.hasAttribute('data-no-header-padding')) {
-    document.body.style.paddingTop = existingPaddingTop + headerHeight + 'px';
+    document.body.style.paddingTop = headerHeight + 'px';
   }
 })();
