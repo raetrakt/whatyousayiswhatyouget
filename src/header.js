@@ -52,7 +52,11 @@
       timers = [];
     }
 
-    function activateHoverText() {
+    function activateHoverText(e) {
+      // Ignore phantom mouseenter fired on first mouse activity after page
+      // load (when the cursor was already over the link). Real entries always
+      // have a relatedTarget (the element the cursor came from).
+      if (e && !e.relatedTarget) return;
       clearTimers();
       if (headerText) {
         headerText.style.opacity = '0';
@@ -83,7 +87,6 @@
 
     link.addEventListener('mouseenter', activateHoverText);
     link.addEventListener('mouseleave', deactivateHoverText);
-    link.addEventListener('focus', activateHoverText);
     link.addEventListener('blur', deactivateHoverText);
   }
 })();

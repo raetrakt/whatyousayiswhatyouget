@@ -101,12 +101,6 @@ body::-webkit-scrollbar {
   opacity: 0;
 }
 
-.site-header a:hover .header-text,
-.site-header a:focus .header-text,
-.site-header a:focus-visible .header-text {
-  opacity: 0;
-}
-
 .hc {
   display: inline;
   font-family: 'Times New Roman', Times, serif;
