@@ -2,7 +2,7 @@
   const header = document.createElement('header');
   header.className = 'site-header';
   header.innerHTML = `
-    <a href="/" data-hover-name="GET /index.html&#10;HTTP/2.0"><span class="header-text">What You Say Is What You Get?</span></a>
+    <a href="/" data-hover-name="GET whatyousayiswhatyouget.net&#10;HTTP/2.0"><span class="header-text">WYSIWYG?</span></a>
     <nav class="site-header-nav">
       <a href="/dictionary/" data-hover-name="GET /dictionary/&#10;HTTP/2.0"><span class="header-text">Dictionary</span></a>
       <a href="/tools/" data-hover-name="GET /tools/&#10;HTTP/2.0"><span class="header-text">Tools</span></a>

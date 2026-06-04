@@ -50,7 +50,18 @@ function doRender() {
   if (!font || !cssW) return;
 
   const params = { ...PARAMS };
+  if (cssH > cssW) {
+    params.width = 210;
+    params.height = 297;
+  } else {
+    params.margin = Math.round((PARAMS.margin / 210) * PARAMS.width);
+  }
   params.margin = params.margin * (cssW / params.width);
+
+  let scaleBase = Math.max(cssH, cssW)
+  params.spacing = parseInt(scaleBase / 200);
+  params.markerSize = parseInt(scaleBase / 80);
+  params.strokeWidth = parseInt(scaleBase / 290);
 
   ctx.clearRect(0, 0, cssW, cssH);
   ctx.fillStyle = params.bgColor;
@@ -115,10 +126,13 @@ function doRender() {
 function resize() {
   const dpr = window.devicePixelRatio || 1;
   cssW = canvas.offsetWidth;
-  cssH = canvas.offsetHeight; // Get actual height instead
-  if (!cssW || !cssH) return;
+  if (!cssW) return;
+  // Derive height from the intended aspect ratio so the canvas is always correct.
+  const portrait = cssW < window.innerHeight;
+  cssH = portrait ? Math.round(cssW * (297 / 210)) : Math.round(cssW * (9 / 16));
   canvas.width = cssW * dpr;
   canvas.height = cssH * dpr;
+  canvas.style.height = cssH + 'px';
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   doRender();
 }
