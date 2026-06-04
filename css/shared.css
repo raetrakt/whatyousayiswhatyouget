@@ -58,8 +58,8 @@ body::-webkit-scrollbar {
   display: flex;
   grid-template-columns: repeat(var(--grid-cols), minmax(0, 1fr));
   column-gap: var(--grid-gap);
-  padding-left: calc(var(--grid-gap) / 4);
-  padding-right: calc(var(--grid-gap) / 4);
+  padding-left: var(--grid-gap);
+  padding-right: var(--grid-gap);
   align-items: center;
   z-index: 9999;
   box-sizing: border-box;
@@ -118,7 +118,7 @@ table {
   display: grid;
   grid-template-columns: repeat(var(--grid-cols), minmax(0, 1fr));
   column-gap: var(--grid-gap);
-  padding: calc(var(--grid-gap) / 4);
+  padding: calc(var(--grid-gap) / 1);
 }
 
 .page-grid > * {

@@ -2,6 +2,15 @@
   --ragging-width: 80px;
 } */
 
+.thesis-layout {
+  padding: var(--grid-gap);
+  padding-top: var(--baseline);
+  display: grid;
+  grid-template-columns: repeat(var(--grid-cols), minmax(0, 1fr));
+  overflow: hidden;
+  column-gap: var(--grid-gap);
+}
+
 h1,
 h2,
 h3,
@@ -135,14 +144,6 @@ figcaption,
 
 .subtle-heading {
   margin-bottom: 0;
-}
-
-.thesis-layout {
-  padding: 10px;
-  display: grid;
-  grid-template-columns: repeat(var(--grid-cols), minmax(0, 1fr));
-  overflow: hidden;
-  column-gap: var(--grid-gap);
 }
 
 .title-text-inner {

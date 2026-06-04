@@ -308,14 +308,14 @@
     <p>The chatbots will keep trying to involve themselves in the design process, choosing colors and line weights, rounding corners and picking easing functions. This only happens if those variables are not explicitly specified in prompting. They will also make suggestions for how to develop the tool further, suggesting additional features. It is in the designer&rsquo;s hands to decline and consider every part of the design themselves. If a tool is built with intention, designers can easily avoid the pitfall of generated sameness.</p>
     <h3 id="h.ilvvatdupjp9">Why This Use of AI Is Different</h3>
     <h4 id="h.j5110bbskze">LLMs Are Great at Generating Code</h4>
-    <p>Having discussed some of the serious concerns that arise from the use of LLMs, I want to explain why they are a great fit for the specific use case of building custom graphic design tools. A substantial reason for why LLMs work well for tool building is specifically because their output is generic. In contrast to AI generated poems that can have a dry, forced feel, or AI generated imagery that is described as having an airbrushed, stock image look, generic code is actually desirable. If code output is generic, it is easier to read than unconventionally written code and it usually solves the problem at hand, because it has been solved in the same way before. </p>
-
-    <p>Despite the fact that coding can also be creative in the sense that multiple approaches can be taken and architectures can be more or less elegant, the solution space of a coding problem is often smaller than that of a design problem. Judging a design is a complex task and in many regards also subjective. One can more objectively evaluate whether a coded solution fulfills its intended function, using measurable criteria such as execution time, correctness or maintainability.</p>
-
     <figure class="img-wrap ext"><img alt="" src="../assets/images/image11.png" title="" fetchpriority="low"
         loading="lazy">
       <figcaption><i>One of these is different.</i> Image created by the author. </figcaption>
     </figure>
+    <p>Having discussed some of the serious concerns that arise from the use of LLMs, I want to explain why they are a great fit for the specific use case of building custom graphic design tools. A substantial reason for why LLMs work well for tool building is specifically because their output is generic. In contrast to AI generated poems that can have a dry, forced feel, or AI generated imagery that is described as having an airbrushed, stock image look, generic code is actually desirable. If code output is generic, it is easier to read than unconventionally written code and it usually solves the problem at hand, because it has been solved in the same way before. </p>
+
+    <p>Despite the fact that coding can also be creative in the sense that multiple approaches can be taken and architectures can be more or less elegant, the solution space of a coding problem is often smaller than that of a design problem. Judging a design is a complex task and in many regards also subjective. One can more objectively evaluate whether a coded solution fulfills its intended function, using measurable criteria such as execution time, correctness or maintainability.</p>
+
 
 
     <p>Further, code for graphic design tools has entirely different requirements to that for enterprise software. The scale is smaller and the consequences lighter. While a mistake in a Processing sketch might result in a happy little accident, a flaw in the logic of a traffic light will not. Additionally, Clive Thompson notes that LLMs are particularly good in the area of &ldquo;greenfield&rdquo; coding.<sup><a href="#ftnt44" id="ftnt_ref">44</a></sup> In contrast to the &ldquo;brownfield,&rdquo; of large tech corporations, where one works on a huge codebase with complex interdependencies and millions of lines of code, greenfield coding describes a fresh start, where the model merely has to oversee its own output. </p>
@@ -326,6 +326,9 @@
     <h4 id="h.h521izreq850">Generating Code for Graphic Design</h4>
     <p>Through the sheer speed in which LLMs can produce code, they make coded tools feasible for designers. Sketching out ideas, trying out directions, all that becomes realistic in the often tightly measured time spans of production in the industry. Before, creating a working prototype of a tool could take weeks. Features that would be visually compelling or would improve the tool&rsquo;s usability for quick experimentation often had to be excluded because they were too complex to implement. </p>
 
+
+
+    <p>Designers mostly used to rely on tutorials and code snippets shared online as a starting point for their explorations. Variables within a script allow replacing text, changing the colors, or the number of objects drawn. Making major adjustments to the logic of a program or creating one from scratch was often out of reach for designers, depending on technical skills and timeframes. Now, creating more original tools is far easier to achieve. In the words of Thompson: Graphic design and programming, &ldquo;separated for decades by an ocean of arcane know-how, are drifting closer together.&rdquo;<sup><a href="#ftnt49" id="ftnt_ref">49</a></sup></p>
     <figure class="img-wrap ext"><img alt="" src="../assets/images/image14.png" title="" fetchpriority="low"
         loading="lazy">
       <figcaption><i>Designers building tools previously relied heavily on tutorials shared by the
@@ -333,9 +336,6 @@
         on a post by Noah Schwadron, November 3, 2025. <span class="url">https://www.instagram.com/p/DQmECyFjW58/</span>
       </figcaption>
     </figure>
-
-
-    <p>Designers mostly used to rely on tutorials and code snippets shared online as a starting point for their explorations. Variables within a script allow replacing text, changing the colors, or the number of objects drawn. Making major adjustments to the logic of a program or creating one from scratch was often out of reach for designers, depending on technical skills and timeframes. Now, creating more original tools is far easier to achieve. In the words of Thompson: Graphic design and programming, &ldquo;separated for decades by an ocean of arcane know-how, are drifting closer together.&rdquo;<sup><a href="#ftnt49" id="ftnt_ref">49</a></sup></p>
 
     <p>Large language models act as a shortcut from idea to implementation. In many cases, it is enough to know the name of an algorithm to start experimenting with it. In his conversation with Oliver Reichenstein on the topic of &ldquo;Design as Thought&rdquo; Orlando Budelacci remarks that at his university, they &ldquo;have students who are very strong visual thinkers, less so with language.&rdquo;<sup><a href="#ftnt50" id="ftnt_ref">50</a></sup> There is great potential in letting graphic designers quickly get back to the familiar terrain of the visual when building tools. Regardless, language remains a necessary intermediate step in tool building with LLMs, even if it is less abstruse in syntax than programming languages. </p>
     <h2 id="h.eh2gbbhsk6pq">Language as Design Interface</h2>
@@ -360,6 +360,9 @@
 
     <p>Even with knowing about this system, its simplicity is deceptive, with multiple users piecing together a solution for generating it in code over years. While it should be rather easy for a designer to draw similar shapes by hand, instructing a machine to draw them requires a detailed breakdown that takes into consideration all the tiny details that, when drawing, are handled by human intuition. To start, selecting a random subset of the circles from the grid is simple. Now, how to describe the exact point of the circle&rsquo;s circumference to attach the straight part of the outline to? What direction does the outline move around the circle after hitting it? Such cases need to be solved in a way that they are generalized, for every circle in every shape.</p>
 
+
+
+    <p>Determining the correct order in which to connect circles, so that the outline does not intersect itself, is not trivial at all. Thankfully, as user &ldquo;solub&rdquo; points out, this question can be reduced to a known problem in graph theory: By imagining the circles in the grid as nodes of an interconnected graph, the problem is redefined as finding a path that visits every node exactly once, without causing an intersection. The technical term for describing this problem is finding a non-intersecting Hamiltonian cycle. Solub also gives examples for algorithms that solve this problem, along with a visual explanation of the chosen approach&rsquo;s implications on the final shape. &ldquo;Horizontal sorting with 2-opt&rdquo; creates more of a grass like pattern, &ldquo;angular sorting&rdquo; makes them more star-shaped, while a way of attacking the &ldquo;Traveling Salesman Problem&rdquo; is solub&rsquo;s preferred solution, &ldquo;likely aligning with Armin Hofmann&rsquo;s intentions.&rdquo;<sup><a href="#ftnt52" id="ftnt_ref">52</a></sup></p>
     <figure class="img-wrap ext"><img
         alt="https://canada1.discourse-cdn.com/flex036/uploads/processingfoundation1/original/3X/2/0/20448bdcca6770d899b83307b926ad0d8fe4f281.jpeg"
         src="../assets/images/image1.jpg" title="" fetchpriority="low" loading="lazy">
@@ -372,9 +375,6 @@
           class="url">https://discourse.processing.org/t/shape-generator-help-armin-hofmanns-rubber-band-shape-generator/33190</span>
       </figcaption>
     </figure>
-
-
-    <p>Determining the correct order in which to connect circles, so that the outline does not intersect itself, is not trivial at all. Thankfully, as user &ldquo;solub&rdquo; points out, this question can be reduced to a known problem in graph theory: By imagining the circles in the grid as nodes of an interconnected graph, the problem is redefined as finding a path that visits every node exactly once, without causing an intersection. The technical term for describing this problem is finding a non-intersecting Hamiltonian cycle. Solub also gives examples for algorithms that solve this problem, along with a visual explanation of the chosen approach&rsquo;s implications on the final shape. &ldquo;Horizontal sorting with 2-opt&rdquo; creates more of a grass like pattern, &ldquo;angular sorting&rdquo; makes them more star-shaped, while a way of attacking the &ldquo;Traveling Salesman Problem&rdquo; is solub&rsquo;s preferred solution, &ldquo;likely aligning with Armin Hofmann&rsquo;s intentions.&rdquo;<sup><a href="#ftnt52" id="ftnt_ref">52</a></sup></p>
 
     <p>I hope this brief excursion makes it clear why Clive Thompson tempers claims about everyone being able to code now: &ldquo;If describing and talking are now much of the work of a software developer, the talk nonetheless remains pretty complexand highly technical. An amateur can&rsquo;t do it.&rdquo;<sup><a href="#ftnt53" id="ftnt_ref">53</a></sup> It is therefore important for designers to become familiar with this technical language, less so with previously essential details like the syntax of programming languages. </p>
     <h3 id="h.jjrexvqj0guy">Learning to Think in Computation</h3>
@@ -394,14 +394,14 @@
 
     <p>Automating the process of drawing these shapes offers the potential of further computational use. If no step has to be done by hand anymore, the tool can be extended in a number of ways: it can become a brush that draws patterns around typographic layouts, generate animations in which a different shape is drawn in every frame, or transform input images so that they are rendered exclusively through these shapes. </p>
 
-    <p>Daniel Wenzel combined the latter two ideas in a generative system for the identity of Brand.AI. At its core, the logo consists of twelve circles in orbital arrangement with metaball-style connections. A custom tool adapts the logo to the shape of video frames. This way, any animation can assume the form of the company&rsquo;s visual identity, demonstrating how flexible and extensible custom tools can be. Turning a single shape into a programmed system can result in an identity that adapts to content, medium and format, while retaining the visual metaphor of interconnected nodes. </p>
-
     <figure class="img-wrap ext"><img alt="" src="../assets/images/image15.gif" title="" loading="lazy">
       <figcaption><i><i>A rotating structure displayed through a branded video filter.</i></i> Animation by Daniel
         Wenzel with
         Mouthwash Studio, December 4, 2024. <span class="url">https://www.instagram.com/p/DDK31foSZpY/</span>
       </figcaption>
     </figure>
+    <p>Daniel Wenzel combined the latter two ideas in a generative system for the identity of Brand.AI. At its core, the logo consists of twelve circles in orbital arrangement with metaball-style connections. A custom tool adapts the logo to the shape of video frames. This way, any animation can assume the form of the company&rsquo;s visual identity, demonstrating how flexible and extensible custom tools can be. Turning a single shape into a programmed system can result in an identity that adapts to content, medium and format, while retaining the visual metaphor of interconnected nodes. </p>
+
 
     <h2 id="h.r2w9zet2xjz1">Analyzing the Benefits of Custom Tools</h2>
     <p>A poster made in a letterpress workshop can still deliver its message as it did 50 years ago. Traditional typography remains a valid means of communication. What can coded tools offer, other than making designers more efficient in terms of production speed?</p>
