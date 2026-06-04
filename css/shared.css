@@ -77,14 +77,35 @@ body::-webkit-scrollbar {
   text-decoration: none;
   white-space: nowrap;
   line-height: 1;
+  position: relative;
   display: inline-block;
 }
 
-/* .site-header a:hover,
-.site-header a:focus {
-  font-family: 'True Sans Mono', monospace;
-  outline: none;
-} */
+.site-header a .header-hover-text,
+.site-header a .header-hover-text .header-hover-char {
+  font-family: 'True Sans Mono', monospace !important;
+  font-size: var(--notes-size) !important;
+  line-height: 1   !important;
+}
+
+.site-header a .header-hover-text {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  white-space: pre;
+  opacity: 0;
+}
+
+.site-header .header-hover-char {
+  opacity: 0;
+}
+
+.site-header a:hover .header-text,
+.site-header a:focus .header-text,
+.site-header a:focus-visible .header-text {
+  opacity: 0;
+}
 
 .hc {
   display: inline;
