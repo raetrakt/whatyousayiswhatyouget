@@ -252,11 +252,20 @@ function _sampleLine(font, line, x, y, fontSize, tracking, spacing, flatness) {
 
 // ─── Mask / raster helpers ────────────────────────────────────────────────────
 
+let _maskCache = null; // { key, mask }
+
 /**
  * Rasterize text to an offscreen canvas and return a Uint8Array where
  * 1 = inside text, 0 = outside.  Works for both font-path and mask-SVG modes.
  */
 function _buildInsideMask(maskCanvas, font, lines, fontSize, startY, lineH, tracking, cssW, cssH) {
+  // Cache key: use maskCanvas object identity (or a lines digest for text mode) + dimensions.
+  const key = maskCanvas
+    ? `${maskCanvas.__maskId ?? (maskCanvas.__maskId = ++_buildInsideMask._id)}|${cssW}|${cssH}`
+    : `${lines.join('\n')}|${fontSize}|${startY}|${lineH}|${tracking}|${cssW}|${cssH}`;
+
+  if (_maskCache && _maskCache.key === key) return _maskCache.mask;
+
   const off = document.createElement('canvas');
   off.width = cssW;
   off.height = cssH;
@@ -273,8 +282,10 @@ function _buildInsideMask(maskCanvas, font, lines, fontSize, startY, lineH, trac
   const data = octx.getImageData(0, 0, cssW, cssH).data;
   const mask = new Uint8Array(cssW * cssH);
   for (let i = 0; i < cssW * cssH; i++) mask[i] = data[i * 4] < 128 ? 1 : 0;
+  _maskCache = { key, mask };
   return mask;
 }
+_buildInsideMask._id = 0;
 
 /** Draw filled black glyphs onto `rctx` using the opentype font. */
 function _drawGlyphs(rctx, font, lines, fontSize, startY, lineH, tracking, cssW) {
