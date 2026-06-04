@@ -3,7 +3,7 @@ import { javascript } from '@codemirror/lang-javascript';
 import { parse as parseFont } from 'opentype.js';
 import { colorPickerExt } from './color-picker-ext.js';
 import { SVG_STROKE_SENTINEL } from './sand/sand.js';
-import { layoutText, titleUrl, titleRect, blankMask } from './title-layout.js';
+import { A4, layoutText, titleUrl, titleRect, blankMask } from './title-layout.js';
 
 // ── Tool selection ────────────────────────────────────────────────────────────
 const TOOLS = {

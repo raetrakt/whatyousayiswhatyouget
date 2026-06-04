@@ -641,7 +641,7 @@ export function getParamLines(fmtVal) {
     `  cursorAmplitude: ${fmtVal(defaults.cursorAmplitude)}, // cosine amplitude (0 = flat, 0.5 = full 0–1 swing)`,
     `  cursorRepeat: ${fmtVal(defaults.cursorRepeat)}, // true = ring at midpoint, false = smooth fade`,
     `  cursorMode: ${fmtVal(defaults.cursorMode)}, // enable cursor interaction (false = static everywhere)`,
-  `  cursorDelay: ${fmtVal(defaults.cursorDelay)}, // lerp factor per frame (0 = frozen, 1 = instant)`,
+    `  cursorDelay: ${fmtVal(defaults.cursorDelay)}, // lerp factor per frame (0 = frozen, 1 = instant)`,
   ];
 }
 
