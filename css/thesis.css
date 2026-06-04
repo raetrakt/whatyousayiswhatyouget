@@ -84,7 +84,8 @@ figcaption *,
 .footnotes p *,
 sup a,
 .table-of-contents p,
-.table-of-contents p a {
+.table-of-contents p a,
+.title-text p {
   font-family: 'True Sans Mono', monospace;
   font-size: var(--notes-size);
   line-height: var(--notes-line-height);
@@ -148,12 +149,12 @@ figcaption,
 
 .title-text-inner {
   display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--baseline);
 }
 
-.title-text p {
-  font-family: 'True Sans Mono', monospace;
-  font-size: var(--notes-size);
-  line-height: var(--notes-line-height);
+.title-text .right:last-child {
+  margin-right: 15px;
 }
 
 .hide-on-web {
@@ -193,19 +194,7 @@ figure {
   grid-column: var(--content-col-start) / var(--content-col-end);
 }
 
-.title-mono.left {
-  margin-right: auto;
-}
-
-.title-mono.right {
-  margin-left: var(--baseline);
-}
-
 .img-wrap.title-typography {
-  margin-bottom: var(--baseline);
-}
-
-.title-text {
   margin-bottom: var(--baseline);
 }
 
