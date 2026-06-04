@@ -85,7 +85,7 @@ body::-webkit-scrollbar {
 .site-header a .header-hover-text .header-hover-char {
   font-family: 'True Sans Mono', monospace !important;
   font-size: var(--notes-size) !important;
-  line-height: 1   !important;
+  line-height: 1 !important;
 }
 
 .site-header a .header-hover-text {

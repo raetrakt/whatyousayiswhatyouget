@@ -14,8 +14,12 @@
 
   const headerHeight = parseFloat(getComputedStyle(header).height) || 0;
   const existingPaddingTop = parseFloat(getComputedStyle(document.body).paddingTop) || 0;
+  const workModal = document.getElementById('work-modal');
   if (!document.body.hasAttribute('data-no-header-padding')) {
     document.body.style.paddingTop = headerHeight + 'px';
+  } else if (workModal) {
+    const existingPaddingModal = parseFloat(getComputedStyle(workModal).paddingTop) || 0;
+    workModal.style.paddingTop = existingPaddingModal + headerHeight + 'px';
   }
 
   const DELAY = 18; // ms per character
