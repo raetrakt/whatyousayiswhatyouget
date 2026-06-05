@@ -43,7 +43,7 @@ export function render(
 
   const fillColor = params.fillColor ?? defaults.fillColor;
   const bgColor = params.bgColor ?? defaults.bgColor;
-  const stepsPerFrame = Math.max(1, Math.round(params.speed ?? defaults.speed));
+  const stepsPerFrame = Math.max(1, Math.min(100, Math.round(params.speed ?? defaults.speed)));
   const threshold = Math.max(1, Math.min(255, Math.round(params.threshold ?? defaults.threshold)));
   const collapseDelay = Math.max(0, Math.round(params.collapseDelay ?? defaults.collapseDelay));
   const strokeColor = params.strokeColor ?? defaults.strokeColor;

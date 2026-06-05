@@ -357,7 +357,7 @@ export function render(
 ) {
   const version = ++_version;
 
-  const spacing = Math.max(1, params.spacing ?? defaults.spacing);
+  const spacing = Math.max(2, params.spacing ?? defaults.spacing);
   const marker = params.marker ?? defaults.marker;
   const markerSize = Math.max(2, params.markerSize ?? defaults.markerSize);
   const markerColor = params.markerColor ?? defaults.markerColor;
@@ -414,11 +414,13 @@ export function render(
   const markerBitmaps = [];
 
   for (const singleMarker of markerList) {
-    const maxMarkerSize = markerSize * Math.max(1, cursorScale);
+    // Clamp bitmap geometry so absurd markerSize/cursorScale/strokeWidth values
+    // can't allocate a multi-GB canvas and crash the tab (unrecoverable break).
+    const maxMarkerSize = Math.min(2000, markerSize * Math.max(1, cursorScale));
     const OVER = 2;
     const scaledStrokeHalf = strokeColor ? (strokeWidth / 2) * (maxMarkerSize / markerSize) : 0;
     const pad = scaledStrokeHalf + 2;
-    const offSize = (maxMarkerSize + pad * 2) * OVER;
+    const offSize = Math.min(4096, (maxMarkerSize + pad * 2) * OVER);
     const markerBitmap = document.createElement('canvas');
     markerBitmap.width = markerBitmap.height = offSize;
     const mctx = markerBitmap.getContext('2d');

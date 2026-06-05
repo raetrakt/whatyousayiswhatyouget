@@ -38,7 +38,7 @@ export function render(
   canvas,
   { lines, fontSize, startY, lineH, params, cssW, cssH, maskCanvas },
 ) {
-  const maxDepth = params.maxDepth ?? defaults.maxDepth;
+  const maxDepth = Math.min(13, Math.max(1, Math.round(params.maxDepth ?? defaults.maxDepth)));
   const brushMode = params.brushMode ?? defaults.brushMode;
   const fillColor = typeof params.fillColor === 'string' ? params.fillColor : defaults.fillColor;
   const lineColor =

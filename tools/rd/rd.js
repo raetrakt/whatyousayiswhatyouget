@@ -55,7 +55,7 @@ export function render(
 
   const F = params.feed ?? defaults.feed;
   const k = params.kill ?? defaults.kill;
-  const stepsPerFrame = Math.max(1, Math.round(params.speed ?? defaults.speed));
+  const stepsPerFrame = Math.max(1, Math.min(50, Math.round(params.speed ?? defaults.speed)));
   const sc = Math.max(1, Math.round(params.scale ?? defaults.scale));
   const renderSc = Math.max(1, Math.round(params.renderScale ?? defaults.renderScale));
   const thresh = params.thresh ?? defaults.thresh;
