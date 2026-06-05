@@ -33,9 +33,9 @@ async function initEditor(toolName) {
     '',
     'const params = {',
     '  fontSize: null, // null = auto-fit',
-    '  leading: .6,',
-    '  margin: 25, // mm whitespace on each side',
+    '  leading: .6, // space between lines',
     '  tracking: -3, // px added between characters',
+    '  margin: 25, // mm whitespace on each side',
     '  width: 210,',
     '  height: 297,',
     '  valign: "top", // top | center | bottom',
@@ -219,8 +219,16 @@ async function initEditor(toolName) {
     ctx.fillRect(0, 0, cssW, cssH);
 
     const isDefaultTitle = text === 'What You Say Is What You Get?';
+    const isDefaultParams =
+      (p.fontSize === undefined || p.fontSize === null) &&
+      (p.leading === undefined || p.leading === 0.6) &&
+      (p.tracking === undefined || p.tracking === -3) &&
+      (p.margin === undefined || p.margin === 25) &&
+      (p.width === undefined || p.width === 210) &&
+      (p.height === undefined || p.height === 297) &&
+      (p.valign === undefined || p.valign === 'top');
     const selectedTitleSvgUrl = titleUrl(params);
-    if (isDefaultTitle && selectedTitleSvgUrl) {
+    if (isDefaultTitle && isDefaultParams && selectedTitleSvgUrl) {
       // Reset cache when switching between title assets.
       if (_titleSvgImageSrc !== selectedTitleSvgUrl) {
         _titleSvgImage = null;
