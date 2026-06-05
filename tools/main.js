@@ -96,7 +96,7 @@ async function initEditor(toolName) {
   const INITIAL_CODE = [
     '// This is part of the code that creates the image',
     '// Try changing the values and see what happens',
-    '// Comments like this one are ignored by the computer',
+    '// Comments like these are ignored by the computer',
     '',
     'const text = "What You Say Is What You Get?"',
     '',
@@ -301,7 +301,8 @@ async function initEditor(toolName) {
       (p.height === undefined || p.height === 297) &&
       (p.valign === undefined || p.valign === 'top');
     const selectedTitleSvgUrl = titleUrl(params);
-    if (isDefaultTitle && isDefaultParams && selectedTitleSvgUrl) {
+    const collapseDelay = params.collapseDelay ?? 0;
+    if (isDefaultTitle && isDefaultParams && selectedTitleSvgUrl && collapseDelay === 0) {
       // Reset cache when switching between title assets.
       if (_titleSvgImageSrc !== selectedTitleSvgUrl) {
         _titleSvgImage = null;
