@@ -4,13 +4,13 @@
 // Uses a summed-area table for O(1) cell coverage queries.
 
 export const defaults = {
-  maxDepth: 8, // max subdivision levels (depth 7 → ~cssW/128 min cell)
+  maxDepth: 4, // max subdivision levels (depth 7 → ~cssW/128 min cell)
   fillColor: '#ff80c3',
   lineColor: '#ff2e2e',
-  lineWidth: 0.5,
+  lineWidth: 0.4,
   bgColor: '#ffffff',
-  brushMode: false, // paint higher detail where you drag
-  brushRadius: 30, // brush size in CSS px
+  brushMode: true, // paint higher detail where you drag
+  brushRadius: 60, // brush size in CSS px
 };
 
 // ─── Brush state (persists across renders; reset on canvas resize) ───────────
@@ -206,8 +206,8 @@ function _setupBrushListeners(canvas) {
     'display:none',
     'pointer-events:none',
     'border-radius:50%',
-    'border:1.5px solid #000',
-    'outline:1px solid #fff',
+    'outline:1px dashed #000',
+    'box-shadow:0 0 0 1px #fff;',
     'box-sizing:border-box',
     'transform:translate(-50%,-50%)',
   ].join(';');
@@ -317,14 +317,15 @@ function _lineStartX(line, fontSize, params, font, cssW) {
 export function getParamLines(fmtVal) {
   return [
     '',
-    '  // quadtree',
+    '  // Quadtree parameters',
     `  maxDepth: ${fmtVal(defaults.maxDepth)}, // max subdivision levels`,
-    `  fillColor: ${fmtVal(defaults.fillColor)}, // inside cell color`,
-    `  lineColor: ${fmtVal(defaults.lineColor)}, // cell border color (null = none)`,
     `  lineWidth: ${fmtVal(defaults.lineWidth)}, // border width px`,
-    `  bgColor: ${fmtVal(defaults.bgColor)}, // background`,
+    `  fillColor: ${fmtVal(defaults.fillColor)},`,
+    `  lineColor: ${fmtVal(defaults.lineColor)},`,
+    `  bgColor: ${fmtVal(defaults.bgColor)},`,
+    '',
     `  brushMode: ${fmtVal(defaults.brushMode)}, // enable detail brush`,
-    `  brushRadius: ${fmtVal(defaults.brushRadius)}, // brush size (CSS px)`,
+    `  brushRadius: ${fmtVal(defaults.brushRadius)}, // brush size`,
   ];
 }
 

@@ -12,11 +12,11 @@ const _SENTINEL_R = 255,
   _SENTINEL_B = 254;
 
 export const defaults = {
-  speed: 3, // simulation steps per frame (higher = faster crumbling)
+  speed: 4, // simulation steps per frame (higher = faster crumbling)
   threshold: 0, // pixel brightness cutoff (0–255): higher includes more anti-aliased edge pixels
   fillColor: '#fa2507',
   bgColor: '#ffffff',
-  collapseDelay: 8, // animation frames between each character's release (0 = all at once)
+  collapseDelay: 0, // animation frames between each character's release (0 = all at once)
   strokeColor: '#ffffff', // stroke color (null = no stroke)
   strokeWidth: 34, // stroke width in pixels
 };
@@ -450,14 +450,14 @@ function _hexToRgb(hex) {
 export function getParamLines(fmtVal) {
   return [
     '',
-    '  // sand',
+    '  // Falling Sand Simulation parameters',
     `  speed: ${fmtVal(defaults.speed)}, // simulation steps per frame`,
-    `  threshold: ${fmtVal(defaults.threshold)}, // pixel brightness cutoff (0–255); higher = more soft-edge pixels`,
-    `  collapseDelay: ${fmtVal(defaults.collapseDelay)}, // animation frames between each character's release (0 = all at once)`,
-    `  fillColor: ${fmtVal(defaults.fillColor)}, // particle color`,
-    `  bgColor: ${fmtVal(defaults.bgColor)}, // background`,
-    `  strokeColor: ${fmtVal(defaults.strokeColor)}, // stroke color (null = no stroke)`,
-    `  strokeWidth: ${fmtVal(defaults.strokeWidth)}, // stroke width in pixels`,
+    `  threshold: ${fmtVal(defaults.threshold)}, // edge blurriness, 0–255`,
+    `  collapseDelay: ${fmtVal(defaults.collapseDelay)}, // frames between char release`,
+    `  strokeWidth: ${fmtVal(defaults.strokeWidth)}, // stroke width in px`,
+    `  strokeColor: ${fmtVal(defaults.strokeColor)},`,
+    `  fillColor: ${fmtVal(defaults.fillColor)},`,
+    `  bgColor: ${fmtVal(defaults.bgColor)},`,
   ];
 }
 

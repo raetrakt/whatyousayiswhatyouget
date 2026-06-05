@@ -12,24 +12,24 @@
 // interior. Version counter cancels stale loops on re-render.
 
 export const defaults = {
-  spacing: 20, // arc-length gap between initial markers (px)
+  spacing: 15, // arc-length gap between initial markers (px)
   marker: '✻', // unicode character placed at each point
-  markerSize: 22, // font-size of the marker glyph (px)
-  markerColor: '#6b3200',
+  markerSize: 25, // font-size of the marker glyph (px)
+  markerColor: '#843d00',
   strokeColor: '#e2fe43', // stroke colour — null = no stroke
-  strokeWidth: 10, // stroke width (px)
+  strokeWidth: 12, // stroke width (px)
   bgColor: '#ffffff',
   flatness: 0.5, // bezier subdivision tolerance — font mode only (px)
   relax: true, // enable relaxation animation
-  relaxSpeed: 8, // pixels moved per step per unit force
-  period: 6, // seconds for one full spread-and-return cycle
-  cursorRadius: 650, // px — influence radius around cursor (0 = off)
-  cursorScale: 5, // scale multiplier at cursor centre
-  cursorRotation: 270, // degrees rotation at cursor centre
-  cursorRepeat: false, // true = cosine repeats (ring at midpoint), false = smooth fade to 0
-  cursorAmplitude: 0.5, // cosine amplitude (0 = flat 0.5 influence, 0.5 = full 0–1 swing)
+  relaxSpeed: 2, // pixels moved per step per unit force
+  period: 4, // seconds for one full spread-and-return cycle
   cursorMode: true, // enable cursor interaction (false = static everywhere)
-  cursorDelay: 0.08, // lerp factor per frame (0 = frozen, 1 = instant)
+  cursorRadius: 250, // px — influence radius around cursor (0 = off)
+  cursorScale: 3, // scale multiplier at cursor centre
+  cursorRotation: 270, // degrees rotation at cursor centre
+  cursorRepeat: true, // true = cosine repeats (ring at midpoint), false = smooth fade to 0
+  cursorAmplitude: 1, // cosine amplitude (0 = flat 0.5 influence, 0.5 = full 0–1 swing)
+  cursorDelay: 0.3, // lerp factor per frame (0 = frozen, 1 = instant)
 };
 
 // ─── Cursor tracking ─────────────────────────────────────────────────────────
@@ -457,6 +457,10 @@ export function render(
     if (_cursor.x < -999) {
       _smoothCursor.x = _cursor.x;
       _smoothCursor.y = _cursor.y;
+    } else if (_smoothCursor.x < -999) {
+      // Cursor just entered — snap to avoid lerping from off-screen
+      _smoothCursor.x = _cursor.x;
+      _smoothCursor.y = _cursor.y;
     } else {
       _smoothCursor.x += (_cursor.x - _smoothCursor.x) * cursorDelay;
       _smoothCursor.y += (_cursor.y - _smoothCursor.y) * cursorDelay;
@@ -470,7 +474,7 @@ export function render(
       const markerBitmapData = markerBitmaps[i % markerBitmaps.length];
       const markerBitmap = markerBitmapData.bitmap;
       let influence = 0;
-      if (cursorMode && cursorRadius > 0) {
+      if (cursorMode && cursorRadius > 0 && _smoothCursor.x > -999) {
         const dx = x - _smoothCursor.x,
           dy = y - _smoothCursor.y;
         const d = Math.sqrt(dx * dx + dy * dy);
@@ -610,9 +614,16 @@ export function render(
   function loop(now) {
     if (_version !== version) return;
     const t = (now - startTime) / 1000 / period;
-    const spreadFactor = (1 - Math.cos(2 * Math.PI * t)) / 2; // 0→1→0
+    const raw = (1 - Math.cos(2 * Math.PI * t)) / 2; // 0→1→0
+    const spreadFactor = raw * raw * raw; // cubic: long rest near 0
     const subSpeed = relaxSpeed / substeps;
     for (let s = 0; s < substeps; s++) step(spreadFactor, subSpeed);
+    // Continuously home toward origins; pull is strongest when fully settled
+    const pull = (1 - spreadFactor) * 0.12;
+    for (let i = 0; i < pts.length; i++) {
+      pts[i].x += (originPts[i].x - pts[i].x) * pull;
+      pts[i].y += (originPts[i].y - pts[i].y) * pull;
+    }
     draw();
     requestAnimationFrame(loop);
   }
@@ -624,26 +635,26 @@ export function render(
 export function getParamLines(fmtVal) {
   return [
     '',
-    '  // Path resampling',
-    `  spacing: ${fmtVal(defaults.spacing)}, // arc-length gap between markers (px)`,
+    '  // Path Resampling parameters',
     `  marker: ${fmtVal(defaults.marker)}, // unicode glyph placed at each point`,
-    `  markerSize: ${fmtVal(defaults.markerSize)}, // font-size of marker (px)`,
+    `  markerSize: ${fmtVal(defaults.markerSize)}, // font-size of marker in px`,
+    `  strokeWidth: ${fmtVal(defaults.strokeWidth)}, // stroke width in px`,
+    `  spacing: ${fmtVal(defaults.spacing)}, // gap between markers in px`,
     `  markerColor: ${fmtVal(defaults.markerColor)},`,
-    `  strokeColor: ${fmtVal(defaults.strokeColor)}, // stroke colour (null = no stroke)`,
-    `  strokeWidth: ${fmtVal(defaults.strokeWidth)}, // stroke width (px)`,
+    `  strokeColor: ${fmtVal(defaults.strokeColor)},`,
     `  bgColor: ${fmtVal(defaults.bgColor)},`,
-    '  // Particle relaxation',
+    '',
     `  relax: ${fmtVal(defaults.relax)}, // animate spread-and-return loop`,
     `  relaxSpeed: ${fmtVal(defaults.relaxSpeed)}, // px moved per step per unit force`,
-    `  period: ${fmtVal(defaults.period)}, // seconds for one full spread-and-return cycle`,
-    '  // Cursor interaction',
-    `  cursorRadius: ${fmtVal(defaults.cursorRadius)}, // px influence radius (0 = off)`,
-    `  cursorScale: ${fmtVal(defaults.cursorScale)}, // scale at cursor centre`,
-    `  cursorRotation: ${fmtVal(defaults.cursorRotation)}, // degrees rotation at cursor centre`,
-    `  cursorAmplitude: ${fmtVal(defaults.cursorAmplitude)}, // cosine amplitude (0 = flat, 0.5 = full 0–1 swing)`,
-    `  cursorRepeat: ${fmtVal(defaults.cursorRepeat)}, // true = ring at midpoint, false = smooth fade`,
-    `  cursorMode: ${fmtVal(defaults.cursorMode)}, // enable cursor interaction (false = static everywhere)`,
-    `  cursorDelay: ${fmtVal(defaults.cursorDelay)}, // lerp factor per frame (0 = frozen, 1 = instant)`,
+    `  period: ${fmtVal(defaults.period)}, // seconds for one full cycle`,
+    '',
+    `  cursorMode: ${fmtVal(defaults.cursorMode)}, // enable cursor interaction`,
+    `  cursorRepeat: ${fmtVal(defaults.cursorRepeat)}, // false = only center is affected`,
+    `  cursorRadius: ${fmtVal(defaults.cursorRadius)}, // px influence radius`,
+    `  cursorScale: ${fmtVal(defaults.cursorScale)}, // amount of enlargement`,
+    `  cursorRotation: ${fmtVal(defaults.cursorRotation)}, // amount of rotation`,
+    `  cursorAmplitude: ${fmtVal(defaults.cursorAmplitude)}, // cosine amplitude, 0 = flat`,
+    `  cursorDelay: ${fmtVal(defaults.cursorDelay)}, // effect delay, 0 = frozen, 1 = instant`,
   ];
 }
 

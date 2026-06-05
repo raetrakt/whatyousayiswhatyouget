@@ -16,19 +16,19 @@ export const defaults = {
   feed: 0.055, // feed rate of U (0.01–0.08)
   kill: 0.062, // kill rate of V (0.04–0.07)
   speed: 8, // steps per animation frame
-  scale: 2, // simulation grid divisor — controls pattern thickness
+  simulationScale: 2, // simulation grid divisor — controls pattern thickness
   renderScale: 1, // render output divisor — 1 = full quality, 2 = half res
   // appearance
-  thresh: false, // snap to solid colors instead of smooth gradient
-  threshVal: 0.2, // V cutoff for solid mode (0–1)
   colorHigh: '#000000', // color at dense areas (high V)
   colorLow: '#002aff', // color at sparse areas (low V)
   lowPos: 50, // where colorLow sits in brightness (0 = hard edge, 128 = halfway)
   hardCut: false, // true = sharp edge at lowPos; false = fade to transparent
-  bgColor: '#ffffff', // canvas background
+  thresh: false, // snap to solid colors instead of smooth gradient
+  threshVal: 0.15, // V cutoff for solid mode (0–1)
   // brush
   brushMode: false, // paint to seed reaction; letters stay stable
   brushRadius: 30, // brush size in CSS px
+  bgColor: '#ffffff', // canvas background
 };
 
 // Version counter cancels stale animation loops on re-render.
@@ -56,7 +56,7 @@ export function render(
   const F = params.feed ?? defaults.feed;
   const k = params.kill ?? defaults.kill;
   const stepsPerFrame = Math.max(1, Math.min(50, Math.round(params.speed ?? defaults.speed)));
-  const sc = Math.max(1, Math.round(params.scale ?? defaults.scale));
+  const sc = Math.max(1, Math.round(params.simulationScale ?? defaults.simulationScale));
   const renderSc = Math.max(1, Math.round(params.renderScale ?? defaults.renderScale));
   const thresh = params.thresh ?? defaults.thresh;
   const threshVal = params.threshVal ?? defaults.threshVal;
@@ -351,8 +351,8 @@ function _setupRDBrushListeners(canvas) {
     'display:none',
     'pointer-events:none',
     'border-radius:50%',
-    'border:1.5px solid #000',
-    'outline:1px solid #fff',
+    'outline:1px dashed #000',
+    'box-shadow:0 0 0 1px #fff;',
     'box-sizing:border-box',
     'transform:translate(-50%,-50%)',
   ].join(';');
@@ -435,25 +435,23 @@ function _hexToRgb(hex) {
 export function getParamLines(fmtVal) {
   return [
     '',
-    '  // ── Simulation ────────────────────────────────────────────────────',
-    '  //   for best results keep k > f and within 0.03 and 0.07',
+    '  // Reaction Diffusion parameters',
+    '  // for best results keep k > f and within 0.03–0.07',
     `  feed: ${fmtVal(defaults.feed)}, // how fast the activator is fed in`,
     `  kill: ${fmtVal(defaults.kill)}, // how fast the activator is consumed`,
-    `  speed: ${fmtVal(defaults.speed)}, // steps per animation frame — higher = faster growth`,
-    `  scale: ${fmtVal(defaults.scale)}, // pattern thickness — higher = thicker lines, coarser simulation`,
-    `  renderScale: ${fmtVal(defaults.renderScale)}, // render resolution — 1 = full quality, 2 = half res`,
+    `  speed: ${fmtVal(defaults.speed)}, // animation steps per frame`,
+    `  simulationScale: ${fmtVal(defaults.simulationScale)}, // higher = thicker lines`,
+    `  renderScale: ${fmtVal(defaults.renderScale)}, // higher = lower res`,
     '',
-    '  // ── Appearance ───────────────────────────────────────────────────',
-    `  thresh: ${fmtVal(defaults.thresh)}, // true: snap to solid colors  |  false: smooth gradient`,
-    `  threshVal: ${fmtVal(defaults.threshVal)}, // cutoff for solid mode (0–1; smaller = more ink)`,
-    `  colorHigh: ${fmtVal(defaults.colorHigh)}, // color at dense areas`,
-    `  colorLow: ${fmtVal(defaults.colorLow)}, // color at sparse areas`,
-    `  lowPos: ${fmtVal(defaults.lowPos)}, // where colorLow sits (0 = at edge, 128 = halfway into gradient)`,
-    `  hardCut: ${fmtVal(defaults.hardCut)}, // true: sharp edge at lowPos  |  false: fade to transparent`,
-    `  bgColor: ${fmtVal(defaults.bgColor)}, // canvas background color`,
+    `  lowPos: ${fmtVal(defaults.lowPos)}, // where colorLow sits, 0–255`,
+    `  hardCut: ${fmtVal(defaults.hardCut)}, // cut off gradient`,
+    `  thresh: ${fmtVal(defaults.thresh)}, // snap to solid colors`,
+    `  threshVal: ${fmtVal(defaults.threshVal)}, // cutoff for solid mode, 0–1`,
+    `  colorHigh: ${fmtVal(defaults.colorHigh)},`,
+    `  colorLow: ${fmtVal(defaults.colorLow)},`,
+    `  bgColor: ${fmtVal(defaults.bgColor)},`,
     '',
-    '  // ── Brush ────────────────────────────────────────────────────────',
-    `  brushMode: ${fmtVal(defaults.brushMode)}, // paint to grow the reaction — letters stay stable`,
+    `  brushMode: ${fmtVal(defaults.brushMode)}, // paint to grow the reaction`,
     `  brushRadius: ${fmtVal(defaults.brushRadius)}, // brush size in pixels`,
   ];
 }
@@ -463,7 +461,7 @@ export function normalizeParams(p) {
     feed: p.feed ?? defaults.feed,
     kill: p.kill ?? defaults.kill,
     speed: p.speed ?? defaults.speed,
-    scale: p.scale ?? defaults.scale,
+    simulationScale: p.simulationScale ?? defaults.simulationScale,
     renderScale: p.renderScale ?? defaults.renderScale,
     thresh: p.thresh ?? defaults.thresh,
     threshVal: p.threshVal ?? defaults.threshVal,
@@ -486,7 +484,7 @@ export function getFilenameHint(p) {
     `f${v('feed')}`,
     `k${v('kill')}`,
     `sp${v('speed')}`,
-    `sc${v('scale')}`,
+    `sc${v('simulationScale')}`,
     `rs${v('renderScale')}`,
     v('thresh') ? `th${v('threshVal')}` : 'noth',
     `${col('colorHigh')}-${col('colorLow')}`,

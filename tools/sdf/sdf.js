@@ -16,8 +16,8 @@ export const defaults = {
   specular: 0.2, // specular highlight intensity (0 = off)
   specularSharpness: 30, // Phong exponent — higher = tighter highlight spot
   fillColor: '#ffffff', // text fill
-  gradientColor: '#fe2020', // bevel fades to this color
-  shadowColor: '#2c00db', // shadow side of bevel (replaces desaturation-to-black)
+  gradientColor: '#ffda99', // bevel fades to this color
+  shadowColor: '#f02400', // shadow side of bevel (replaces desaturation-to-black)
   bgColor: '#fff', // background
 };
 
@@ -284,14 +284,14 @@ export function getParamLines(fmtVal) {
     '  // Signed Distance Field parameters',
     `  borderWidth: ${fmtVal(defaults.borderWidth)}, // fraction of fontSize`,
     `  bevelCurvature: ${fmtVal(defaults.bevelCurvature)}, // 0 = flat, higher = rounder`,
-    `  bevelPeak: ${fmtVal(defaults.bevelPeak)}, // 0 = edge peak, 0.5 = mid ridge, 1 = outer lip`,
-    `  lightAngle: ${fmtVal(defaults.lightAngle)}, // degrees clockwise from top (315 = upper-left)`,
-    `  specular: ${fmtVal(defaults.specular)}, // specular highlight (0 = off)`,
-    `  specularSharpness: ${fmtVal(defaults.specularSharpness)}, // tightness of highlight spot`,
-    `  fillColor: ${fmtVal(defaults.fillColor)}, // text fill`,
-    `  gradientColor: ${fmtVal(defaults.gradientColor)}, // bevel fades to this color`,
-    `  shadowColor: ${fmtVal(defaults.shadowColor)}, // shadow side of bevel`,
-    `  bgColor: ${fmtVal(defaults.bgColor)}, // background`,
+    `  bevelPeak: ${fmtVal(defaults.bevelPeak)}, // 0 = edge peak, 1 = outer lip`,
+    `  lightAngle: ${fmtVal(defaults.lightAngle)}, // degrees clockwise from top`,
+    `  specular: ${fmtVal(defaults.specular)}, // specular highlight, 0 = off`,
+    `  specularSharpness: ${fmtVal(defaults.specularSharpness)},`,
+    `  fillColor: ${fmtVal(defaults.fillColor)},`,
+    `  gradientColor: ${fmtVal(defaults.gradientColor)},`,
+    `  shadowColor: ${fmtVal(defaults.shadowColor)},`,
+    `  bgColor: ${fmtVal(defaults.bgColor)},`,
   ];
 }
 
