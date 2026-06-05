@@ -29,13 +29,14 @@ async function initEditor(toolName) {
   }
 
   const INITIAL_CODE = [
-    'const text = "What You Say Is What You Get?" // type \\n for new line',
+    '// change text here, type \\n for line break',
+    'const text = "What You Say Is What You Get?"',
     '',
     'const params = {',
     '  fontSize: null, // null = auto-fit',
     '  leading: .6, // space between lines',
-    '  tracking: -3, // px added between characters',
-    '  margin: 25, // mm whitespace on each side',
+    '  tracking: -3, // px added between chars',
+    '  margin: 25, // whitespace on each side',
     '  width: 210,',
     '  height: 297,',
     '  valign: "top", // top | center | bottom',
