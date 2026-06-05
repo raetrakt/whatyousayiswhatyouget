@@ -293,7 +293,7 @@ async function initEditor(toolName) {
       (p.fontSize === undefined || p.fontSize === null) &&
       (p.leading === undefined || p.leading === 0.6) &&
       (p.tracking === undefined || p.tracking === -3) &&
-      (p.margin === undefined || p.margin === 25) &&
+      // (p.margin === undefined || p.margin === 25) &&
       (p.width === undefined || p.width === 210) &&
       (p.height === undefined || p.height === 297) &&
       (p.valign === undefined || p.valign === 'top');
