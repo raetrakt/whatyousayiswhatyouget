@@ -5,8 +5,8 @@
 
 export const defaults = {
   maxDepth: 4, // max subdivision levels (depth 7 → ~cssW/128 min cell)
-  fillColor: '#ff80c3',
-  lineColor: '#ff2e2e',
+  fillColor: '#ffa1d3',
+  lineColor: '#ff2b2b',
   lineWidth: 0.4,
   bgColor: '#ffffff',
   brushMode: true, // paint higher detail where you drag
