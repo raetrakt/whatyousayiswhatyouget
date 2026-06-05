@@ -17,12 +17,12 @@ export const defaults = {
   markerSize: 25, // font-size of the marker glyph (px)
   markerColor: '#843d00',
   strokeColor: '#e2fe43', // stroke colour — null = no stroke
-  strokeWidth: 12, // stroke width (px)
+  strokeWidth: 10, // stroke width (px)
   bgColor: '#ffffff',
   flatness: 0.5, // bezier subdivision tolerance — font mode only (px)
   relax: true, // enable relaxation animation
-  relaxSpeed: 2, // pixels moved per step per unit force
-  period: 4, // seconds for one full spread-and-return cycle
+  relaxSpeed: 10, // pixels moved per step per unit force
+  period: 6, // seconds for one full spread-and-return cycle
   cursorMode: true, // enable cursor interaction (false = static everywhere)
   cursorRadius: 250, // px — influence radius around cursor (0 = off)
   cursorScale: 3, // scale multiplier at cursor centre
