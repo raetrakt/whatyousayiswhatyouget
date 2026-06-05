@@ -6,6 +6,7 @@ import { parse as parseFont } from 'opentype.js';
 import { colorPickerExt } from './color-picker-ext.js';
 import { SVG_STROKE_SENTINEL } from './sand/sand.js';
 import { A4, layoutText, titleUrl, titleRect, blankMask } from './title-layout.js';
+import { createRecorder } from './record.js';
 
 // ── Error line highlight (CM6 decoration) ───────────────────────────────────
 const _errorLineEffect = StateEffect.define();
@@ -146,12 +147,8 @@ async function initEditor(toolName) {
   const errorDisplay = document.getElementById('error-display');
 
   // ── Video recording ───────────────────────────────────────────────────────────
-  const RECORD_FPS = 30;
-  let _isRecording = false;
-  let _videoEncoder = null;
-  let _muxer = null;
-  let _recordRafId = null;
-  let _recordFrameIndex = 0;
+  // Recording logic lives in ./record.js; it's wired up after the canvas and
+  // filename helpers are available (see createRecorder call below).
 
   // Highlight the active tool button
   document.querySelectorAll('.tool-switch-link[data-tool]').forEach((btn) => {
@@ -538,97 +535,11 @@ async function initEditor(toolName) {
 
   // ── Record ────────────────────────────────────────────────────────────────────
 
-  function _downloadBlob(blob, ext) {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = _timestamp() + '-' + _currentFilename() + '.' + ext;
-    a.click();
-    URL.revokeObjectURL(url);
-  }
-
-  async function startRecording() {
-    if (_isRecording) return;
-    const { Muxer, ArrayBufferTarget } = await import('mp4-muxer');
-
-    // H.264 requires even dimensions
-    const w = canvas.width & ~1;
-    const h = canvas.height & ~1;
-
-    _muxer = new Muxer({
-      target: new ArrayBufferTarget(),
-      video: { codec: 'avc', width: w, height: h, frameRate: RECORD_FPS },
-      fastStart: 'in-memory',
-    });
-
-    _videoEncoder = new VideoEncoder({
-      output: (chunk, meta) => _muxer.addVideoChunk(chunk, meta),
-      error: (e) => {
-        console.error('VideoEncoder:', e);
-        stopRecording();
-      },
-    });
-    _videoEncoder.configure({
-      codec: 'avc1.640034', // H.264 High Profile Level 5.2 — no practical resolution cap
-      width: w,
-      height: h,
-      bitrate: 12_000_000,
-      framerate: RECORD_FPS,
-      avc: { format: 'avc' },
-    });
-
-    _recordFrameIndex = 0;
-    _isRecording = true;
-
-    const btn = document.getElementById('btn-record');
-    btn.textContent = 'stop';
-    btn.classList.add('recording');
-
-    const frameIntervalMs = 1000 / RECORD_FPS;
-    let lastFrameTs = -Infinity;
-
-    function captureLoop(ts) {
-      if (!_isRecording) return;
-      if (ts - lastFrameTs >= frameIntervalMs && _videoEncoder.encodeQueueSize < 10) {
-        lastFrameTs = ts;
-        const timestamp = Math.round(_recordFrameIndex * (1_000_000 / RECORD_FPS));
-        const frame = new VideoFrame(canvas, { timestamp });
-        _videoEncoder.encode(frame, { keyFrame: _recordFrameIndex % 150 === 0 });
-        frame.close();
-        _recordFrameIndex++;
-      }
-      _recordRafId = requestAnimationFrame(captureLoop);
-    }
-    _recordRafId = requestAnimationFrame(captureLoop);
-  }
-
-  async function stopRecording() {
-    if (!_isRecording) return;
-    _isRecording = false;
-    cancelAnimationFrame(_recordRafId);
-    _recordRafId = null;
-
-    const btn = document.getElementById('btn-record');
-    btn.disabled = true;
-    btn.textContent = 'encoding…';
-
-    await _videoEncoder.flush();
-    _videoEncoder.close();
-    _videoEncoder = null;
-
-    _muxer.finalize();
-    const { buffer } = _muxer.target;
-    _muxer = null;
-
-    _downloadBlob(new Blob([buffer], { type: 'video/mp4' }), 'mp4');
-    btn.disabled = false;
-    btn.textContent = 'record';
-    btn.classList.remove('recording');
-  }
-
-  document.getElementById('btn-record').addEventListener('click', () => {
-    if (_isRecording) stopRecording();
-    else startRecording();
+  createRecorder({
+    canvas,
+    errorDisplay,
+    button: document.getElementById('btn-record'),
+    getFilename: () => _timestamp() + '-' + _currentFilename(),
   });
 
   // ── Export PNG sequence ─────────────────────────────────────────────────────
