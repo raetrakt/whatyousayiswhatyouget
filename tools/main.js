@@ -1,9 +1,74 @@
 import { EditorView, minimalSetup } from 'codemirror';
 import { javascript } from '@codemirror/lang-javascript';
+import { StateEffect, StateField } from '@codemirror/state';
+import { Decoration } from '@codemirror/view';
 import { parse as parseFont } from 'opentype.js';
 import { colorPickerExt } from './color-picker-ext.js';
 import { SVG_STROKE_SENTINEL } from './sand/sand.js';
 import { A4, layoutText, titleUrl, titleRect, blankMask } from './title-layout.js';
+
+// ── Error line highlight (CM6 decoration) ───────────────────────────────────
+const _errorLineEffect = StateEffect.define();
+const _errorLineField = StateField.define({
+  create: () => Decoration.none,
+  update(decos, tr) {
+    for (const e of tr.effects) {
+      if (e.is(_errorLineEffect)) {
+        if (e.value === null) return Decoration.none;
+        try {
+          const line = tr.state.doc.line(e.value);
+          return Decoration.set([Decoration.line({ class: 'cm-error-line' }).range(line.from)]);
+        } catch {
+          return Decoration.none;
+        }
+      }
+    }
+    return decos.map(tr.changes);
+  },
+  provide: (f) => EditorView.decorations.from(f),
+});
+
+// Read the engine's *raw* reported line for an error thrown inside a
+// `new Function` body, with no offset applied. Covers all three engines:
+//   Firefox  → err.lineNumber
+//   Safari   → err.line, or stack "anonymous@…:line:col"
+//   V8/Chrome→ stack "<anonymous>:line:col"
+function _rawErrLine(err) {
+  if (typeof err.lineNumber === 'number') return err.lineNumber; // Firefox
+  if (typeof err.line === 'number') return err.line; // Safari
+  const stack = String(err.stack ?? '');
+  let m = stack.match(/<anonymous>:(\d+):\d+/); // V8
+  if (m) return parseInt(m[1]);
+  m = stack.match(/@.*?:(\d+):\d+/); // Safari/JSC fallback
+  return m ? parseInt(m[1]) : null;
+}
+
+// Each engine wraps a `new Function` body in its own header (e.g. V8 prepends
+// `function anonymous(animate\n) {`), so the reported line is shifted by a
+// constant. Rather than hardcode a per-engine guess, calibrate it once by
+// throwing a probe error on code-line 1 and measuring the reported line.
+// The probe mirrors evaluate()'s template exactly so the offset matches.
+let _errLineOffset = 3; // fallback if calibration fails
+(function _calibrateErrorOffset() {
+  try {
+    const fn = new Function(
+      'animate',
+      `
+      throw new Error('probe');
+      return { text: null, params: null }
+    `,
+    );
+    fn();
+  } catch (err) {
+    const reported = _rawErrLine(err);
+    if (reported != null) _errLineOffset = reported - 1; // throw sits on code-line 1
+  }
+})();
+
+function _parseErrLine(err) {
+  const raw = _rawErrLine(err);
+  return raw != null ? raw - _errLineOffset : null;
+}
 
 // ── Tool selection ────────────────────────────────────────────────────────────
 const TOOLS = {
@@ -29,7 +94,10 @@ async function initEditor(toolName) {
   }
 
   const INITIAL_CODE = [
-    '// change text here, type \\n for line break',
+    '// This is part of the code that creates the image',
+    '// Try changing the values and see what happens',
+    '// Comments like this one are ignored by the computer',
+    '',
     'const text = "What You Say Is What You Get?"',
     '',
     'const params = {',
@@ -64,6 +132,7 @@ async function initEditor(toolName) {
       minimalSetup,
       javascript(),
       colorPickerExt,
+      _errorLineField,
       EditorView.updateListener.of((u) => {
         if (u.docChanged) scheduleRender();
       }),
@@ -142,9 +211,9 @@ async function initEditor(toolName) {
       }
     `,
       );
-      return { value: fn(animateHook), error: null };
+      return { value: fn(animateHook), error: null, errorLine: null };
     } catch (err) {
-      return { value: null, error: err.message };
+      return { value: null, error: err.message, errorLine: _parseErrLine(err) };
     }
   }
 
@@ -175,16 +244,19 @@ async function initEditor(toolName) {
     const animateHook = (fn) => {
       _newAnimateFn = fn;
     };
-    const { value, error } = evaluate(editorView.state.doc.toString(), animateHook);
+    const { value, error, errorLine } = evaluate(editorView.state.doc.toString(), animateHook);
     if (error) {
       _stopAnimation();
       canvas.style.display = 'none';
-      errorDisplay.textContent = error;
+      const lineHint = errorLine != null ? `Line ${errorLine}: ` : '';
+      errorDisplay.textContent = lineHint + error;
       errorDisplay.style.display = 'block';
+      editorView.dispatch({ effects: _errorLineEffect.of(errorLine) });
       return;
     }
     canvas.style.display = '';
     errorDisplay.style.display = 'none';
+    editorView.dispatch({ effects: _errorLineEffect.of(null) });
 
     if (_newAnimateFn) {
       if (_animateRafId) cancelAnimationFrame(_animateRafId);
