@@ -5,6 +5,10 @@
   margin-top: var(--site-header-height);
 }
 
+body {
+  overflow: hidden;
+}
+
 @media (orientation: landscape) {
   #title-resampling-canvas {
     margin-top: 0;
