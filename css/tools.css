@@ -25,7 +25,14 @@ body {
   );
   gap: var(--grid-gap);
   grid-auto-flow: column;
-  overflow-x: visible;
+  overflow-x: auto;
+  margin-right: calc(-1 * var(--baseline));
+  padding-right: var(--baseline);
+  scrollbar-width: none; /* Firefox */
+}
+
+#overview-grid::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
 }
 
 .tool-card {
@@ -35,6 +42,7 @@ body {
   flex-direction: column;
   gap: 8px;
   grid-column: span 1;
+  height: fit-content;
 }
 
 .tool-card-preview {

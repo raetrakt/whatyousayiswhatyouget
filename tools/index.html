@@ -84,6 +84,12 @@
     </div>
   </div>
   <script type="module" src="./main.js"></script>
+  <script>
+    document.querySelector('#overview-grid').addEventListener('wheel', (e) => {
+      e.preventDefault();
+      e.currentTarget.scrollLeft += e.deltaY;
+    }, { passive: false });
+  </script>
 </body>
 
 </html>
