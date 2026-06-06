@@ -208,7 +208,7 @@ body:has(#app:not([hidden])) {
 }
 
 .cm-error-line {
-  background: var(--red);
+  background: rgba(255, 0, 0, .12);
 }
 
 #btn-save-png:hover::before,
