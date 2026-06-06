@@ -11,6 +11,7 @@
   --grid-gap: var(--baseline);
   --content-col-start: 1;
   --content-col-end: -1;
+  --red: #f52121;
 }
 
 @font-face {

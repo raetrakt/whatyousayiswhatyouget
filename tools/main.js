@@ -639,7 +639,7 @@ async function initEditor(toolName) {
     btn.disabled = false;
   }
 
-  document.getElementById('btn-export').addEventListener('click', exportPNGSequence);
+  // document.getElementById('btn-export').addEventListener('click', exportPNGSequence);
 
   function scheduleRender() {
     clearTimeout(renderTimer);

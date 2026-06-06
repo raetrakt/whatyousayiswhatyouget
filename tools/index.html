@@ -49,12 +49,17 @@
 
   <div id="app" hidden>
     <nav id="tool-switcher">
-      <a href="./" class="tool-switch-link">overview</a>
-      <a href="?tool=sdf" class="tool-switch-link" data-tool="sdf">sdf</a>
-      <a href="?tool=quadtree" class="tool-switch-link" data-tool="quadtree">quadtree</a>
-      <a href="?tool=sand" class="tool-switch-link" data-tool="sand">sand</a>
-      <a href="?tool=rd" class="tool-switch-link" data-tool="rd">rd</a>
-      <a href="?tool=resampling" class="tool-switch-link" data-tool="resampling">resampling</a>
+      <a href="./" class="tool-switch-link">Back to Overview</a>
+      <a href="?tool=sdf" class="tool-switch-link" data-tool="sdf">Signed Distance Field</a>
+      <a href="?tool=quadtree" class="tool-switch-link" data-tool="quadtree">Quadtree</a>
+      <a href="?tool=sand" class="tool-switch-link" data-tool="sand">Falling Sand Simulation</a>
+      <a href="?tool=rd" class="tool-switch-link" data-tool="rd">Reaction Diffusion</a>
+      <a href="?tool=resampling" class="tool-switch-link" data-tool="resampling">Path Resampling</a>
+      <button id="btn-reset">Reset Canvas</button>
+      <button id="btn-reset-code">Reset Code</button>
+      <button id="btn-save-png">Save PNG</button>
+      <button id="btn-save-svg" disabled>Save SVG</button>
+      <button id="btn-record">Start Recording</button>
     </nav>
     <div id="editor-panel">
       <div id="editor"></div>
@@ -66,21 +71,6 @@
   </div>
   <div id="bottom-bar" hidden>
     <div id="save-bar">
-      <button id="btn-reset">reset</button>
-      <button id="btn-save-png">png</button>
-      <button id="btn-save-svg" disabled>svg</button>
-      <button id="btn-record">record</button>
-    </div>
-    <div id="export-bar">
-      <input id="export-w" type="number" value="8185" title="export width (px)">
-      <span>&times;</span>
-      <input id="export-h" type="number" value="600" title="export height (px)">
-      <span>px &nbsp;</span>
-      <input id="export-fps" type="number" value="25" title="frames per second">
-      <span>fps &nbsp;</span>
-      <input id="export-frames" type="number" value="250" title="total frames">
-      <span>fr</span>
-      <button id="btn-export">export</button>
     </div>
   </div>
   <script type="module" src="./main.js"></script>

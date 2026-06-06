@@ -56,7 +56,7 @@ h3:has(+ h4) {
 }
 
 .table-of-contents a.active {
-  color: #f52121;
+  color: var(--red);
 }
 
 a {
@@ -79,7 +79,7 @@ sub {
 }
 
 sup a {
-  color: #f52121;
+  color: var(--red);
 }
 
 figcaption i {
