@@ -52,7 +52,7 @@ h3:has(+ h4) {
 }
 
 .table-of-contents a:hover::before {
-  content: '→ ';
+  content: '\2192\20';
 }
 
 .table-of-contents a.active {
@@ -78,8 +78,10 @@ sub {
   top: -0.4em;
 }
 
-sup a {
+.thesis-layout sup a {
   color: var(--red);
+  /* pointer-events: none; */
+  cursor: text;
 }
 
 figcaption i {
@@ -220,6 +222,10 @@ figure {
   figure.ext {
     grid-column: 6 / 8;
   }
+
+  h1 {
+    margin-top: calc(var(--baseline) * 2);
+  }
 }
 
 @media screen and (min-width: 1900px) {
@@ -229,6 +235,10 @@ figure {
 
   figure.ext:nth-child(even of .ext) {
     grid-column: 2 / 4;
+  }
+
+  h1 {
+    margin-top: calc(var(--baseline) * 3);
   }
 }
 
