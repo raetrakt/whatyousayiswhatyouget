@@ -14,22 +14,22 @@
 export const defaults = {
   spacing: 15, // arc-length gap between initial markers (px)
   marker: '✻', // unicode character placed at each point
-  markerSize: 25, // font-size of the marker glyph (px)
+  markerSize: 20, // font-size of the marker glyph (px)
   markerColor: '#843d00',
   strokeColor: '#e2fe43', // stroke colour — null = no stroke
-  strokeWidth: 10, // stroke width (px)
+  strokeWidth: 5, // stroke width (px)
   bgColor: '#ffffff',
   flatness: 0.5, // bezier subdivision tolerance — font mode only (px)
   relax: true, // enable relaxation animation
   relaxSpeed: 10, // pixels moved per step per unit force
   period: 6, // seconds for one full spread-and-return cycle
   cursorMode: true, // enable cursor interaction (false = static everywhere)
-  cursorRadius: 250, // px — influence radius around cursor (0 = off)
-  cursorScale: 3, // scale multiplier at cursor centre
-  cursorRotation: 270, // degrees rotation at cursor centre
+  cursorRadius: 150, // px — influence radius around cursor (0 = off)
+  cursorScale: 4, // scale multiplier at cursor centre
+  cursorRotation: 360, // degrees rotation at cursor centre
   cursorRepeat: true, // true = cosine repeats (ring at midpoint), false = smooth fade to 0
-  cursorAmplitude: 1, // cosine amplitude (0 = flat 0.5 influence, 0.5 = full 0–1 swing)
-  cursorDelay: 0.3, // lerp factor per frame (0 = frozen, 1 = instant)
+  cursorAmplitude: .5, // cosine amplitude (0 = flat 0.5 influence, 0.5 = full 0–1 swing)
+  cursorDelay: 0.1, // lerp factor per frame (0 = frozen, 1 = instant)
 };
 
 // ─── Cursor tracking ─────────────────────────────────────────────────────────
