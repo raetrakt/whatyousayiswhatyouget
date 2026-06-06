@@ -93,7 +93,7 @@ export function createRecorder({ canvas, errorDisplay, button, getFilename }) {
 
   function _resetButton() {
     button.disabled = false;
-    button.textContent = 'record';
+    button.textContent = 'Start Recording';
     button.classList.remove('recording');
   }
 
@@ -139,7 +139,7 @@ export function createRecorder({ canvas, errorDisplay, button, getFilename }) {
     };
     _mediaRecorder = rec;
     _isRecording = true;
-    button.textContent = 'stop';
+    button.textContent = 'Stop Recording';
     button.classList.add('recording');
     rec.start();
   }
@@ -211,7 +211,7 @@ export function createRecorder({ canvas, errorDisplay, button, getFilename }) {
     _recordFrameIndex = 0;
     _isRecording = true;
 
-    button.textContent = 'stop';
+    button.textContent = 'Stop Recording';
     button.classList.add('recording');
 
     const frameIntervalMs = 1000 / RECORD_FPS;
@@ -247,7 +247,7 @@ export function createRecorder({ canvas, errorDisplay, button, getFilename }) {
     // MediaRecorder finalizes asynchronously via its onstop handler.
     if (_mediaRecorder) {
       button.disabled = true;
-      button.textContent = 'encoding…';
+      button.textContent = 'Encoding…';
       try {
         _mediaRecorder.stop();
       } catch (e) {
@@ -264,7 +264,7 @@ export function createRecorder({ canvas, errorDisplay, button, getFilename }) {
     _recordRafId = null;
 
     button.disabled = true;
-    button.textContent = 'encoding…';
+    button.textContent = 'Encoding…';
 
     // Some browsers report a config as supported but then hang on flush(); the
     // watchdog keeps the UI from getting stuck on "encoding…" forever.
