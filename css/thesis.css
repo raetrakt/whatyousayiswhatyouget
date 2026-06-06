@@ -1,0 +1,260 @@
+/* :root {
+  --ragging-width: 80px;
+} */
+
+.thesis-layout {
+  padding: var(--grid-gap);
+  padding-top: var(--baseline);
+  display: grid;
+  grid-template-columns: repeat(var(--grid-cols), minmax(0, 1fr));
+  overflow: hidden;
+  column-gap: var(--grid-gap);
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  font-family: 'Times New Roman', Times, serif;
+  font-weight: normal;
+  line-height: var(--body-line-height);
+  font-size: var(--body-size);
+  /* font-feature-settings: 'dlig' 1; */
+  overflow: visible !important;
+}
+
+p:not(.title-text-inner p, .table-of-contents p, p.code, .subtle-heading, .page-footnotes p),
+h1 {
+  line-height: var(--body-line-height);
+  margin-bottom: var(--baseline);
+}
+
+h1 {
+  margin-top: calc(var(--baseline) * 3);
+}
+
+h2:nth-of-type(n + 2) {
+  margin-top: calc(var(--baseline));
+}
+
+h3:has(+ h4) {
+  margin-bottom: var(--baseline);
+}
+
+:root .research-questions {
+  margin-top: unset;
+}
+
+.table-of-contents {
+  grid-column: 1 / 2;
+  position: fixed;
+}
+
+.table-of-contents a:hover::before {
+  content: '\2192\20';
+}
+
+.table-of-contents a.active {
+  color: var(--red);
+}
+
+a {
+  color: black;
+  text-decoration: none;
+}
+
+p {
+  hyphens: auto;
+  hyphenate-limit-chars: 9 3 4;
+  /* text-wrap: pretty; */
+}
+
+sup,
+sub {
+  /* stop interfering with line height */
+  vertical-align: baseline;
+  position: relative;
+  top: -0.4em;
+}
+
+.thesis-layout sup a {
+  color: var(--red);
+  /* pointer-events: none; */
+  cursor: text;
+}
+
+figcaption i {
+  font-style: normal;
+}
+
+figcaption,
+figcaption *,
+.footnotes p,
+.footnotes p *,
+sup a,
+.table-of-contents p,
+.table-of-contents p a,
+.title-text p {
+  font-family: 'True Sans Mono', monospace;
+  font-size: var(--notes-size);
+  line-height: var(--notes-line-height);
+}
+
+.url {
+  word-break: break-word;
+}
+
+figcaption,
+.footnotes p {
+  overflow-wrap: break-word;
+}
+
+#ftnt::after {
+  content: ' ';
+}
+
+.img-wrap img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.thesis-layout .footnotes {
+  display: none;
+}
+
+.page-footnotes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25em;
+  width: 100%;
+  font-family: 'True Sans Mono', monospace;
+  font-size: var(--notes-size);
+  line-height: var(--notes-line-height);
+}
+
+.page-footnotes p {
+  margin: 0;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  margin-bottom: var(--notes-baseline);
+}
+
+.page-footnotes p * {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.code {
+  font-family: 'True Sans Mono', monospace;
+  font-size: var(--code-size);
+}
+
+.subtle-heading {
+  margin-bottom: 0;
+}
+
+.title-text-inner {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--baseline);
+}
+
+.title-text .right:last-child {
+  margin-right: 15px;
+}
+
+.hide-on-web {
+  display: none;
+}
+
+.web-index {
+  position: fixed;
+  width: calc(100% / 7 * 2);
+  z-index: 20;
+  display: none;
+}
+
+.page-footnotes-active .pagedjs_margin-bottom .page-footnotes-host {
+  align-self: flex-start;
+}
+
+figure.ext figcaption {
+  margin-bottom: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+div {
+  grid-column: var(--content-col-start) / var(--content-col-end);
+}
+
+figure {
+  width: 100%;
+  max-width: 100%;
+  margin-bottom: var(--baseline);
+  grid-column: var(--content-col-start) / var(--content-col-end);
+}
+
+.img-wrap.title-typography {
+  margin-bottom: var(--baseline);
+}
+
+@media screen and (min-width: 900px) {
+}
+
+@media screen and (min-width: 1400px) {
+  figure.ext {
+    height: 0;
+    margin-bottom: 0;
+    overflow: visible;
+    align-self: start;
+  }
+
+  figure.ext {
+    grid-column: 6 / 8;
+  }
+
+  h1 {
+    margin-top: calc(var(--baseline) * 2);
+  }
+}
+
+@media screen and (min-width: 1900px) {
+  figure.ext:nth-child(odd of .ext) {
+    grid-column: 7 / 9;
+  }
+
+  figure.ext:nth-child(even of .ext) {
+    grid-column: 2 / 4;
+  }
+
+  h1 {
+    margin-top: calc(var(--baseline) * 3);
+  }
+}
+
+.code-block {
+  margin-bottom: var(--baseline);
+}
+
+.footnote-inline {
+  grid-column: var(--content-col-start) / var(--content-col-end);
+  margin-bottom: var(--notes-baseline);
+}
+
+.footnote-inline:not(:has(+ .footnote-inline)) {
+  margin-bottom: var(--baseline);
+}
+
+.footnote-inline p {
+  margin-bottom: unset;
+}

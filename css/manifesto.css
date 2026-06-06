@@ -1,0 +1,35 @@
+li {
+  counter-increment: lst-ctn-kix_uosie86qevzt-0;
+}
+
+.lst-kix_uosie86qevzt-0 > li:before {
+  content: '' counter(lst-ctn-kix_uosie86qevzt-0, upper-roman) '. ';
+}
+
+p,
+li,
+li * {
+  font-size: var(--body-size);
+}
+
+li.li-bullet-0:before {
+  margin-left: calc(var(--baseline) * -1.5);
+  display: inline-block;
+  min-width: calc(var(--baseline) * 1.5);
+}
+
+.c4 {
+  margin-left: calc(var(--baseline) * 1.5);
+}
+
+p, li {
+  margin-bottom: var(--baseline);
+}
+
+body p:first-of-type {
+  padding-top: var(--baseline);
+}
+
+body p:last-of-type {
+  padding-bottom: calc(var(--baseline)*2);
+}

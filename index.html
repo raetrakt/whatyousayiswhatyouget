@@ -4,33 +4,20 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&display=swap" rel="stylesheet">
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-  <link rel="stylesheet" href="style.css">
   <title>What You Say Is What You Get?</title>
+  <link rel="icon" href="assets/svg/title_layout.svg" />
+  <link rel="stylesheet" href="css/shared.css">
+  <link rel="stylesheet" href="css/landingpage.css">
+
+  <!-- Preload assets for the interactive sketch -->
+  <link rel="preload" href="assets/fonts/texgyretermes-regular.otf" as="fetch" crossorigin fetchpriority="high">
+  <link rel="preload" href="assets/svg/title_layout.svg" as="fetch" crossorigin fetchpriority="high">
+  <script type="module" src="src/thesis/title-resampling.js"></script>
+  <script type="module" src="src/header.js"></script>
 </head>
 
-<body>
-  <svg></svg>
-
-  <div id="work-modal" class="work-modal" aria-hidden="true">
-    <div id="work-modal-panel" class="work-modal-panel" role="dialog" aria-modal="true" aria-label="Work details">
-      <div class="work-modal-image-container">
-        <img id="work-modal-image" class="work-modal-image" alt="">
-      </div>
-      <div class="work-modal-meta">
-        <div class="work-modal-line"><span id="work-modal-title"></span></div>
-        <div class="work-modal-line work-modal-row"><span>Author</span><span id="work-modal-author"></span></div>
-        <div class="work-modal-line work-modal-row"><span>Year</span><span id="work-modal-year"></span></div>
-        <div class="work-modal-line work-modal-row"><span>Source</span><a id="work-modal-source" target="_blank" rel="noopener noreferrer">Open link</a></div>
-        <div class="work-modal-line work-modal-row"><span>Term</span><span id="work-modal-classification"></span></div>
-      </div>
-    </div>
-  </div>
-
-  <script type="module" src="app.js"></script>
+<body class="page-grid">
+  <canvas id="title-resampling-canvas" style="width:100%;"></canvas>
 </body>
 
 </html>
