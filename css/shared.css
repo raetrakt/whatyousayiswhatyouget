@@ -54,8 +54,8 @@ body::-webkit-scrollbar {
   left: 0;
   right: 0;
   height: var(--site-header-height);
-  background: #fff;
-  border-bottom: 1px solid #000;
+  /* background: #fff; */
+  /* border-bottom: 1px solid #000; */
   display: flex;
   grid-template-columns: repeat(var(--grid-cols), minmax(0, 1fr));
   column-gap: var(--grid-gap);
