@@ -15,6 +15,11 @@ export const defaults = {
 
 // ─── Brush state (persists across renders; reset on canvas resize) ───────────
 let _version = 0;
+
+// Cancels any running animation loop (e.g. when switching to another tool).
+export function stop() {
+  _version++;
+}
 let _brushGrid = null; // Uint8Array — accumulated depth per pixel
 let _strokeGrid = null; // Uint8Array — mask for current stroke (prevents double-increment per drag)
 let _brushW = 0;

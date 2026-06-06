@@ -349,6 +349,11 @@ function _sampleEdges(mask, cssW, cssH, cellSize) {
 let _version = 0;
 let _points = []; // last computed positions – reserved for future drag / stroke
 
+// Cancels any running animation loop (e.g. when switching to another tool).
+export function stop() {
+  _version++;
+}
+
 export function render(
   ctx,
   font,

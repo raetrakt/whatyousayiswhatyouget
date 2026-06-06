@@ -33,6 +33,11 @@ export const defaults = {
 
 // Version counter cancels stale animation loops on re-render.
 let _version = 0;
+
+// Cancels any running animation loop (e.g. when switching to another tool).
+export function stop() {
+  _version++;
+}
 let _rdBrushMode = false;
 let _rdBrushRadius = 30;
 let _rdSeedFn = null; // set each render; called by listener with CSS coords

@@ -80,11 +80,25 @@ const TOOLS = {
   resampling: () => import('./resampling/resampling.js'),
 };
 
+// Teardown for the currently-mounted tool/editor instance. The canvas, button
+// listeners and tool animation loops are all shared/persistent, so before
+// mounting a new tool we must dispose the previous one — otherwise its
+// requestAnimationFrame loop keeps drawing onto the shared canvas (e.g. after
+// navigating back to the overview via the browser and picking another tool).
+let _activeCleanup = null;
+
 async function initEditor(toolName) {
+  // Dispose the previously-mounted tool instance before swapping the DOM.
+  _activeCleanup?.();
+  _activeCleanup = null;
+
   // Switch to editor immediately, before the async tool import
   document.getElementById('overview').hidden = true;
   document.getElementById('app').hidden = false;
   document.getElementById('bottom-bar').hidden = false;
+
+  // Remove any editor instance left over from a previous tool.
+  document.getElementById('editor').replaceChildren();
 
   const tool = await (TOOLS[toolName] ?? TOOLS.sdf)();
 
@@ -181,7 +195,8 @@ async function initEditor(toolName) {
     render();
   }
 
-  new ResizeObserver(resizeCanvas).observe(canvasPanel);
+  const resizeObserver = new ResizeObserver(resizeCanvas);
+  resizeObserver.observe(canvasPanel);
 
   function drawLine(line, x, y, fontSize, tracking) {
     const scale = fontSize / font.unitsPerEm;
@@ -692,6 +707,15 @@ async function initEditor(toolName) {
     resizeCanvas();
   }
 
+  // Register teardown so the next tool (or a return to the overview) can stop
+  // this instance's loops/observers before mounting on the shared canvas.
+  _activeCleanup = () => {
+    resizeObserver.disconnect();
+    clearTimeout(renderTimer);
+    _stopAnimation();
+    tool.stop?.();
+  };
+
   init().catch((err) => console.error('Init failed:', err));
 } // end initEditor
 
@@ -714,6 +738,8 @@ if (toolParam) {
 window.addEventListener('popstate', () => {
   const param = new URLSearchParams(location.search).get('tool');
   if (!param) {
+    _activeCleanup?.();
+    _activeCleanup = null;
     document.getElementById('overview').hidden = false;
     document.getElementById('app').hidden = true;
     document.getElementById('bottom-bar').hidden = true;
