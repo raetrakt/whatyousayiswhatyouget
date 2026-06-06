@@ -156,7 +156,7 @@ async function initEditor(toolName) {
   });
 
   const canvas = document.getElementById('sketch');
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { colorSpace: 'srgb' });
   const canvasPanel = document.getElementById('canvas-panel');
   const errorDisplay = document.getElementById('error-display');
 
@@ -580,7 +580,7 @@ async function initEditor(toolName) {
     const offCanvas = document.createElement('canvas');
     offCanvas.width = exportW;
     offCanvas.height = exportH;
-    const offCtx = offCanvas.getContext('2d');
+    const offCtx = offCanvas.getContext('2d', { colorSpace: 'srgb' });
 
     // Replicate the param-building logic from render()
     const { value } = evaluate(editorView.state.doc.toString());
