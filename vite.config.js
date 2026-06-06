@@ -6,6 +6,8 @@ export default defineConfig({
       input: {
         main: './index.html',
         dictionary: './dictionary/index.html',
+        manifesto: './manifesto/index.html',
+        thesis: './thesis/index.html',
         tools: './tools/index.html',
       },
     },
