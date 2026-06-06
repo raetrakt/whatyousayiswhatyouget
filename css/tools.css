@@ -46,7 +46,8 @@ body {
 }
 
 .tool-card-preview {
-  border: 1px solid black;
+  border: 0.1px solid black;
+  /* box-shadow: 0 0 2px rgba(0, 0, 0, 0.2); */
   background: white;
 }
 
@@ -197,7 +198,8 @@ body:has(#app:not([hidden])) {
 }
 
 #sketch {
-  border: 1px solid;
+  border: 0.1px solid black;
+  /* box-shadow: 0 0 2px rgba(0, 0, 0, 0.2); */
 }
 
 #error-display {
@@ -208,7 +210,7 @@ body:has(#app:not([hidden])) {
 }
 
 .cm-error-line {
-  background: rgba(255, 0, 0, .12);
+  background: rgba(255, 0, 0, 0.12);
 }
 
 #btn-save-png:hover::before,
