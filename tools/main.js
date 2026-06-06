@@ -166,7 +166,7 @@ async function initEditor(toolName) {
 
   // Highlight the active tool button
   document.querySelectorAll('.tool-switch-link[data-tool]').forEach((btn) => {
-    if (btn.dataset.tool === toolName) btn.classList.add('active');
+    btn.classList.toggle('active', btn.dataset.tool === toolName);
   });
 
   function applyCanvasSize(ratio) {
@@ -740,6 +740,9 @@ window.addEventListener('popstate', () => {
   if (!param) {
     _activeCleanup?.();
     _activeCleanup = null;
+    document
+      .querySelectorAll('.tool-switch-link.active')
+      .forEach((btn) => btn.classList.remove('active'));
     document.getElementById('overview').hidden = false;
     document.getElementById('app').hidden = true;
     document.getElementById('bottom-bar').hidden = true;

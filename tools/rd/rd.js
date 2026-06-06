@@ -34,10 +34,17 @@ export const defaults = {
 // Version counter cancels stale animation loops on re-render.
 let _version = 0;
 
-// Cancels any running animation loop (e.g. when switching to another tool).
+// Cancels any running animation loop and tears down the brush UI
+// (e.g. when switching to another tool).
 export function stop() {
   _version++;
+  _rdBrushMode = false;
+  if (_rdBrushCanvas) {
+    _rdBrushCanvas.style.cursor = '';
+    if (_rdBrushCanvas.__rdIndicator) _rdBrushCanvas.__rdIndicator.style.display = 'none';
+  }
 }
+let _rdBrushCanvas = null; // canvas the brush listeners/indicator are bound to
 let _rdBrushMode = false;
 let _rdBrushRadius = 30;
 let _rdSeedFn = null; // set each render; called by listener with CSS coords
@@ -363,6 +370,7 @@ function _setupRDBrushListeners(canvas) {
   ].join(';');
   document.body.appendChild(indicator);
   canvas.__rdIndicator = indicator;
+  _rdBrushCanvas = canvas;
 
   let painting = false;
 

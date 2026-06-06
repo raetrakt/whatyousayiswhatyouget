@@ -15,10 +15,17 @@ export const defaults = {
 
 // ─── Brush state (persists across renders; reset on canvas resize) ───────────
 let _version = 0;
+let _brushCanvas = null; // canvas the brush listeners/indicator are bound to
 
-// Cancels any running animation loop (e.g. when switching to another tool).
+// Cancels any running animation loop and tears down the brush UI
+// (e.g. when switching to another tool).
 export function stop() {
   _version++;
+  _brushModeActive = false;
+  if (_brushCanvas) {
+    _brushCanvas.style.cursor = '';
+    if (_brushCanvas.__qtIndicator) _brushCanvas.__qtIndicator.style.display = 'none';
+  }
 }
 let _brushGrid = null; // Uint8Array — accumulated depth per pixel
 let _strokeGrid = null; // Uint8Array — mask for current stroke (prevents double-increment per drag)
@@ -218,6 +225,7 @@ function _setupBrushListeners(canvas) {
   ].join(';');
   document.body.appendChild(indicator);
   canvas.__qtIndicator = indicator;
+  _brushCanvas = canvas;
 
   function moveIndicator(e) {
     if (!_brushModeActive) return;
