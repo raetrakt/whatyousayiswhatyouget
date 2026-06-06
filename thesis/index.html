@@ -11,18 +11,18 @@
   <link rel="stylesheet" href="../css/thesis-print.css">
 
   <!-- Register PagedConfig.before hooks before the polyfill starts -->
-  <script src="../src/thesis/paged-baseline.js"></script>
-  <script src="../src/thesis/nbsp-sentences.js"></script>
-  <!-- <script src="../src/thesis/mechanicalragger.js"></script>
-  <script src="../src/thesis/mechanicalragger-adapter.js"></script> -->
+  <script src="/scripts/thesis/paged-baseline.js"></script>
+  <script src="/scripts/thesis/nbsp-sentences.js"></script>
+  <!-- <script src="/scripts/thesis/mechanicalragger.js"></script>
+  <script src="/scripts/thesis/mechanicalragger-adapter.js"></script> -->
 
   <!-- Paged.js Print Files -->
   <!-- <link rel="stylesheet" href="../css/paged-interface.css">
-  <script src="../src/thesis/paged.polyfill.js"></script> -->
+  <script src="/scripts/thesis/paged.polyfill.js"></script> -->
 </head>
 
 <body>
-  <script src="../src/header.js"></script>
+  <script src="/scripts/header.js"></script>
   <div class="thesis-layout mechanical-ragger-target">
     <div class="title-layout">
       <div class="img-wrap title-typography">
@@ -760,8 +760,8 @@
       </div>
     </div>
   </div>
-  <script src="../src/thesis/toc.js"></script>
-  <script src="../src/thesis/page-footnotes.js"></script>
+  <script src="/scripts/thesis/toc.js"></script>
+  <script src="/scripts/thesis/page-footnotes.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       if (window.applyMechanicalRagging) window.applyMechanicalRagging();
