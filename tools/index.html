@@ -14,17 +14,11 @@
   <script src="/src/header.js"></script>
   <div id="overview" class="page-grid">
     <div id="overview-grid">
-      <a class="tool-card" href="?tool=sdf">
+      <a class="tool-card" href="?tool=resampling">
         <div class="tool-card-preview">
-          <img src="sdf/signed_distance_function.png" alt="" srcset="">
+          <img src="resampling/resampling.png" alt="" srcset="">
         </div>
-        <span class="tool-card-name">Signed Distance Field</span>
-      </a>
-      <a class="tool-card" href="?tool=quadtree">
-        <div class="tool-card-preview">
-          <img src="quadtree/quadtree.png" alt="" srcset="">
-        </div>
-        <span class="tool-card-name">Quadtree</span>
+        <span class="tool-card-name">Path Resampling</span>
       </a>
       <a class="tool-card" href="?tool=sand">
         <div class="tool-card-preview">
@@ -32,17 +26,23 @@
         </div>
         <span class="tool-card-name">Falling Sand Simulation</span>
       </a>
+      <a class="tool-card" href="?tool=quadtree">
+        <div class="tool-card-preview">
+          <img src="quadtree/quadtree.png" alt="" srcset="">
+        </div>
+        <span class="tool-card-name">Quadtree</span>
+      </a>
       <a class="tool-card" href="?tool=rd">
         <div class="tool-card-preview">
           <img src="rd/reaction_diffusion.png" alt="" srcset="">
         </div>
         <span class="tool-card-name">Reaction Diffusion</span>
       </a>
-      <a class="tool-card" href="?tool=resampling">
+      <a class="tool-card" href="?tool=sdf">
         <div class="tool-card-preview">
-          <img src="resampling/resampling.png" alt="" srcset="">
+          <img src="sdf/signed_distance_function.png" alt="" srcset="">
         </div>
-        <span class="tool-card-name">Path Resampling</span>
+        <span class="tool-card-name">Signed Distance Field</span>
       </a>
     </div>
   </div>
@@ -50,11 +50,11 @@
   <div id="app" hidden>
     <nav id="tool-switcher">
       <a href="./" class="tool-switch-link overview">Back to Overview</a>
-      <a href="?tool=sdf" class="tool-switch-link" data-tool="sdf">Signed Distance Field</a>
-      <a href="?tool=quadtree" class="tool-switch-link" data-tool="quadtree">Quadtree</a>
-      <a href="?tool=sand" class="tool-switch-link" data-tool="sand">Falling Sand Simulation</a>
-      <a href="?tool=rd" class="tool-switch-link" data-tool="rd">Reaction Diffusion</a>
       <a href="?tool=resampling" class="tool-switch-link" data-tool="resampling">Path Resampling</a>
+      <a href="?tool=sand" class="tool-switch-link" data-tool="sand">Falling Sand Simulation</a>
+      <a href="?tool=quadtree" class="tool-switch-link" data-tool="quadtree">Quadtree</a>
+      <a href="?tool=rd" class="tool-switch-link" data-tool="rd">Reaction Diffusion</a>
+      <a href="?tool=sdf" class="tool-switch-link" data-tool="sdf">Signed Distance Field</a>
       <button id="btn-reset">Reset Canvas</button>
       <button id="btn-save-png">Save PNG</button>
       <button id="btn-save-svg" disabled>Save SVG</button>
