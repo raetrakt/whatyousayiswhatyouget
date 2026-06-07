@@ -16,7 +16,7 @@ h2,
 h3,
 h4,
 p {
-  font-family: 'Times New Roman', Times, serif;
+  font-family: 'Times New Roman', Times, 'TeX Gyre Termes', serif;
   font-weight: normal;
   line-height: var(--body-line-height);
   font-size: var(--body-size);
