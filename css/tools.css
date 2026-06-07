@@ -190,7 +190,7 @@ body:has(#app:not([hidden])) {
     align-items: start; /* Align everything to the top */
     gap: 0 20px; /* Optional: adds space between columns */
     grid-auto-flow: column;
-    padding-bottom: var(--grid-gap);
+    padding: var(--grid-gap) 0;
   }
 
   nav#tool-switcher a.tool-switch-link {
