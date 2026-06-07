@@ -164,6 +164,11 @@ table {
   grid-column: 1 / -1;
 }
 
+.si-kerning {
+  display: inline-block;
+  width: 0.4px;
+}
+
 @media (max-width: 900px) {
   :root {
     --body-size: 1.15rem;
