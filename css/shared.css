@@ -50,6 +50,8 @@ body {
   scrollbar-width: none;
   /* scrollbar-gutter: stable; */
   /* overflow-y: overlay; */
+
+  font-family: 'Times New Roman', Times, 'TeX Gyre Termes', serif;
 }
 
 html {
@@ -57,6 +59,10 @@ html {
 }
 
 html::selection {
+  background-color: #d8d8d8;
+}
+
+html::-moz-selection {
   background-color: #d8d8d8;
 }
 

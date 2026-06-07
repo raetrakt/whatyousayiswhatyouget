@@ -1,0 +1,30 @@
+p {
+  font-size: var(--body-size);
+  margin-bottom: var(--baseline);
+  line-height: var(--body-line-height);
+  hyphens: auto;
+  hyphenate-limit-chars: 11 3 4;
+}
+
+p:first-of-type {
+  margin-top: var(--baseline);
+}
+
+a {
+  color: black;
+  text-decoration: none;
+}
+
+.about-text a:hover::before {
+  content: '\2192\20';
+}
+
+.about-text .code {
+  font-family: 'True Sans Mono', monospace;
+  font-size: var(--code-size);
+  font-variant-ligatures: none;
+}
+
+body.page-grid {
+  align-content: start;
+}

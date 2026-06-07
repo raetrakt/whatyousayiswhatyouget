@@ -9,7 +9,7 @@
 
   function run() {
     document
-      .querySelectorAll('.thesis-layout p:not(.code)')
+      .querySelectorAll('.thesis-layout p:not(.code), .about-text p:not(.code)')
       .forEach(preventShortSentenceStartBreaks);
   }
 
