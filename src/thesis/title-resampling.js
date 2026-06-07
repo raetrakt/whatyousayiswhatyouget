@@ -50,7 +50,7 @@ function doRender() {
   if (!font || !cssW) return;
 
   const params = { ...PARAMS };
-  if (cssH > cssW) {
+  if (window.innerWidth <= 800) {
     params.width = 210;
     params.height = 297;
   } else {
@@ -127,9 +127,9 @@ function resize() {
   const dpr = window.devicePixelRatio || 1;
   cssW = canvas.offsetWidth;
   if (!cssW) return;
-  // Derive height from the intended aspect ratio so the canvas is always correct.
-  const portrait = cssW < window.innerHeight;
-  cssH = portrait ? Math.round(cssW * (297 / 210)) : Math.round(cssW * (9 / 16));
+  // >800px window: 16:9. ≤800px window: A4 cropped to square (1:1).
+  const useA4 = window.innerWidth <= 800;
+  cssH = useA4 ? cssW : Math.round(cssW * (9 / 16));
   canvas.width = cssW * dpr;
   canvas.height = cssH * dpr;
   canvas.style.height = cssH + 'px';

@@ -1,12 +1,6 @@
 #title-resampling-canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
+  display: block;
   margin-top: var(--site-header-height);
-}
-
-body {
-  overflow: hidden;
 }
 
 @media (orientation: landscape) {

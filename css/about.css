@@ -6,10 +6,6 @@ p {
   hyphenate-limit-chars: 11 3 4;
 }
 
-p:first-of-type {
-  margin-top: var(--baseline);
-}
-
 a {
   color: black;
   text-decoration: none;

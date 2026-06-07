@@ -9,7 +9,7 @@
       <a href="/tools/" data-hover-name="GET /tools/&#10;HTTP/2.0"><span class="header-text">Tools</span></a>
       <a href="/manifesto/" data-hover-name="GET /manifesto/&#10;HTTP/2.0"><span class="header-text">Manifesto</span></a>
       <a href="/thesis/" data-hover-name="GET /thesis/&#10;HTTP/2.0"><span class="header-text">Thesis</span></a>
-      <a href="/about/" data-hover-name="GET /about/&#10;HTTP/2.0"><span class="header-text">About</span></a>
+      <a href="/" data-hover-name="GET /&#10;HTTP/2.0"><span class="header-text">About</span></a>
     </nav>
   `;
   document.body.insertBefore(header, document.body.firstChild);
