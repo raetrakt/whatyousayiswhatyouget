@@ -3,7 +3,8 @@
   header.className = 'site-header';
   header.innerHTML = `
     <a href="/" data-hover-name="GET whatyousayiswhatyouget.net&#10;HTTP/2.0"><span class="header-text">WYSIWYG?</span></a>
-    <nav class="site-header-nav">
+    <nav class="site-header-nav" id="site-header-nav">
+      <button class="nav-menu-toggle" aria-expanded="false" aria-controls="site-header-nav">Menu</button>
       <a href="/dictionary/" data-hover-name="GET /dictionary/&#10;HTTP/2.0"><span class="header-text">Dictionary</span></a>
       <a href="/tools/" data-hover-name="GET /tools/&#10;HTTP/2.0"><span class="header-text">Tools</span></a>
       <a href="/manifesto/" data-hover-name="GET /manifesto/&#10;HTTP/2.0"><span class="header-text">Manifesto</span></a>
@@ -11,6 +12,17 @@
     </nav>
   `;
   document.body.insertBefore(header, document.body.firstChild);
+
+  const toggle = header.querySelector('.nav-menu-toggle');
+  const nav = header.querySelector('.site-header-nav');
+  if (toggle && nav) {
+    toggle.addEventListener('click', () => {
+      const open = toggle.getAttribute('aria-expanded') === 'true';
+      toggle.setAttribute('aria-expanded', String(!open));
+      toggle.textContent = open ? 'Menu' : 'Close';
+      nav.classList.toggle('nav-open', !open);
+    });
+  }
 
   const headerHeight = parseFloat(getComputedStyle(header).height) || 0;
   const existingPaddingTop = parseFloat(getComputedStyle(document.body).paddingTop) || 0;
