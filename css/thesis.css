@@ -79,7 +79,7 @@ h3:has(+ h4) {
 
   .toc-toggle-wrapper {
     position: fixed;
-    right: calc(var(--grid-gap) * 0.3);
+    right: max(calc(var(--grid-gap) * 0.3), env(safe-area-inset-right));
     top: calc(var(--site-header-height) + var(--grid-gap));
   }
 
