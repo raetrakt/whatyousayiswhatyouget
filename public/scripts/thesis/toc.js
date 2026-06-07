@@ -22,7 +22,7 @@ const buildToc = () => {
     });
 
     contents.addEventListener('click', (e) => {
-      if (e.target.closest('a') && window.innerWidth < 900) {
+      if (e.target.closest('a') && window.innerWidth < 800) {
         toggle.setAttribute('aria-expanded', 'false');
         toggle.textContent = 'Contents';
         contents.classList.remove('toc-open');
@@ -48,7 +48,7 @@ const buildToc = () => {
     const p = document.createElement('p');
     const level = parseInt(heading.tagName.substring(1), 10);
     if (level == 3 || level === 4 || level === 5) p.classList.add('low-level-heading');
-    const isMobile = window.innerWidth < 900;
+    const isMobile = window.innerWidth < 800;
     const indent = '\u00A0'.repeat(indentLevel * (isMobile ? 0 : 2));
     p.textContent = indent;
 

@@ -139,8 +139,8 @@ body::-webkit-scrollbar {
 
 .site-header-nav {
   display: flex;
-  gap: calc(var(--baseline) * 2);
   margin-left: auto;
+  justify-content: space-between;
 }
 
 ol,
@@ -169,7 +169,7 @@ table {
   width: 0.4px;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 800px) {
   :root {
     --body-size: 1.15rem;
     --body-line-height: 1.2;
@@ -211,17 +211,15 @@ table {
   }
 }
 
-@media (min-width: 900px) {
-  .nav-menu-toggle {
-    display: none;
-  }
-}
-
-@media (min-width: 900px) {
+@media (min-width: 800px) {
   :root {
     --grid-cols: 5;
     --content-col-start: 2;
     --content-col-end: 5;
+  }
+
+  .nav-menu-toggle {
+    display: none;
   }
   .site-header {
     display: grid;
@@ -229,7 +227,6 @@ table {
     column-gap: var(--grid-gap);
   }
   .site-header > a:first-of-type {
-    grid-column: 1 / 3;
     justify-self: start;
   }
   .site-header-nav {

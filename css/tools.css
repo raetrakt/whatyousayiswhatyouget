@@ -160,7 +160,7 @@ body:has(#app:not([hidden])) {
   }
 } */
 
-@media (max-width: 900px) {
+@media (max-width: 800px) {
   body {
     padding-top: unset !important;
   }
