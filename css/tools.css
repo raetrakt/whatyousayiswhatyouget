@@ -127,10 +127,15 @@ body:has(#app:not([hidden])) {
   grid-column: 2 / 5;
   min-width: 0;
   overflow: hidden;
+  overflow-y: scroll;
   display: flex;
   flex-direction: column;
+  scrollbar-width: none; /* Firefox */
 }
 
+#editor-panel::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
 #canvas-panel {
   grid-column: 5 / -1;
   min-width: 0;
