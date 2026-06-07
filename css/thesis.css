@@ -24,6 +24,10 @@ p {
   overflow: visible !important;
 }
 
+.thesis-body-title {
+  text-box-trim: trim-start;
+}
+
 p:not(.title-text-inner p, .table-of-contents p, p.code, .subtle-heading, .page-footnotes p),
 h1 {
   line-height: var(--body-line-height);

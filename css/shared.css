@@ -64,6 +64,7 @@ body::-webkit-scrollbar {
   align-items: center;
   z-index: 9999;
   box-sizing: border-box;
+  padding-top: calc(var(--grid-gap) * .8);
 }
 
 .site-header,
@@ -172,6 +173,7 @@ table {
 
 @media (min-width: 1400px) {
   :root {
+    --body-size: 1.4rem;
     --grid-cols: 7;
     --content-col-start: 3;
     --content-col-end: 6;
@@ -186,6 +188,7 @@ table {
 
 @media (min-width: 1900px) {
   :root {
+    --body-size: 1.6rem;
     --grid-cols: 9;
     --content-col-start: 4;
     --content-col-end: 7;
