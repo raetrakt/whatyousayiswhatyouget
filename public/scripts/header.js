@@ -2,7 +2,7 @@
   const header = document.createElement('header');
   header.className = 'site-header';
   header.innerHTML = `
-    <a href="/" data-hover-name="GET whatyousayiswhatyouget.net&#10;HTTP/2.0"><span class="header-text">WYS<span class="si-kerning"></span>IWYG?</span></a>
+    <a href="/" data-hover-name="GET whatyousayiswhatyouget.net&#10;HTTP/2.0"><span class="header-text"><span class="site-title-text"></span></span></a>
     <nav class="site-header-nav" id="site-header-nav">
       <button class="nav-menu-toggle" aria-expanded="false" aria-controls="site-header-nav">Menu</button>
       <a href="/dictionary/" data-hover-name="GET /dictionary/&#10;HTTP/2.0"><span class="header-text">Dictionary</span></a>
@@ -13,6 +13,17 @@
     </nav>
   `;
   document.body.insertBefore(header, document.body.firstChild);
+
+  const siteTitle = header.querySelector('.site-title-text');
+  function updateSiteTitle() {
+    if (siteTitle) {
+      siteTitle.innerHTML = window.innerWidth < 1400
+        ? 'WYS<span class="si-kerning"></span>IWYG?'
+        : 'What You Say Is What You Get?';
+    }
+  }
+  updateSiteTitle();
+  window.addEventListener('resize', updateSiteTitle);
 
   const toggle = header.querySelector('.nav-menu-toggle');
   const nav = header.querySelector('.site-header-nav');
