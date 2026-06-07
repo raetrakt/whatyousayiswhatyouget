@@ -72,7 +72,7 @@ export function pushBatchOutward(batch, rootId, levelIndex, width, height) {
     ) {
       baseAngle = jitter * Math.PI * 2 + i * golden * 0.7;
     }
-    const spread = (jitter - 0.5) * 0.7;
+    let spread = (jitter - 0.5) * 0.4;
     const angle = baseAngle + spread;
     const radius = stepDistance + jitter * 26 + (i % 2) * 10;
     const dx = Math.cos(angle);
@@ -91,10 +91,18 @@ export async function runOnboardingReveal({
   width,
   height,
   preloadPromise = null,
-  ONBOARDING_BATCH_DELAY_MS = 300,
+  ONBOARDING_BATCH_DELAY_MS = 500,
 } = {}) {
   const originalVelocityDecay = simulation.velocityDecay();
+  const chargeForce = simulation.force('charge');
+  const originalChargeStrength =
+    chargeForce && typeof chargeForce.strength === 'function' ? chargeForce.strength() : null;
   simulation.velocityDecay(0.62);
+  // Boost repulsion during the reveal so freshly spawned branches push apart
+  // instead of overlapping, which is what causes links to cross.
+  if (chargeForce && typeof chargeForce.strength === 'function') {
+    chargeForce.strength(-2000);
+  }
   try {
     const { rootId, levels } = buildRevealLevels();
     if (!rootId) {
@@ -124,7 +132,7 @@ export async function runOnboardingReveal({
       rootNode.fx = width / 2;
       rootNode.fy = height / 2;
     }
-    simulation.alpha(0.18).restart();
+    simulation.alpha(0.45).restart();
     for (let i = 0; i < levels.length; i += 1) {
       await sleep(ONBOARDING_BATCH_DELAY_MS);
       const batch = levels[i];
@@ -137,7 +145,7 @@ export async function runOnboardingReveal({
       // positions of the just-spawned batch onto the DOM. Without this,
       // alpha can decay below alphaMin during the hold and the freshly
       // appended foreignObjects stay pinned at their default x=0,y=0.
-      simulation.alpha(Math.max(simulation.alpha(), 0.18)).restart();
+      simulation.alpha(Math.max(simulation.alpha(), 0.5)).restart();
       // Wire up load listeners on any still-pending images in this batch so
       // they reveal themselves as soon as they decode, without waiting for the
       // next batch's renderGraph call. Use the same gentle collision settings
@@ -161,5 +169,8 @@ export async function runOnboardingReveal({
     simulation.alpha(1).restart();
   } finally {
     simulation.velocityDecay(originalVelocityDecay);
+    if (chargeForce && typeof chargeForce.strength === 'function' && originalChargeStrength != null) {
+      chargeForce.strength(originalChargeStrength);
+    }
   }
 }
