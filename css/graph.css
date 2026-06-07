@@ -237,7 +237,7 @@ body.is-safari .node.work.media-ready {
 
 .link {
   stroke: #000;
-  stroke-width: 1px;
+  stroke-width: .6px;
 }
 
 .link.selected {
