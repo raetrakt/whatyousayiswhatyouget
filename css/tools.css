@@ -151,16 +151,20 @@ body:has(#app:not([hidden])) {
   overflow: hidden;
 }
 
-@media (min-width: 700px) and (max-width: 1099px) {
+/* @media (min-width: 700px) and (max-width: 1099px) {
   #editor-panel {
     grid-column: 2 / 4;
   }
   #canvas-panel {
     grid-column: 4 / -1;
   }
-}
+} */
 
 @media (max-width: 900px) {
+  body {
+    padding-top: unset !important;
+  }
+
   #app {
     grid-template-columns: 1fr;
     grid-template-rows: auto 1fr 1fr;
@@ -168,10 +172,16 @@ body:has(#app:not([hidden])) {
     overflow-y: auto;
   }
 
+  #overview {
+    /* padding-top: 0; */
+    overflow: visible;
+  }
+
   #overview-grid {
     grid-auto-columns: unset;
     grid-template-columns: 1fr;
     grid-auto-flow: unset;
+    overflow: visible;
   }
 
   nav#tool-switcher {
@@ -191,7 +201,7 @@ body:has(#app:not([hidden])) {
     grid-column: 2;
   }
 
-  #btn-reset   {
+  #btn-reset {
     grid-row: 1;
     margin-top: 0 !important;
   }
