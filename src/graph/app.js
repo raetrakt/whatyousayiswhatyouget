@@ -39,9 +39,11 @@ if (isSafari) {
 
 const container = svg.append('g');
 
+const isMobile = window.matchMedia('(max-width: 768px)').matches || 'ontouchstart' in window;
+
 const zoom = d3
   .zoom()
-  .scaleExtent([0.2, 2])
+  .scaleExtent([isMobile ? 0.1 : 0.2, isMobile ? 2 : 2])
   .wheelDelta((event) => {
     if (!event.ctrlKey) {
       // Normal scroll wheel — unchanged D3 default.
@@ -63,7 +65,7 @@ svg.call(
   zoom.transform,
   d3.zoomIdentity
     .translate(width / 2, height / 2)
-    .scale(.6) // your desired scale < 1
+    .scale(isMobile ? 0.2 : 0.6)
     .translate(-width / 2, -height / 2),
 );
 if (!isSafari) {
