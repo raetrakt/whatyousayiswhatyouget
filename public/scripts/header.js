@@ -136,7 +136,9 @@
       const headerText = link.querySelector('.header-text');
       if (hoverWrap) {
         hoverWrap.style.opacity = '1';
-        hoverWrap.querySelectorAll('.header-hover-char').forEach(span => span.style.opacity = '1');
+        hoverWrap
+          .querySelectorAll('.header-hover-char')
+          .forEach((span) => (span.style.opacity = '1'));
       }
       if (headerText) headerText.style.opacity = '0';
       break;
