@@ -58,7 +58,7 @@ function doRender() {
   }
   params.margin = params.margin * (cssW / params.width);
 
-  let scaleBase = Math.max(cssH, cssW)
+  let scaleBase = Math.max(cssH, cssW);
   params.spacing = parseInt(scaleBase / 200);
   params.markerSize = parseInt(scaleBase / 80);
   params.strokeWidth = parseInt(scaleBase / 290);

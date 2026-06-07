@@ -17,9 +17,10 @@
   const siteTitle = header.querySelector('.site-title-text');
   function updateSiteTitle() {
     if (siteTitle) {
-      siteTitle.innerHTML = window.innerWidth < 1400
-        ? 'WYS<span class="si-kerning"></span>IWYG?'
-        : 'What You Say Is What You Get?';
+      siteTitle.innerHTML =
+        window.innerWidth < 1400
+          ? 'WYS<span class="si-kerning"></span>IWYG?'
+          : 'What You Say Is What You Get?';
     }
   }
   updateSiteTitle();
@@ -114,7 +115,31 @@
     }
 
     link.addEventListener('mouseenter', activateHoverText);
-    link.addEventListener('mouseleave', deactivateHoverText);
-    link.addEventListener('blur', deactivateHoverText);
+    link.addEventListener('mouseleave', () => {
+      if (link.classList.contains('nav-active')) return;
+      deactivateHoverText();
+    });
+    link.addEventListener('blur', () => {
+      if (link.classList.contains('nav-active')) return;
+      deactivateHoverText();
+    });
+  }
+
+  // Mark the active nav link (nav items only, not the site title) and keep it in hover state
+  const path = window.location.pathname.replace(/\/$/, '') || '';
+  for (const link of header.querySelectorAll('.site-header-nav a')) {
+    const href = link.getAttribute('href').replace(/\/$/, '') || '';
+    const isActive = path === href || (href !== '' && path.startsWith(href + '/'));
+    if (isActive) {
+      link.classList.add('nav-active');
+      const hoverWrap = link.querySelector('.header-hover-text');
+      const headerText = link.querySelector('.header-text');
+      if (hoverWrap) {
+        hoverWrap.style.opacity = '1';
+        hoverWrap.querySelectorAll('.header-hover-char').forEach(span => span.style.opacity = '1');
+      }
+      if (headerText) headerText.style.opacity = '0';
+      break;
+    }
   }
 })();
