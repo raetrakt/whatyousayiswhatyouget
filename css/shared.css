@@ -49,6 +49,10 @@ html {
   scroll-padding-top: calc(var(--site-header-height) + var(--baseline));
 }
 
+html::selection {
+  background-color: #d8d8d8;
+}
+
 html::-webkit-scrollbar,
 body::-webkit-scrollbar {
   display: none;
@@ -155,7 +159,8 @@ table {
 
 @media (max-width: 900px) {
   :root {
-    --body-size: 1.2rem;
+    --body-size: 1.15rem;
+    --body-line-height: 1.2;
   }
 
   .site-header {

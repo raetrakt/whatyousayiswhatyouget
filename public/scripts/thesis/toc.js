@@ -4,6 +4,32 @@ const buildToc = () => {
   const contents = document.querySelector('.table-of-contents');
   if (!contents || contents.dataset.tocBuilt === 'true') return;
 
+  // Add mobile toggle button if not already present
+  if (!contents.querySelector('.toc-toggle')) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'toc-toggle-wrapper';
+    const toggle = document.createElement('button');
+    toggle.className = 'toc-toggle';
+    toggle.textContent = 'Contents';
+    toggle.setAttribute('aria-expanded', 'false');
+    wrapper.appendChild(toggle);
+    contents.insertBefore(wrapper, contents.firstChild);
+    toggle.addEventListener('click', () => {
+      const open = toggle.getAttribute('aria-expanded') === 'true';
+      toggle.setAttribute('aria-expanded', String(!open));
+      toggle.textContent = open ? 'Contents' : 'Close';
+      contents.classList.toggle('toc-open', !open);
+    });
+
+    contents.addEventListener('click', (e) => {
+      if (e.target.closest('a') && window.innerWidth < 900) {
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.textContent = 'Contents';
+        contents.classList.remove('toc-open');
+      }
+    });
+  }
+
   const headings = Array.from(
     document.querySelectorAll(
       '.thesis-layout h1:not(.hide-in-toc, .hide-on-web), .thesis-layout h2, .thesis-layout h3, .thesis-layout h4, .thesis-layout h5, .thesis-layout h6',
@@ -22,7 +48,8 @@ const buildToc = () => {
     const p = document.createElement('p');
     const level = parseInt(heading.tagName.substring(1), 10);
     if (level == 3 || level === 4 || level === 5) p.classList.add('low-level-heading');
-    const indent = '\u00A0'.repeat(indentLevel * 2);
+    const isMobile = window.innerWidth < 900;
+    const indent = '\u00A0'.repeat(indentLevel * (isMobile ? 0 : 2));
     p.textContent = indent;
 
     const a = document.createElement('a');

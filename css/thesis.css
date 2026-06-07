@@ -55,6 +55,63 @@ h3:has(+ h4) {
   position: fixed;
 }
 
+.toc-toggle {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .hide-on-mobile {
+    display: none;
+  }
+
+  .table-of-contents.toc-open {
+    background: white;
+    position: fixed;
+    left: 0;
+    top: 0;
+    padding-top: calc(var(--site-header-height) + var(--grid-gap));
+    padding-left: var(--grid-gap);
+    padding-right: var(--grid-gap);
+    z-index: 999;
+    height: 100%;
+    width: 100%;
+  }
+
+  .toc-toggle-wrapper {
+    position: fixed;
+    right: calc(var(--grid-gap) * 0.3);
+    top: calc(var(--site-header-height) + var(--grid-gap));
+  }
+
+  .toc-toggle {
+    display: block;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-family: 'True Sans Mono', monospace;
+    font-size: var(--notes-size);
+    line-height: 1;
+    color: var(--red);
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    white-space: nowrap;
+  }
+
+  .table-of-contents p {
+    display: none;
+  }
+
+  .table-of-contents.toc-open p {
+    display: block;
+  }
+
+  .title-text-inner {
+    flex-direction: column;
+    gap: var(--notes-baseline);
+  }
+}
+
 .table-of-contents a:hover::before {
   content: '\2192\20';
 }
