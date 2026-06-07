@@ -321,13 +321,30 @@ export function createRenderer({
     });
   }
 
+  const toolLinks = {
+    'Path Resampling': '/tools/?tool=resampling',
+    'Reaction Diffusion': '/tools/?tool=rd',
+    'Signed Distance Field': '/tools/?tool=sdf',
+    'Falling Sand Simulation': '/tools/?tool=sand',
+    Quadtree: '/tools/?tool=quadtree',
+  };
+
   function bindEditHandlers() {
     node.on('click', async (event, d) => {
       if (!editorState.enabled) {
-        if (d.type !== 'work') return;
-        event.preventDefault();
-        event.stopPropagation();
-        openWorkModal(d);
+        if (d.type === 'work') {
+          event.preventDefault();
+          event.stopPropagation();
+          openWorkModal(d);
+          return;
+        }
+        const toolUrl = toolLinks[d.name];
+        if (toolUrl) {
+          event.preventDefault();
+          event.stopPropagation();
+          location.href = toolUrl;
+          return;
+        }
         return;
       }
 
@@ -416,7 +433,11 @@ export function createRenderer({
             // New nodes start hidden (media-pending) so they are never visible
             // as a square placeholder. measureNodes promotes them to media-ready
             // once the <img> has decoded and the real aspect ratio is known.
-            .attr('class', (d) => `node ${d.type}${d.type === 'work' ? ' media-pending' : ''}`)
+            .attr(
+              'class',
+              (d) =>
+                `node ${d.type}${d.type === 'work' ? ' media-pending' : ''}${toolLinks[d.name] ? ' has-tool-link' : ''}`,
+            )
             .html((d) =>
               d.type === 'work'
                 ? `<img class="node-img" src="${d.media_path}" alt="${d.name}">`
@@ -428,11 +449,12 @@ export function createRenderer({
         // losing its decoded state and forcing it back to media-pending.
         (update) =>
           update.attr('class', function (d) {
-            if (d.type !== 'work') return `node ${d.type}`;
+            const toolClass = toolLinks[d.name] ? ' has-tool-link' : '';
+            if (d.type !== 'work') return `node ${d.type}${toolClass}`;
             const mediaClass = this.classList.contains('media-ready')
               ? 'media-ready'
               : 'media-pending';
-            return `node ${d.type} ${mediaClass}`;
+            return `node ${d.type} ${mediaClass}${toolClass}`;
           }),
       );
 
