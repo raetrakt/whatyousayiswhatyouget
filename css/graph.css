@@ -1,6 +1,8 @@
 :root {
   --work-img-target-area: 10000;
   --work-node-padding: 8px;
+  --spring-easing: linear(0, 0.042 0.9%, 0.188 2%, 1.151 6.9%, 1.299 8.3%, 1.337 9%, 1.353 9.7%, 1.342 10.7%, 1.293 11.8%, 0.946 16.8%, 0.897 18.1%, 0.875 19.5%, 0.878 20.5%, 0.894 21.6%, 1.021 26.8%, 1.044 29.4%, 1.037 31.5%, 0.993 36.6%, 0.984 39.2%, 1.005 49.1%, 0.998 58.9%, 1);
+  --spring-duration: 0.7s;
 }
 
 @font-face {
@@ -134,7 +136,7 @@ body.is-safari .node.work.media-ready {
   display: none;
   justify-content: center;
   z-index: 1000;
-  padding: 24px;
+  padding: var(--grid-gap);
 }
 
 .work-modal-meta span {
@@ -144,6 +146,7 @@ body.is-safari .node.work.media-ready {
 #work-modal-classification {
   font-family: 'True Sans Mono', monospace;
   font-size: var(--code-size);
+  line-height: calc(var(--body-line-height) * 0.9);
 }
 
 .work-modal.is-open {
@@ -192,8 +195,19 @@ body.is-safari .node.work.media-ready {
 
 .work-modal-row {
   display: grid;
-  grid-template-columns: 114px 1fr;
-  gap: 32px;
+  grid-template-columns: calc(var(--body-size) * 4) 1fr;
+}
+
+.work-modal-row:first-child span {
+  text-box-trim: trim-start;
+}
+
+.node-img {
+  transition: transform var(--spring-duration) var(--spring-easing);
+}
+
+.node-img:hover {
+  transform: scale(1.03);
 }
 
 .work-modal-line {
