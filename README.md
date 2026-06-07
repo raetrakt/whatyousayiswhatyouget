@@ -10,8 +10,7 @@ Urs Hofer
 
 Zurich University of the Arts
 June 2026
-&nbsp;
-&nbsp;
+<br/><br/>
 <br/><br/>
 If you want to modify tools from the tools page, you will need [Node.js](https://nodejs.org/).
 
@@ -30,8 +29,8 @@ Each tool lives in its own folder inside tools (e.g. sand).
 Start by editing the `.js` file inside the folder of the tool you want to modify.
 
 When you're done, run `npm run build` to create a production-ready version of the site in a `dist/` folder.
-&nbsp;
-&nbsp;
+<br/><br/>
+<br/><br/>
 Written thesis and diagrams © Fabian Pitzer, licensed under CC BY-NC 4.0.
 Graphic design works on the dictionary page and figures in the thesis are shown for educational purposes only. All rights belong to the authors.
 All code licensed under the MIT License, unless otherwise stated.
