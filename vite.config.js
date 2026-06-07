@@ -12,6 +12,7 @@ export default defineConfig({
         manifesto: './manifesto/index.html',
         thesis: './thesis/index.html',
         tools: './tools/index.html',
+        about: './about/index.html'
       },
     },
   },
