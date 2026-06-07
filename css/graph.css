@@ -74,6 +74,7 @@ foreignObject {
 }
 
 .node-text {
+  font-family: 'True Sans Mono', monospace;
   text-align: center;
   line-height: 1;
 }
