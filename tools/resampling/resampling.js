@@ -349,6 +349,9 @@ function _sampleEdges(mask, cssW, cssH, cellSize) {
 let _version = 0;
 let _points = []; // last computed positions – reserved for future drag / stroke
 
+// Marker bitmap cache — avoids re-allocating GPU textures on every render call.
+let _markerBitmapCache = null; // { key: string, bitmaps: array }
+
 // Cancels any running animation loop (e.g. when switching to another tool).
 export function stop() {
   _version++;
@@ -416,30 +419,38 @@ export function render(
   // Support both single marker (string) and cycling markers (array of strings).
   const isMarkerArray = Array.isArray(marker);
   const markerList = isMarkerArray ? marker : [marker];
-  const markerBitmaps = [];
 
-  for (const singleMarker of markerList) {
-    // Clamp bitmap geometry so absurd markerSize/cursorScale/strokeWidth values
-    // can't allocate a multi-GB canvas and crash the tab (unrecoverable break).
-    const maxMarkerSize = Math.min(2000, markerSize * Math.max(1, cursorScale));
-    const OVER = 2;
-    const scaledStrokeHalf = strokeColor ? (strokeWidth / 2) * (maxMarkerSize / markerSize) : 0;
-    const pad = scaledStrokeHalf + 2;
-    const offSize = Math.min(4096, (maxMarkerSize + pad * 2) * OVER);
-    const markerBitmap = document.createElement('canvas');
-    markerBitmap.width = markerBitmap.height = offSize;
-    const mctx = markerBitmap.getContext('2d');
-    mctx.font = `${maxMarkerSize * OVER}px serif`;
-    mctx.textAlign = 'center';
-    mctx.textBaseline = 'middle';
-    if (strokeColor) {
-      mctx.strokeStyle = strokeColor;
-      mctx.lineWidth = strokeWidth * OVER * (maxMarkerSize / markerSize);
-      mctx.strokeText(singleMarker, offSize / 2, offSize / 2);
+  // Cache bitmaps to avoid re-allocating large GPU textures on every render().
+  const bitmapCacheKey = JSON.stringify({ markerList, markerSize, markerColor, strokeColor, strokeWidth, cursorScale });
+  let markerBitmaps;
+  if (_markerBitmapCache && _markerBitmapCache.key === bitmapCacheKey) {
+    markerBitmaps = _markerBitmapCache.bitmaps;
+  } else {
+    markerBitmaps = [];
+    for (const singleMarker of markerList) {
+      // Clamp bitmap geometry so absurd markerSize/cursorScale/strokeWidth values
+      // can't allocate a multi-GB canvas and crash the tab (unrecoverable break).
+      const maxMarkerSize = Math.min(2000, markerSize * Math.max(1, cursorScale));
+      const OVER = 2;
+      const scaledStrokeHalf = strokeColor ? (strokeWidth / 2) * (maxMarkerSize / markerSize) : 0;
+      const pad = scaledStrokeHalf + 2;
+      const offSize = Math.min(4096, (maxMarkerSize + pad * 2) * OVER);
+      const markerBitmap = document.createElement('canvas');
+      markerBitmap.width = markerBitmap.height = offSize;
+      const mctx = markerBitmap.getContext('2d');
+      mctx.font = `${maxMarkerSize * OVER}px serif`;
+      mctx.textAlign = 'center';
+      mctx.textBaseline = 'middle';
+      if (strokeColor) {
+        mctx.strokeStyle = strokeColor;
+        mctx.lineWidth = strokeWidth * OVER * (maxMarkerSize / markerSize);
+        mctx.strokeText(singleMarker, offSize / 2, offSize / 2);
+      }
+      mctx.fillStyle = markerColor;
+      mctx.fillText(singleMarker, offSize / 2, offSize / 2);
+      markerBitmaps.push({ bitmap: markerBitmap, offSize, maxMarkerSize, OVER });
     }
-    mctx.fillStyle = markerColor;
-    mctx.fillText(singleMarker, offSize / 2, offSize / 2);
-    markerBitmaps.push({ bitmap: markerBitmap, offSize, maxMarkerSize, OVER });
+    _markerBitmapCache = { key: bitmapCacheKey, bitmaps: markerBitmaps };
   }
 
   // Displayed size of the bitmap at 1:1 scale (CSS px) — use first marker's size
