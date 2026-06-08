@@ -178,6 +178,8 @@ body.is-safari .node-img:hover {
   justify-content: center;
   z-index: 1000;
   padding: var(--grid-gap);
+  padding-top: 50px;
+  align-items: center;
 }
 
 .work-modal-meta span,
@@ -199,7 +201,7 @@ body.is-safari .node-img:hover {
   height: 60dvh;
   display: flex;
   gap: 24px;
-  margin-top: calc(var(--baseline) * 3);
+  /* margin-top: calc(var(--baseline) * 3); */
 }
 
 .work-modal-image-container {
@@ -316,9 +318,11 @@ body.editing-mode {
 }
 
 /* Mobile breakpoint */
-@media (max-width: 768px) {
+@media (max-width: 800px) {
   .work-modal {
     font-size: 20px;
+    align-items: flex-start;
+    padding-top: 40px;
   }
 
   .work-modal-meta p,
@@ -354,19 +358,7 @@ body.editing-mode {
     margin: 0 -4px;
   }
 
-  /*
-  .work-modal-meta {
-    width: 100%;
-    overflow-y: auto;
+  .site-header a .header-hover-text {
+    right: 0;
   }
-
-  .work-modal-row {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  } */
-
-  /* .node {
-    font-size: 14px;
-    padding: 6px 10px;
-  } */
 }
