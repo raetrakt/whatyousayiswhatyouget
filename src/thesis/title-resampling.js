@@ -36,9 +36,9 @@ const PARAMS = {
   relaxSpeed: 8,
   period: 6,
   cursorRadius: 650,
-  cursorScale: 2.5,
+  cursorScale: 3,
   cursorRotation: 720,
-  cursorAmplitude: 1,
+  cursorAmplitude: .8,
   cursorRepeat: false,
   cursorMode: true,
   cursorDelay: 0.08,
@@ -59,9 +59,9 @@ function doRender() {
   params.margin = params.margin * (cssW / params.width);
 
   let scaleBase = Math.max(cssH, cssW);
-  params.spacing = parseInt(scaleBase / 200);
-  params.markerSize = parseInt(scaleBase / 80);
-  params.strokeWidth = parseInt(scaleBase / 290);
+  params.spacing = parseInt(scaleBase / 120);
+  params.markerSize = parseInt(scaleBase / 60);
+  params.strokeWidth = parseInt(scaleBase / 220);
 
   ctx.clearRect(0, 0, cssW, cssH);
   ctx.fillStyle = params.bgColor;
