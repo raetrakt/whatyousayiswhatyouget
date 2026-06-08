@@ -198,7 +198,7 @@ body.is-safari .node-img:hover {
 }
 
 .work-modal-panel {
-  height: 60dvh;
+  height: 70dvh;
   display: flex;
   gap: 24px;
   /* margin-top: calc(var(--baseline) * 3); */
