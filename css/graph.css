@@ -165,7 +165,7 @@ body.is-safari .node.work.media-ready {
 }
 
 .work-modal {
-  font-family: 'Times New Roman', Times, 'TeX Gyre Termes', serif;
+  font-family: Times, 'Times New Roman', 'TeX Gyre Termes', serif;
   font-size: var(--body-size);
   position: fixed;
   inset: 0;

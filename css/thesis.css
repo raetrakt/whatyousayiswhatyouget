@@ -16,7 +16,7 @@ h2,
 h3,
 h4,
 p {
-  font-family: 'Times New Roman', Times, 'TeX Gyre Termes', serif;
+  font-family: Times, 'Times New Roman', 'TeX Gyre Termes', serif;
   font-weight: normal;
   line-height: var(--body-line-height);
   font-size: var(--body-size);
@@ -70,7 +70,7 @@ h3:has(+ h4) {
     top: calc(var(--site-header-height) + var(--grid-gap));
   }
 
-    :root .table-of-contents p:first-of-type {
+  :root .table-of-contents p:first-of-type {
     padding-top: 0;
   }
 }
@@ -111,7 +111,7 @@ h3:has(+ h4) {
   }
 
   .table-of-contents p:first-of-type {
-    padding-top: calc(var(--notes-baseline)*2);
+    padding-top: calc(var(--notes-baseline) * 2);
   }
 
   .table-of-contents p {
