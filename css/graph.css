@@ -155,6 +155,11 @@ body.is-safari .node.work.media-ready {
   transform: none;
 }
 
+body.is-safari .node.has-tool-link:hover,
+body.is-safari .node-img:hover {
+  transform: none;
+}
+
 .node.work img {
   display: block;
   width: auto;
