@@ -254,7 +254,13 @@ table {
   .page-grid > * {
     grid-column: 3 / 6;
   }
+
+  .site-header > a:first-of-type {
+    grid-column: span 2;
+  }
+
   .site-header-nav {
+    display: contents;
     grid-column: 5 / -1;
   }
 }
