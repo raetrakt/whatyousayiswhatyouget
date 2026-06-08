@@ -2,18 +2,23 @@
 <html lang="en">
 
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>What You Say Is What You Get?</title>
   <link rel="icon" href="../assets/svg/title_layout.svg" />
   <link rel="stylesheet" href="../css/shared.css">
+  <link rel="stylesheet" href="../css/landingpage.css">
   <link rel="stylesheet" href="../css/about.css">
+
+  <!-- Preload assets for the interactive sketch -->
+  <link rel="preload" href="../assets/fonts/texgyretermes-regular.otf" as="fetch" crossorigin fetchpriority="high">
+  <script type="module" src="../src/thesis/title-resampling.js"></script>
 </head>
 
 <body class="page-grid">
   <script src="/scripts/header.js"></script>
   <script src="/scripts/thesis/nbsp-sentences.js"></script>
-
+  <canvas id="title-resampling-canvas" style="width:100%;"></canvas>
   <div class="about-text">
     <p>This is <span class="code">whatyousayiswhatyouget.net</span>, the master’s thesis of Fabian Pitzer. You can find more of his work at <a href="https://pitzer.xyz" target="_blank" rel="noopener noreferrer" class="code">pitzer.xyz</a>. He looked into how graphic designers can build and use custom tools deliberately, making the most out of computers while keeping sustainability in mind. He links this to the language beneficial to instructing large language models, which are good at generating code.</p>
     <p>On the Dictionary page, you will find a graph that attempts to map some of his favorite graphic design works to the computational language underlying its systems. The taxonomy is more entangled in reality but should serve as an overview for what kind of tools can be built. The projects showcase techniques that are suitable for reaping the <a href="/thesis/#h.r2w9zet2xjz1" class="code">benefits of custom tools</a>.</p>
