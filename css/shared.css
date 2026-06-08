@@ -275,6 +275,11 @@ table {
   .page-grid > * {
     grid-column: 4 / 7;
   }
+
+  .site-header > a:first-of-type {
+    grid-column: span 3;
+  }
+
   .site-header-nav {
     grid-column: 7 / -1;
   }
