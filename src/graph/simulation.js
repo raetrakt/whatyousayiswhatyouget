@@ -1,3 +1,4 @@
+import * as d3 from './d3.js';
 import { getNodeId } from './utils.js';
 
 export function createGraphSimulation({ width, height }) {

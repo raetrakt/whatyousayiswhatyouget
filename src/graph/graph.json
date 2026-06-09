@@ -1,0 +1,1065 @@
+{
+  "concepts": [
+    {
+      "id": "medial-axis-skeletonization",
+      "name": "Medial Axis Skeletonization",
+      "type": "term"
+    },
+    {
+      "id": "text-filter",
+      "name": "Text Filter",
+      "type": "term"
+    },
+    {
+      "id": "diffusion-limited-aggregation",
+      "name": "Diffusion-limited Aggregation",
+      "type": "term"
+    },
+    {
+      "id": "apollonian-gasket",
+      "name": "Apollonian Gasket",
+      "type": "term"
+    },
+    {
+      "id": "combinatorics",
+      "name": "Combinatorics",
+      "type": "sub"
+    },
+    {
+      "id": "perlin-noise",
+      "name": "Perlin Noise",
+      "type": "term"
+    },
+    {
+      "id": "noise",
+      "name": "Noise",
+      "type": "term"
+    },
+    {
+      "id": "simulation",
+      "name": "Simulation",
+      "type": "theory"
+    },
+    {
+      "id": "metaballs",
+      "name": "Metaballs",
+      "type": "term"
+    },
+    {
+      "id": "computation",
+      "name": "Computation",
+      "type": "main"
+    },
+    {
+      "id": "mathematics",
+      "name": "Mathematics",
+      "type": "theory"
+    },
+    {
+      "id": "packing-problems",
+      "name": "Packing Problems",
+      "type": "term"
+    },
+    {
+      "id": "text-pixels",
+      "name": "Text Pixels",
+      "type": "term"
+    },
+    {
+      "id": "emoji-brush",
+      "name": "Emoji Brush",
+      "type": "term"
+    },
+    {
+      "id": "image-pixels",
+      "name": "Image Pixels",
+      "type": "term"
+    },
+    {
+      "id": "alternative-pixels",
+      "name": "Alternative Pixels",
+      "type": "sub"
+    },
+    {
+      "id": "video-frame-brush",
+      "name": "Video Frame Brush",
+      "type": "term"
+    },
+    {
+      "id": "elementary-cellular-automata",
+      "name": "Elementary Cellular Automata",
+      "type": "term"
+    },
+    {
+      "id": "sobel-edge-detection",
+      "name": "Sobel Edge Detection",
+      "type": "term"
+    },
+    {
+      "id": "computer-graphics",
+      "name": "Computer Graphics",
+      "type": "theory"
+    },
+    {
+      "id": "dithering",
+      "name": "Dithering",
+      "type": "term"
+    },
+    {
+      "id": "image-filter",
+      "name": "Image Filter",
+      "type": "theory"
+    },
+    {
+      "id": "randomness",
+      "name": "Randomness",
+      "type": "theory"
+    },
+    {
+      "id": "moravec-interest-operator",
+      "name": "Moravec Interest Operator",
+      "type": "term"
+    },
+    {
+      "id": "fisheye-lens",
+      "name": "Fisheye Lens",
+      "type": "term"
+    },
+    {
+      "id": "gradient-pixels",
+      "name": "Gradient Pixels",
+      "type": "term"
+    },
+    {
+      "id": "soft-body-dynamics",
+      "name": "Soft-body Dynamics",
+      "type": "term"
+    },
+    {
+      "id": "ascii-brush",
+      "name": "ASCII Brush",
+      "type": "term"
+    },
+    {
+      "id": "emergent-behavior",
+      "name": "Emergent Behavior",
+      "type": "sub"
+    },
+    {
+      "id": "cubic-bezier-curve",
+      "name": "Cubic Bézier Curve",
+      "type": "term"
+    },
+    {
+      "id": "dubins-path",
+      "name": "Dubins Path",
+      "type": "term"
+    },
+    {
+      "id": "ray-casting",
+      "name": "Ray Casting",
+      "type": "term"
+    },
+    {
+      "id": "random-sequential-adsorption",
+      "name": "Random Sequential Adsorption",
+      "type": "term"
+    },
+    {
+      "id": "minesweeper-brush",
+      "name": "Minesweeper Brush",
+      "type": "term"
+    },
+    {
+      "id": "computer-vision",
+      "name": "Computer Vision",
+      "type": "sub"
+    },
+    {
+      "id": "pose-estimation",
+      "name": "Pose Estimation",
+      "type": "term"
+    },
+    {
+      "id": "reaction-diffusion",
+      "name": "Reaction Diffusion",
+      "type": "term"
+    },
+    {
+      "id": "weighted-voronoi-stippling",
+      "name": "Weighted Voronoi Stippling",
+      "type": "term"
+    },
+    {
+      "id": "vector-image-brush",
+      "name": "Vector Image Brush",
+      "type": "term"
+    },
+    {
+      "id": "geometry",
+      "name": "Geometry",
+      "type": "sub"
+    },
+    {
+      "id": "rendering",
+      "name": "Rendering",
+      "type": "term"
+    },
+    {
+      "id": "poisson-image-editing",
+      "name": "Poisson Image Editing",
+      "type": "term"
+    },
+    {
+      "id": "drawing-tool",
+      "name": "Drawing Tool",
+      "type": "theory"
+    },
+    {
+      "id": "l-system",
+      "name": "L-System",
+      "type": "term"
+    },
+    {
+      "id": "path-resampling",
+      "name": "Path Resampling",
+      "type": "term"
+    },
+    {
+      "id": "flocking",
+      "name": "Flocking",
+      "type": "term"
+    },
+    {
+      "id": "growth",
+      "name": "Growth",
+      "type": "sub"
+    },
+    {
+      "id": "content-aware-scaling",
+      "name": "Content Aware Scaling",
+      "type": "term"
+    },
+    {
+      "id": "falling-sand-simulation",
+      "name": "Falling Sand Simulation",
+      "type": "term"
+    },
+    {
+      "id": "digital-signal-processing",
+      "name": "Digital Signal Processing",
+      "type": "theory"
+    },
+    {
+      "id": "fourier-series",
+      "name": "Fourier Series",
+      "type": "term"
+    },
+    {
+      "id": "lloyds-algorithm",
+      "name": "Lloyd's Algorithm",
+      "type": "term"
+    },
+    {
+      "id": "voronoi",
+      "name": "Voronoi",
+      "type": "term"
+    },
+    {
+      "id": "spectrogram",
+      "name": "Spectrogram",
+      "type": "term"
+    },
+    {
+      "id": "non-euclidean-geometry",
+      "name": "Non-euclidean Geometry",
+      "type": "term"
+    },
+    {
+      "id": "artificial-intelligence",
+      "name": "Artificial Intelligence",
+      "type": "theory"
+    },
+    {
+      "id": "ascii-filter",
+      "name": "ASCII Filter",
+      "type": "term"
+    },
+    {
+      "id": "wireframe",
+      "name": "Wireframe",
+      "type": "term"
+    },
+    {
+      "id": "signed-distance-field",
+      "name": "Signed Distance Field",
+      "type": "term"
+    },
+    {
+      "id": "cantor-set",
+      "name": "Cantor Set",
+      "type": "term"
+    },
+    {
+      "id": "arbitrary-shape-packing",
+      "name": "Arbitrary Shape Packing",
+      "type": "term"
+    },
+    {
+      "id": "bevel-join-brush",
+      "name": "Bevel Join Brush",
+      "type": "term"
+    },
+    {
+      "id": "physics",
+      "name": "Physics",
+      "type": "sub"
+    },
+    {
+      "id": "video-pixels",
+      "name": "Video Pixels",
+      "type": "term"
+    },
+    {
+      "id": "quadtree",
+      "name": "Quadtree",
+      "type": "term"
+    },
+    {
+      "id": "recursion",
+      "name": "Recursion",
+      "type": "theory"
+    },
+    {
+      "id": "image-similarity",
+      "name": "Image Similarity",
+      "type": "term"
+    },
+    {
+      "id": "3d-pixels",
+      "name": "3D Pixels",
+      "type": "term"
+    },
+    {
+      "id": "cellular-automata",
+      "name": "Cellular Automata",
+      "type": "sub"
+    },
+    {
+      "id": "rigid-body-dynamics",
+      "name": "Rigid-body Dynamics",
+      "type": "term"
+    },
+    {
+      "id": "circle-packing",
+      "name": "Circle Packing",
+      "type": "term"
+    }
+  ],
+  "works": [
+    {
+      "id": "identity-for-brand-ai",
+      "title": "Identity for Brand.AI",
+      "image": "work_image_052.jpg",
+      "author": "Daniel Wenzel",
+      "year": 2024,
+      "source_url": "https://www.instagram.com/p/DDK31foSZpY/"
+    },
+    {
+      "id": "skeletext",
+      "title": "SkeleText",
+      "image": "work_image_002.jpg",
+      "author": "Vera van de Seyp",
+      "year": 2023,
+      "source_url": "https://veravandeseyp.com/projects/skeletext/"
+    },
+    {
+      "id": "wissen-in-bildern",
+      "title": "Wissen in Bildern",
+      "image": "work_image_003.jpg",
+      "author": "Ralph Schraivogel",
+      "year": 2019,
+      "source_url": "https://100-beste-plakate.de/plakate/wissen-in-bildern-informationsdesign-heute/"
+    },
+    {
+      "id": "golan-for-maeda-4127953",
+      "title": "golan_for_maeda_4127953",
+      "image": "work_image_029.jpg",
+      "author": "Golan Levin",
+      "year": 2008,
+      "source_url": "https://www.flickr.com/photos/golanlevin/2474379400/"
+    },
+    {
+      "id": "les-printemps-de-sevelin",
+      "title": "Les Printemps de Sévelin",
+      "image": "work_image_051.jpg",
+      "author": "Adeline Mollard",
+      "year": 2021,
+      "source_url": "https://www.adelinemollard.ch/#les-printemps-de-sevelin-2021"
+    },
+    {
+      "id": "on-cloubhouse-nyc",
+      "title": "On Cloubhouse NYC",
+      "image": "work_image_044.jpg",
+      "author": "John Provencher",
+      "year": 2024,
+      "source_url": "https://johnprovencher.com/"
+    },
+    {
+      "id": "identity-for-rio-carnaval",
+      "title": "Identity for Rio Carnaval",
+      "image": "work_image_053.jpg",
+      "author": "André Burnier",
+      "year": 2022,
+      "source_url": "https://www.andreburnier.com/project/riocarnaval"
+    },
+    {
+      "id": "flume-im-blue-remix",
+      "title": "Flume I'm Blue Remix",
+      "image": "work_image_030.jpg",
+      "author": "Jonathan Zawada",
+      "year": 2020,
+      "source_url": "https://soundcloud.com/flume/blue-flume-remix"
+    },
+    {
+      "id": "ready-typeface",
+      "title": "Ready Typeface",
+      "image": "work_image_022.jpg",
+      "author": "Plain Form",
+      "year": 2022,
+      "source_url": "https://plain-form.com/typefaces/ready"
+    },
+    {
+      "id": "possible-pictures-pp",
+      "title": "Possible Pictures PP",
+      "image": "work_image_006.jpg",
+      "author": "Norm",
+      "year": 2020,
+      "source_url": "https://norm.to/books/dimension-of-two/"
+    },
+    {
+      "id": "morisawa-10",
+      "title": "Morisawa 10",
+      "image": "work_image_007.jpg",
+      "author": "John Maeda",
+      "year": 1996,
+      "source_url": "https://maedastudio.com/morisawa-10-2016/"
+    },
+    {
+      "id": "oberosterreichische-landeskultur",
+      "title": "Oberösterreichische Landeskultur",
+      "image": "work_image_005.jpg",
+      "author": "Studio Yukiko",
+      "year": 2022,
+      "source_url": "https://y-u-k-i-k-o.com/projects/oberosterreichische-landes-kultur/"
+    },
+    {
+      "id": "d-ad-festival-2022",
+      "title": "D&AD Festival 2022",
+      "image": "work_image_038.jpg",
+      "author": "Studio Dumbar",
+      "year": 2022,
+      "source_url": "https://studiodumbar.com/work/d-ad-2022"
+    },
+    {
+      "id": "color-experiments-with-moebiusxbin",
+      "title": "color experiments with MoebiusXBIN",
+      "image": "work_image_045.webp",
+      "author": "Jaakko Pallasvuo",
+      "year": 2025,
+      "source_url": "https://www.instagram.com/avocado_ibuprofen/p/DPD33_GDEfm/"
+    },
+    {
+      "id": "lex-box-max",
+      "title": "LEX BOX MAX",
+      "image": "work_image_046.jpg",
+      "author": "Fabian Pitzer",
+      "year": 2025,
+      "source_url": "https://www.instagram.com/p/DHI2MIpM-0L/"
+    },
+    {
+      "id": "image-generation",
+      "title": "Image Generation",
+      "image": "work_image_008.jpg",
+      "author": "Michel Egger",
+      "year": 2018,
+      "source_url": "https://visualcommunication.zhdk.ch/projekte/image-generations/"
+    },
+    {
+      "id": "haus-der-kunst-tune",
+      "title": "Haus der Kunst – Tune",
+      "image": "work_image_026.jpg",
+      "author": "Bureau Borsche",
+      "year": 2024,
+      "source_url": "https://bureauborsche.com/projects/haus-der-kunst/tune-copy3"
+    },
+    {
+      "id": "video-tiles",
+      "title": "Video Tiles",
+      "image": "work_image_043.jpg",
+      "author": "Daniel Wenzel",
+      "year": 2020,
+      "source_url": "https://www.instagram.com/p/B8RWNu_ivl5/"
+    },
+    {
+      "id": "milen-en-joes-gaan-trouwen",
+      "title": "Milen en Joes gaan trouwen",
+      "image": "work_image_027.jpg",
+      "author": "Luna Maurer",
+      "year": 2009,
+      "source_url": "https://lunamaurer.com/poly-luna/2/milen-en-joes-gaan-trouwen.html"
+    },
+    {
+      "id": "preserving-earth",
+      "title": "Preserving Earth",
+      "image": "work_image_050.png",
+      "author": "Fabian Pitzer",
+      "year": 2025,
+      "source_url": "https://pitzer.xyz/earth/"
+    },
+    {
+      "id": "out-of-office-2",
+      "title": "Out of Office 2",
+      "image": "work_image_034.jpg",
+      "author": "Luis Schulte Kellinghaus",
+      "year": 2024,
+      "source_url": "https://www.instagram.com/p/C79o4uni3j4/"
+    },
+    {
+      "id": "coded-graffiti",
+      "title": "Coded graffiti",
+      "image": "work_image_019.jpg",
+      "author": "André Burnier",
+      "year": 2024,
+      "source_url": "https://www.instagram.com/p/DBhLI94yoqJ/?img_index=1"
+    },
+    {
+      "id": "our-vulnerable-world",
+      "title": "Our Vulnerable World",
+      "image": "work_image_025.png",
+      "author": "Silvana Aponte, Fabian Pitzer",
+      "year": 2025,
+      "source_url": "https://www.instagram.com/p/DQ9m7ytjPto/?img_index=1"
+    },
+    {
+      "id": "a-deeply-flawed-quadtree",
+      "title": "A deeply flawed quadtree",
+      "image": "work_image_013.jpg",
+      "author": "Choi Gunhyuk",
+      "year": 2023,
+      "source_url": "https://www.instagram.com/ch_gnhk/reel/CvyjCr8LF-B/"
+    },
+    {
+      "id": "chaumont-biennale",
+      "title": "Chaumont Biennale",
+      "image": "work_image_001.jpg",
+      "author": "DIA Studio",
+      "year": 2021,
+      "source_url": "https://dia.tv/project/chaumont-biennale/"
+    },
+    {
+      "id": "bam-content-creator",
+      "title": "BAM Content Creator",
+      "image": "work_image_015.jpg",
+      "author": "Bareis Nicolaus",
+      "year": 2024,
+      "source_url": "https://www.instagram.com/p/C9AbcxkCXBu/?img_index=1"
+    },
+    {
+      "id": "variationsubung",
+      "title": "Variationsübung",
+      "image": "work_image_041.jpg",
+      "author": "Armin Hofmann",
+      "year": 1965,
+      "source_url": "https://archive.org/details/hofmann_201807/page/n5/mode/2up"
+    },
+    {
+      "id": "fault-lines-kabk-research-forum",
+      "title": "Fault Lines KABK Research Forum",
+      "image": "work_image_040.jpg",
+      "author": "Studio Lennarts & De Bruijn",
+      "year": 2022,
+      "source_url": "https://lennartsendebruijn.com/projects/fault-lines"
+    },
+    {
+      "id": "eternal-research",
+      "title": "Eternal Research",
+      "image": "work_image_042.png",
+      "author": "Cotton Design",
+      "year": 2025,
+      "source_url": "https://cotton.design/work/eternal-research"
+    },
+    {
+      "id": "ambiguous-aesthetics",
+      "title": "Ambiguous Aesthetics",
+      "image": "work_image_048.jpg",
+      "author": "Lena Weber",
+      "year": 2022,
+      "source_url": "https://lenaweber.com/archives/119"
+    },
+    {
+      "id": "f-f-abschlussausstellung",
+      "title": "F+F Abschlussausstellung",
+      "image": "work_image_024.jpg",
+      "author": "Nevin Goetschmann",
+      "year": 2025,
+      "source_url": "https://www.nevingoetschmann.ch/"
+    },
+    {
+      "id": "la-boutique-obscure",
+      "title": "La boutique obscure",
+      "image": "work_image_047.png",
+      "author": "Sulki and Min",
+      "year": 2023,
+      "source_url": "https://www.sulki-min.com/wp/la-boutique-obscure/"
+    },
+    {
+      "id": "homer-radio",
+      "title": "Homer Radio",
+      "image": "work_image_011.jpg",
+      "author": "Jannis Maroscheck",
+      "year": 2025,
+      "source_url": "https://www.instagram.com/p/DP_utHCjJBF/"
+    },
+    {
+      "id": "unite",
+      "title": "Unite",
+      "image": "work_image_023.jpg",
+      "author": "Studio Moniker",
+      "year": 2012,
+      "source_url": "https://studiomoniker.com/projects/unite"
+    },
+    {
+      "id": "jazz-festival-willisau",
+      "title": "Jazz Festival Willisau",
+      "image": "work_image_016.jpg",
+      "author": "Pank",
+      "year": 2023,
+      "source_url": "https://pank.ch/fe/?id=2052"
+    }
+  ],
+  "conceptRelations": [
+    [
+      "image-similarity",
+      "computer-vision"
+    ],
+    [
+      "ascii-brush",
+      "drawing-tool"
+    ],
+    [
+      "combinatorics",
+      "mathematics"
+    ],
+    [
+      "bevel-join-brush",
+      "drawing-tool"
+    ],
+    [
+      "text-pixels",
+      "alternative-pixels"
+    ],
+    [
+      "vector-image-brush",
+      "drawing-tool"
+    ],
+    [
+      "reaction-diffusion",
+      "growth"
+    ],
+    [
+      "random-sequential-adsorption",
+      "randomness"
+    ],
+    [
+      "emoji-brush",
+      "drawing-tool"
+    ],
+    [
+      "quadtree",
+      "recursion"
+    ],
+    [
+      "signed-distance-field",
+      "mathematics"
+    ],
+    [
+      "geometry",
+      "dubins-path"
+    ],
+    [
+      "artificial-intelligence",
+      "computation"
+    ],
+    [
+      "ascii-filter",
+      "image-filter"
+    ],
+    [
+      "mathematics",
+      "computation"
+    ],
+    [
+      "arbitrary-shape-packing",
+      "packing-problems"
+    ],
+    [
+      "ray-casting",
+      "rendering"
+    ],
+    [
+      "growth",
+      "simulation"
+    ],
+    [
+      "path-resampling",
+      "cubic-bezier-curve"
+    ],
+    [
+      "perlin-noise",
+      "noise"
+    ],
+    [
+      "physics",
+      "simulation"
+    ],
+    [
+      "noise",
+      "randomness"
+    ],
+    [
+      "computer-vision",
+      "artificial-intelligence"
+    ],
+    [
+      "digital-signal-processing",
+      "computation"
+    ],
+    [
+      "emergent-behavior",
+      "simulation"
+    ],
+    [
+      "cellular-automata",
+      "simulation"
+    ],
+    [
+      "apollonian-gasket",
+      "recursion"
+    ],
+    [
+      "drawing-tool",
+      "computation"
+    ],
+    [
+      "3d-pixels",
+      "alternative-pixels"
+    ],
+    [
+      "circle-packing",
+      "packing-problems"
+    ],
+    [
+      "l-system",
+      "recursion"
+    ],
+    [
+      "fisheye-lens",
+      "rendering"
+    ],
+    [
+      "rigid-body-dynamics",
+      "physics"
+    ],
+    [
+      "image-filter",
+      "digital-signal-processing"
+    ],
+    [
+      "sobel-edge-detection",
+      "computer-vision"
+    ],
+    [
+      "video-frame-brush",
+      "drawing-tool"
+    ],
+    [
+      "emergent-behavior",
+      "flocking"
+    ],
+    [
+      "computer-graphics",
+      "rendering"
+    ],
+    [
+      "geometry",
+      "mathematics"
+    ],
+    [
+      "computation",
+      "randomness"
+    ],
+    [
+      "content-aware-scaling",
+      "computer-vision"
+    ],
+    [
+      "weighted-voronoi-stippling",
+      "voronoi"
+    ],
+    [
+      "lloyds-algorithm",
+      "voronoi"
+    ],
+    [
+      "moravec-interest-operator",
+      "computer-vision"
+    ],
+    [
+      "computation",
+      "simulation"
+    ],
+    [
+      "fourier-series",
+      "mathematics"
+    ],
+    [
+      "soft-body-dynamics",
+      "physics"
+    ],
+    [
+      "gradient-pixels",
+      "alternative-pixels"
+    ],
+    [
+      "poisson-image-editing",
+      "computer-graphics"
+    ],
+    [
+      "text-filter",
+      "image-filter"
+    ],
+    [
+      "pose-estimation",
+      "computer-vision"
+    ],
+    [
+      "falling-sand-simulation",
+      "cellular-automata"
+    ],
+    [
+      "cantor-set",
+      "recursion"
+    ],
+    [
+      "recursion",
+      "mathematics"
+    ],
+    [
+      "metaballs",
+      "computer-graphics"
+    ],
+    [
+      "video-pixels",
+      "alternative-pixels"
+    ],
+    [
+      "minesweeper-brush",
+      "drawing-tool"
+    ],
+    [
+      "cubic-bezier-curve",
+      "computer-graphics"
+    ],
+    [
+      "wireframe",
+      "rendering"
+    ],
+    [
+      "medial-axis-skeletonization",
+      "geometry"
+    ],
+    [
+      "image-pixels",
+      "alternative-pixels"
+    ],
+    [
+      "cellular-automata",
+      "elementary-cellular-automata"
+    ],
+    [
+      "packing-problems",
+      "geometry"
+    ],
+    [
+      "dithering",
+      "image-filter"
+    ],
+    [
+      "non-euclidean-geometry",
+      "geometry"
+    ],
+    [
+      "alternative-pixels",
+      "image-filter"
+    ],
+    [
+      "computer-graphics",
+      "computation"
+    ],
+    [
+      "spectrogram",
+      "digital-signal-processing"
+    ],
+    [
+      "diffusion-limited-aggregation",
+      "growth"
+    ],
+    [
+      "voronoi",
+      "geometry"
+    ]
+  ],
+  "workConceptRelations": [
+    [
+      "haus-der-kunst-tune",
+      "spectrogram"
+    ],
+    [
+      "lex-box-max",
+      "combinatorics"
+    ],
+    [
+      "morisawa-10",
+      "cantor-set"
+    ],
+    [
+      "fault-lines-kabk-research-forum",
+      "rigid-body-dynamics"
+    ],
+    [
+      "flume-im-blue-remix",
+      "recursion"
+    ],
+    [
+      "preserving-earth",
+      "falling-sand-simulation"
+    ],
+    [
+      "identity-for-brand-ai",
+      "metaballs"
+    ],
+    [
+      "eternal-research",
+      "random-sequential-adsorption"
+    ],
+    [
+      "la-boutique-obscure",
+      "image-pixels"
+    ],
+    [
+      "color-experiments-with-moebiusxbin",
+      "ascii-brush"
+    ],
+    [
+      "skeletext",
+      "medial-axis-skeletonization"
+    ],
+    [
+      "on-cloubhouse-nyc",
+      "dithering"
+    ],
+    [
+      "a-deeply-flawed-quadtree",
+      "quadtree"
+    ],
+    [
+      "d-ad-festival-2022",
+      "text-filter"
+    ],
+    [
+      "les-printemps-de-sevelin",
+      "pose-estimation"
+    ],
+    [
+      "oberosterreichische-landeskultur",
+      "text-filter"
+    ],
+    [
+      "wissen-in-bildern",
+      "voronoi"
+    ],
+    [
+      "unite",
+      "vector-image-brush"
+    ],
+    [
+      "possible-pictures-pp",
+      "combinatorics"
+    ],
+    [
+      "golan-for-maeda-4127953",
+      "diffusion-limited-aggregation"
+    ],
+    [
+      "homer-radio",
+      "circle-packing"
+    ],
+    [
+      "our-vulnerable-world",
+      "minesweeper-brush"
+    ],
+    [
+      "video-tiles",
+      "video-pixels"
+    ],
+    [
+      "ambiguous-aesthetics",
+      "gradient-pixels"
+    ],
+    [
+      "coded-graffiti",
+      "soft-body-dynamics"
+    ],
+    [
+      "milen-en-joes-gaan-trouwen",
+      "bevel-join-brush"
+    ],
+    [
+      "identity-for-rio-carnaval",
+      "cubic-bezier-curve"
+    ],
+    [
+      "ready-typeface",
+      "reaction-diffusion"
+    ],
+    [
+      "f-f-abschlussausstellung",
+      "apollonian-gasket"
+    ],
+    [
+      "variationsubung",
+      "dubins-path"
+    ],
+    [
+      "bam-content-creator",
+      "sobel-edge-detection"
+    ],
+    [
+      "out-of-office-2",
+      "noise"
+    ],
+    [
+      "image-generation",
+      "image-similarity"
+    ],
+    [
+      "chaumont-biennale",
+      "image-pixels"
+    ],
+    [
+      "jazz-festival-willisau",
+      "video-frame-brush"
+    ]
+  ]
+}

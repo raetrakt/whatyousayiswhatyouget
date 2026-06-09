@@ -9,6 +9,10 @@
   "dependencies": {
     "@codemirror/lang-javascript": "^6.2.5",
     "codemirror": "^6.0.2",
+    "d3-drag": "^3.0.0",
+    "d3-force": "^3.0.0",
+    "d3-selection": "^3.0.0",
+    "d3-zoom": "^3.0.0",
     "mp4-muxer": "^5.2.2",
     "opentype.js": "^2.0.0",
     "p5": "^2.2.3",

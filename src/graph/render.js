@@ -1,3 +1,4 @@
+import * as d3 from './d3.js';
 import { linkKey, getNodeId } from './utils.js';
 
 export function createRenderer({
