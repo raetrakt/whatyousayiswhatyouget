@@ -1,17 +1,17 @@
-What You Say Is What You Get?
-Towards a deliberate use of large language models for custom graphic design tools
+What You Say Is What You Get?  
+Towards a deliberate use of large language models for custom graphic design tools  
 
-Fabian Pitzer
-Master of Arts in Design
-Visual Communication
+Fabian Pitzer  
+Master of Arts in Design  
+Visual Communication  
 
-Mentor
-Urs Hofer
+Mentor  
+Urs Hofer  
 
-Zurich University of the Arts
-June 2026
-<br/><br/>
-<br/><br/>
+Zurich University of the Arts  
+June 2026  
+  
+    
 If you want to modify tools from the tools page, you will need [Node.js](https://nodejs.org/).
 
 Then download or clone this repository to your computer.
@@ -32,5 +32,7 @@ When you're done, run `npm run build` to create a production-ready version of th
 <br/><br/>
 <br/><br/>
 Written thesis and diagrams © Fabian Pitzer, licensed under CC BY-NC 4.0.
+
 Graphic design works on the dictionary page and figures in the thesis are shown for educational purposes only. All rights belong to the authors.
+
 All code licensed under the MIT License, unless otherwise stated.
