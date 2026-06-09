@@ -109,9 +109,7 @@ async function initEditor(toolName) {
   }
 
   const INITIAL_CODE = [
-    '// This is part of the code that creates the image',
-    '// Try changing the values and see what happens',
-    '// https://github.com/raetrakt/whatyousayiswhatyouget',
+    '// Try editing the code below',
     '',
     'const text = "What You Say Is What You Get?"',
     '',
