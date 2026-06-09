@@ -33,3 +33,10 @@ body p:first-of-type {
 body p:last-of-type {
   padding-bottom: calc(var(--baseline)*2);
 }
+
+.footnote, sup {
+  font-family: 'True Sans Mono', monospace;
+  font-size: var(--notes-size);
+  line-height: var(--notes-line-height);
+  margin-bottom: var(--notes-baseline);
+}
