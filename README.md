@@ -10,8 +10,8 @@ Urs Hofer
 
 Zurich University of the Arts  
 June 2026  
-  
-    
+<br/><br/>
+<br/><br/>
 If you want to modify tools from the tools page, you will need [Node.js](https://nodejs.org/).
 
 Then download or clone this repository to your computer.
