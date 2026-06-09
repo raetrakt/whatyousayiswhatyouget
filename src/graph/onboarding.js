@@ -74,7 +74,7 @@ export function pushBatchOutward(batch, rootId, levelIndex, width, height) {
     }
     let spread = (jitter - 0.5) * 0.4;
     const angle = baseAngle + spread;
-    const radius = stepDistance + jitter * 26 + (i % 2) * 10;
+    const radius = stepDistance + jitter * 5 + (i % 2) * 10;
     const dx = Math.cos(angle);
     const dy = Math.sin(angle);
     n.x = px + dx * radius;
@@ -101,7 +101,7 @@ export async function runOnboardingReveal({
   // Boost repulsion during the reveal so freshly spawned branches push apart
   // instead of overlapping, which is what causes links to cross.
   if (chargeForce && typeof chargeForce.strength === 'function') {
-    chargeForce.strength(-2000);
+    chargeForce.strength(-1800);
   }
   try {
     const { rootId, levels } = buildRevealLevels();
