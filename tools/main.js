@@ -154,6 +154,14 @@ async function initEditor(toolName) {
     ],
     parent: document.getElementById('editor'),
   });
+  editorView.focus();
+  const _textLine = editorView.state.doc.toString().indexOf('const text = ');
+  if (_textLine !== -1) {
+    const _lineEnd = editorView.state.doc.toString().indexOf('\n', _textLine);
+    editorView.dispatch({
+      selection: { anchor: _lineEnd === -1 ? editorView.state.doc.length : _lineEnd - 1 },
+    });
+  }
 
   const canvas = document.getElementById('sketch');
   const ctx = canvas.getContext('2d', { colorSpace: 'srgb' });
