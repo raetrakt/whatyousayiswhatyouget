@@ -85,7 +85,7 @@ foreignObject {
 }
 
 .node.has-tool-link:hover {
-  transform: scale(1.03);
+  transform: scale(1.1);
 }
 
 .node.has-tool-link span {
@@ -251,7 +251,7 @@ body.is-safari .node-img:hover {
 }
 
 .node-img:hover {
-  transform: scale(1.03);
+  transform: scale(1.1);
 }
 
 .work-modal-line {

@@ -109,9 +109,7 @@ async function initEditor(toolName) {
   }
 
   const INITIAL_CODE = [
-    '// This is part of the code that creates the image',
-    '// Try changing the values and see what happens',
-    '// https://github.com/raetrakt/whatyousayiswhatyouget',
+    '// Try editing the code below',
     '',
     'const text = "What You Say Is What You Get?"',
     '',
@@ -154,6 +152,14 @@ async function initEditor(toolName) {
     ],
     parent: document.getElementById('editor'),
   });
+  editorView.focus();
+  const _textLine = editorView.state.doc.toString().indexOf('const text = ');
+  if (_textLine !== -1) {
+    const _lineEnd = editorView.state.doc.toString().indexOf('\n', _textLine);
+    editorView.dispatch({
+      selection: { anchor: _lineEnd === -1 ? editorView.state.doc.length : _lineEnd - 1 },
+    });
+  }
 
   const canvas = document.getElementById('sketch');
   const ctx = canvas.getContext('2d', { colorSpace: 'srgb' });
