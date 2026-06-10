@@ -215,6 +215,11 @@ table {
   .site-header-nav.nav-open a {
     display: inline-block;
   }
+
+  .site-header a .header-hover-text {
+    right: 0;
+    left: unset;
+  }
 }
 
 @media (min-width: 800px) {

@@ -325,6 +325,10 @@ body.editing-mode {
     padding-top: 40px;
   }
 
+  .work-modal-meta {
+    width: 100%;
+  }
+
   .work-modal-meta p,
   .work-modal-meta a,
   #work-modal-classification {
@@ -333,6 +337,12 @@ body.editing-mode {
 
   #work-modal-source {
     word-break: break-all;
+  }
+
+  #work-modal-classification::before {
+    content: "";
+    display: block;
+    height: 2.5px;
   }
 
   .work-modal-panel {
