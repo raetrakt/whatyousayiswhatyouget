@@ -25,6 +25,10 @@ body.page-grid {
   align-content: start;
 }
 
+.code {
+  color: var(--red);
+}
+
 @media (min-width: 800px) {
   #title-resampling-canvas {
     transform-origin: center top;
