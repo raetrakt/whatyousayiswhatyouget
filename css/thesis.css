@@ -60,14 +60,9 @@ h3:has(+ h4) {
 }
 
 @media (max-width: 800px) {
-  .toc-toggle {
-    writing-mode: vertical-rl;
-    transform: rotate(180deg);
-  }
-
   .toc-toggle-wrapper {
-    right: max(calc(var(--grid-gap) * 0.3), env(safe-area-inset-right));
-    top: calc(var(--site-header-height) + var(--grid-gap));
+    right:var(--grid-gap);
+    top: calc(var(--site-header-height) + var(--grid-gap) + 10px);
   }
 
   :root .table-of-contents p:first-of-type {
@@ -246,10 +241,6 @@ figcaption,
   margin-bottom: var(--baseline);
 }
 
-.title-text .right:last-child {
-  margin-right: 15px;
-}
-
 .hide-on-web {
   display: none;
 }
@@ -305,6 +296,10 @@ figure {
 
   h1 {
     margin-top: calc(var(--baseline) * 2);
+  }
+
+  .title-text .right:last-child {
+    margin-right: 15px;
   }
 }
 
