@@ -22,7 +22,7 @@ const buildToc = () => {
     });
 
     contents.addEventListener('click', (e) => {
-      if (e.target.closest('a') && window.innerWidth < 800) {
+      if (e.target.closest('a') && window.innerWidth < 1400) {
         toggle.setAttribute('aria-expanded', 'false');
         toggle.textContent = 'Contents';
         contents.classList.remove('toc-open');
