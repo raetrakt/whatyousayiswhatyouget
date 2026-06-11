@@ -56,6 +56,7 @@ body {
 
 html {
   scroll-padding-top: calc(var(--site-header-height) + var(--baseline) + 10px);
+  scroll-behavior: smooth;
 }
 
 html::selection {
